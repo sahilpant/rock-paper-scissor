@@ -6,5 +6,7 @@ import { user } from './interfaces/user.interface';
 
 @Module({})
 export class RequiredModule {
+   
     export:[username,cards,passkey,user]
+
 }

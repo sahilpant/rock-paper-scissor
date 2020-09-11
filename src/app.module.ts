@@ -20,44 +20,84 @@ import { PlayService } from './play/play.service';
 import {JwtModule} from '@nestjs/jwt'
 import {PassportModule} from '@nestjs/passport'
 import { jwtStrategy } from './jwt.strategy';
+
 @Module({
+
   imports: [
+    
+
     NotificationModule,
+
     MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey}]),
+
     RedisModule.register
+
     ({
+
       name:'test',
+
       url: 'redis://localhost:6379',
+
       port:6379,
+
     }),
+
     RegisterModule,
+
     ConfigModule.forRoot
+
     ({
+
       isGlobal:true,
+
       envFilePath:[ 'D://node stuff//final project rock paper//roshambo-backend//env//development.env', 'D://node stuff//final project rock paper//roshambo-backend//env//.env',],
+
       load:[configuration]
+
     }),
+
     MongooseModule.forRootAsync
+
     ({
+
       useFactory: (configService: ConfigService) =>
-       ({
-          uri:configService.get<string>('URL')
-       }),
-        inject: [ConfigService],
+
+      ({
+
+        uri:configService.get<string>('URL')
+
+      }),
+
+      inject: [ConfigService],
+
     }),
-    // MongooseModule.forRoot("mongodb+srv://nj1867:namit@cluster0.x2ytv.gcp.mongodb.net/new3?retryWrites=true&w=majority"),
-    UserModule,
-    SocketModule,
+    
     RequiredModule,
+    
+    UserModule,
+    
+    SocketModule,
+    
     PlayModule,
+    
     PassportModule.register({ defaultStrategy:'jwt' }),
+    
     JwtModule.register({
+    
       secret: "hello",
+    
       signOptions:{ expiresIn:3600, },
+   
     }),
+  
   ],
+  
   controllers: [AppController],
+  
   providers: [AppService,TestGateway,AppGateway,configss,PlayService,jwtStrategy],
+  
   exports:[jwtStrategy]
+
 })
+
 export class AppModule {}

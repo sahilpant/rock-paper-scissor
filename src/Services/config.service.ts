@@ -7,11 +7,16 @@ import IEnvConfigInterface from './IEnvConfigInterface';
 
 @Injectable()
 class ConfigService {
+
     private readonly envConfig: IEnvConfigInterface;
   
     constructor(filePath: string) {
+  
       const config = dotenv.parse(fs.readFileSync(filePath));
+  
       this.envConfig = config;
+  
     }
 
-}
+
+  }

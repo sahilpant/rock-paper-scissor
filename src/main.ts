@@ -10,8 +10,11 @@ declare const module: any;
 async function bootstrap() {
 
 
+ 
   const app = await NestFactory.create(AppModule);
+ 
   app.useWebSocketAdapter(new RedisIoAdapter(app));
+ 
   console.log((process.env.NODE_ENV))
 
   var configServcie = app.get(ConfigService)
@@ -19,11 +22,17 @@ async function bootstrap() {
   const port = parseInt(configServcie.get('database.port'))
   
   console.log(configServcie.get('database.port'))
+  
   await app.listen(port);
 
   if (module.hot) {
+  
     module.hot.accept();
+  
     module.hot.dispose(() => app.close());
+  
   }
+
 }
+
 bootstrap();

@@ -4,7 +4,6 @@ import { NotificationService } from './notification.service';
 import {MailerModule} from 'nestjs-mailer'
 import { MongooseModule } from '@nestjs/mongoose';
 import { user } from 'src/schemas/user.model';
-import { passKey } from 'src/schemas/passkey.model';
 @Module({
   imports:[
     MongooseModule.forFeature([{ name: 'user', schema: user },],),

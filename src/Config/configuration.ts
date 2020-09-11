@@ -5,8 +5,11 @@ export default () => ({
   // port: parseInt(process.env.PORT, 10) || 3000,
   database: {
     host: process.env.host,
+
     port: process.env.PORT
+
   }
+
 });
 
  @Injectable()
@@ -15,7 +18,9 @@ export default () => ({
      port= 1000;
 
     returnport(){
+
      return this.port
+    
     }
 
 

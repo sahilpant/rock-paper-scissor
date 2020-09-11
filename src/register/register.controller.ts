@@ -9,16 +9,23 @@ export class RegisterController {
 
     @Post('/createUser')
     createUser(@Body(ValidationPipe) userNameDto:username){
+      
       return this.registerService.createUser(userNameDto)
+    
     }
 
     @Post('/forgotUser')
     resetPass(@Body('name') name:string){
+    
       this.registerService.resetPass(name)
+    
     }
 
     @Post('/reset')
     reset(@Body('key') key:string,@Body('newPass') newPass:string,@Body('name') name:string){
-     this.registerService.reset(key,newPass,name);
+    
+      this.registerService.reset(key,newPass,name);
+    
     }
-}
+
+  }

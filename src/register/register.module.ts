@@ -6,11 +6,17 @@ import { user } from 'src/schemas/user.model';
 import { NotificationService } from 'src/notification/notification.service';
 import { passKey } from 'src/schemas/passkey.model';
 import {RequiredModule} from 'src/required/required.module'
+import * as gameblock from '../../gameblock'
 @Module({
   imports:[
     RequiredModule,
+    
     MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey}],),],
+  
   controllers: [RegisterController],
+  
   providers: [RegisterService,NotificationService]
+
 })
+
 export class RegisterModule {}
