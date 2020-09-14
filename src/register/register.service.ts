@@ -135,7 +135,7 @@ export class RegisterService
                   sign_UP(userNameDto.publickey);
 
                   const user=new this.user()
-                  
+
                   user.username=userNameDto.username,
    
                   user.email=userNameDto.email,
