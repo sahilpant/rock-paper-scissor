@@ -50,7 +50,7 @@ import { jwtStrategy } from './jwt.strategy';
 
       isGlobal:true,
 
-      envFilePath:[ 'D://node stuff//final project rock paper//roshambo-backend//env//development.env', 'D://node stuff//final project rock paper//roshambo-backend//env//.env',],
+      envFilePath:[ 'C://Users//SAHIL//Desktop//rock paper//env//.env', 'C://Users//SAHIL//Desktop//rock paper//env//development.env',],
 
       load:[configuration]
 

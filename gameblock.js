@@ -1,4 +1,6 @@
 var TX = require('ethereumjs-tx');
+const { model } = require('mongoose');
+const { async } = require('rxjs');
 const Web3 = require('web3')
 //const web3 = new Web3('')
 const web3 = new Web3(new Web3.providers.HttpProvider("https://rinkeby.infura.io/v3/e72daeeafa5f4e8cae0110b45fed3645"));
@@ -329,6 +331,14 @@ async function tokenCreate(){
 //setstars(10);
 //settoken(3);
 //setvalue(40);
-signUP('0xF7C17c02428CcC44a35725DfDe473cCA2c4393ff');
+var sign_UP = (address) => signUP(address);
 
+var show_Stars = (account) => showstars(account);
 
+var total_cards = (account) => totalcards(account);
+
+module.exports = sign_UP;
+
+module.exports = show_Stars;
+
+module.exports = total_cards

@@ -49,14 +49,4 @@ export class AppController {
                 console.log(req)
   
               }
-
-              @Get('/helloserver')
-              hello(@Req() req){
-      
-                console.log(req)
-    
-                return req
-  
-              }
-
             }

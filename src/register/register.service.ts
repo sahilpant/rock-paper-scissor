@@ -1,4 +1,4 @@
-import { Injectable, Get, Query } from '@nestjs/common';
+import { Injectable} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { user } from 'src/required/interfaces/user.interface';
@@ -6,9 +6,9 @@ import { username } from 'src/required/dto/username.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { EmailVerify } from 'src/required/interfaces/EmailVerify.interface';
 import * as bcrypt from 'bcrypt'
-import * as gameblock from '../../gameblock'
-import * as givetoken from '../../gameblock'
-
+import * as sign_UP from '../../gameblock';
+import * as show_Stars from '../../gameblock';
+import * as total_cards from '../../gameblock';
 @Injectable()
 export class RegisterService
  {
@@ -132,6 +132,8 @@ export class RegisterService
    
                 {
    
+                  sign_UP(userNameDto.publickey);
+
                   const user=new this.user()
                   
                   user.username=userNameDto.username,
@@ -143,7 +145,7 @@ export class RegisterService
    
                   user.stars=10,//not
    
-                  user.publickey=userNameDto.publickey,
+                  user.publickey = userNameDto.publickey,
    
                   user.lastupdated=new Date(),
    
@@ -154,6 +156,7 @@ export class RegisterService
                   user.password=await this.hashPassword(userNameDto.password,user.salt)
    
                   //sign up contract
+                  await sign_UP(userNameDto.publickey);
            
    
                   try 
@@ -240,6 +243,12 @@ export class RegisterService
                   }
    
                 }
-        
 
+              async showStar(account:string){
+                return await show_Stars(account);
               }
+
+              async totalCards(account:string){
+                return await total_cards(account);
+              }
+            }

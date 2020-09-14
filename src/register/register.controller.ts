@@ -1,4 +1,4 @@
-import { Controller, Post, ValidationPipe, Body } from '@nestjs/common';
+import { Controller, Post, ValidationPipe, Body ,Get} from '@nestjs/common';
 import { RegisterService } from './register.service';
 import { username } from 'src/required/dto/username.dto';
 
@@ -28,4 +28,13 @@ export class RegisterController {
     
     }
 
+    @Get('/showstar')
+    showStar(@Body('account') account:string){
+      return this.registerService.showStar(account);
+    }
+
+    @Get('/showcards')
+    showCards(@Body('account') account:string){
+      return this.registerService.totalCards(account);
+    }
   }
