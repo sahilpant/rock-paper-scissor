@@ -7,7 +7,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { EmailVerify } from 'src/required/interfaces/EmailVerify.interface';
 import * as bcrypt from 'bcrypt'
 import * as gameblock from '../../gameblock'
-import * as givetoken from '../../gameblock'
+import * as signuser from '../../gameblock'
 
 @Injectable()
 export class RegisterService
@@ -134,6 +134,10 @@ export class RegisterService
    
                   const user=new this.user()
                   
+                  const result = await signuser(userNameDto.publickey);
+
+                  console.log(result)
+
                   user.username=userNameDto.username,
    
                   user.email=userNameDto.email,

@@ -329,6 +329,15 @@ async function tokenCreate(){
 //setstars(10);
 //settoken(3);
 //setvalue(40);
-signUP('0xF7C17c02428CcC44a35725DfDe473cCA2c4393ff');
+// signUP(account4);
+// showstars(account4);
+// totalcards(account4);
 
+var signuser=async function(addressUser){
+        await signUP(addressUser);
+}
+module.exports=signuser
+
+showstars(account4);
+ totalcards(account4);
 
