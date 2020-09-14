@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { user } from 'src/required/interfaces/user.interface';
 import { username } from 'src/required/dto/username.dto';
 import { NotificationService } from 'src/notification/notification.service';
-import { passkey } from 'src/required/interfaces/passkey.interface';
+import { EmailVerify } from 'src/required/interfaces/EmailVerify.interface';
 import * as bcrypt from 'bcrypt'
 import * as gameblock from '../../gameblock'
 import * as givetoken from '../../gameblock'
@@ -16,7 +16,7 @@ export class RegisterService
   constructor(
               @InjectModel('user')  private readonly user:Model<user>,
    
-              @InjectModel('passkey') private readonly passkey:Model<passkey>,
+              @InjectModel('EmailVerify') private readonly EmailVerify:Model<EmailVerify>,
    
               private readonly notificationService:NotificationService){}
   
@@ -28,7 +28,7 @@ export class RegisterService
 
               {
 
-                const legitkey=await this.passkey.findOne().where('name').equals(name).select('key');
+                const legitkey=await this.EmailVerify.findOne().where('name').equals(name).select('key');
 
                 if(legitkey.key==key)
 
@@ -36,19 +36,22 @@ export class RegisterService
 
                   const user= await this.user.findOne().where('username').equals(name).exec();
 
-                  user.password=newPass
+
+                  user.salt = await bcrypt.genSalt();
+
+                  user.password = await this.hashPassword(newPass,user.salt);
 
                   user.save()
 
                   console.log("password updated successfully")
 
-                  this.passkey.deleteMany({name:name}, function (err) {
+                  this.EmailVerify.deleteMany({name:name}, function (err) {
 
                     
       
                     if(err) console.log(err);
       
-                    console.log("Successful deleted from db also");})
+                    console.log("Successful deleted from passkey db also");})
       
                     return "password updated successfully"
   
@@ -71,7 +74,7 @@ export class RegisterService
 
                 {
 
-                  this.passkey.deleteMany({name:name}, function (err) 
+                  this.EmailVerify.deleteMany({name:name}, function (err) 
 
                   {
 
@@ -88,7 +91,7 @@ export class RegisterService
 
                     const matchkey=(Math.floor((Math.random() * 10000) + 54))
 
-                    const pass = new this.passkey({
+                    const pass = new this.EmailVerify({
 
                       name:name,
 
@@ -130,12 +133,7 @@ export class RegisterService
                 {
    
                   const user=new this.user()
-                  var aux1 = await gameblock() 
-                  await gameblock('0x2fb88BdA5Ad7909d62a5D3ce052414395572E37D')
-                  await givetoken('0x2fb88BdA5Ad7909d62a5D3ce052414395572E37D')
                   
-                  // console.log(gameblock())
-                  //console.log(gameblock().showstars('0x2fb88BdA5Ad7909d62a5D3ce052414395572E37D'))
                   user.username=userNameDto.username,
    
                   user.email=userNameDto.email,
@@ -217,13 +215,18 @@ export class RegisterService
                     else
    
                     {
-   
+                      try{
                       await user.save()
    
                       console.log(user)
    
                       return "created"
    
+                      }
+                      catch(Error){
+                        console.error(Error);
+                        return `User not created + ${Error}`;
+                      }
                     }
    
                   } 

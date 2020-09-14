@@ -54,6 +54,7 @@
     "rimraf": "^3.0.2",
     "rxjs": "^6.5.4",
     "socket.io-redis": "^5.3.0",
+    "sol": "^0.3.0",
     "suggest-username": "^0.1.2",
     "web3": "^1.2.11"
   },

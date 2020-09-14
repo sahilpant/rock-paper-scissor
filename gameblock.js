@@ -6,7 +6,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider("https://rinkeby.infura.io
 
 //Game interface
 const interface = [{"constant":false,"inputs":[{"name":"spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"stars","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newOwner","type":"address"}],"name":"setOwner","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"nft_add","type":"address"}],"name":"set_nft_address","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"player1","type":"address"},{"name":"player2","type":"address"},{"name":"token1","type":"uint256"},{"name":"token2","type":"uint256"}],"name":"play_game","outputs":[{"name":"","type":"uint256"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"value","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"token_add","type":"address"}],"name":"set_token_address","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"nft","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"manager","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_value","type":"uint256"}],"name":"setValue","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_of","type":"address"}],"name":"TotalCards","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_of","type":"address"}],"name":"remainingScissor","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_of","type":"address"}],"name":"remainingPaper","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"card1","type":"uint256"},{"name":"card2","type":"uint256"}],"name":"decide","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"pure","type":"function"},{"constant":false,"inputs":[{"name":"_stars","type":"uint256"}],"name":"setStars","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_amount","type":"uint256"}],"name":"setToken","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"_of","type":"address"}],"name":"showStars","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_of","type":"address"},{"name":"cards","type":"uint256"}],"name":"block_card","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[],"name":"signup","outputs":[{"name":"","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[],"name":"starCount","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"NoOfTokens","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"_manager","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_of","type":"address"}],"name":"remainingRock","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"}]
-var _interface = new web3.eth.Contract((interface) , '0x5aDbF49A30A8d64bBed86a91a685e4DFe17D90Fc'); //deployed address 
+var _interface = new web3.eth.Contract((interface) , '0x4021A83f962071f116dC700Aa388b89869F80517'); //deployed address 
 
 
 //NFT interface
@@ -37,50 +37,44 @@ const interface_nft = [{"constant":true,"inputs":[{"name":"_tokenId","type":"uin
 {"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"},
 {"anonymous":false,"inputs":[{"indexed":true,"name":"_owner","type":"address"},{"indexed":true,"name":"_approved","type":"address"},
 {"indexed":true,"name":"_tokenId","type":"uint256"}],"name":"Approval","type":"event"}];
-var _interact = new web3.eth.Contract((interface_nft) , '0x1b00eE4be1c450a9D1FD3211aF9f6895998da818');
+var _interact = new web3.eth.Contract((interface_nft) , '0xfa35faEB6C9dA21e858055b371Fa5Bca5B778EB8');
 
 
 //Stars interface 
 const interface_stars = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[{"name":"success","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balances","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newaddress","type":"address"}],"name":"changeowner","outputs":[{"name":"success","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"request","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"ownerAddress","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_reduceSupply","type":"uint256"}],"name":"DecreaseSupply","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[{"name":"success","type":"bool"}],"payable":true,"stateMutability":"payable","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"balanceOwnerAddress","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_newSupply","type":"uint256"}],"name":"IncreaseSupply","outputs":[],"payable":true,"stateMutability":"payable","type":"function"},{"inputs":[{"name":"_initialSupply","type":"uint256"},{"name":"gameContractAddress","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_from","type":"address"},{"indexed":true,"name":"_to","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"_owner","type":"address"},{"indexed":true,"name":"_spender","type":"address"},{"indexed":false,"name":"_value","type":"uint256"}],"name":"Approval","type":"event"}]
-var star = new web3.eth.Contract(interface_stars, '0xDbe03C5DcDB823664936F406cf87Eedc625B8cF8');
+var star = new web3.eth.Contract(interface_stars, '0xe71B521027F32e861CA223d911d808AA3757DccE');
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const account1  = '0x273C249b8bE25a88aDe9ec182655Af6ae263C58a'
-const account2  = '0xF7C17c02428CcC44a35725DfDe473cCA2c4393ff'
-const account3  = '0xf158F22ec9ef60A64F83Cf2BD59F6b5554E9caC4'
-const account4 = '0x63580a35A6B6Da5c13c1Bf9c62C51FbCe64c806F';
+const account3  = '0x5fD574fdb828022b2a6e68C11DE371266dCBFAe1'
 
 
 
-const privateKey1 = new  Buffer.from('d126dd29ecae53e923d3b59b2e4b8281b447bd18bd81dc4e9890fd559f1525fb' , 'hex');
-const privateKey2 = new  Buffer.from('60d4a93d45c1b890b340db0fbc9ce48afedcee22f71433812828e5c8e8f7774c' , 'hex');
-const privateKey3 = new  Buffer.from('1d74031771cabab38b07d31937bdcf279c712f0e2f358c1072bc0cf27898e004' , 'hex');
-const privateKey4 = new Buffer.from('7958cb545ad3be8ad142a8f632c7c7cc5c8bc18bdd098f69998ee026e4fa525a' , 'hex');
+
+const privateKey3 = new  Buffer.from('9902fb0fca74a363ed5bd110e677b18ba9732404cf070ea25f82ec87232ba167' , 'hex');
+
 
 
 //transcation function for game
 async function run_code(data){
         
-        var count = await web3.eth.getrun_codeCount(account1); //change here 
+        var count = await web3.eth.getTransactionCount(account3); //change here 
 
         var Price =  await web3.eth.getGasPrice();
         
-       
         var txData = {
 
         nonce: web3.utils.toHex(count),
         
-
         gasLimit: web3.utils.toHex(2500000),
         
         gasPrice: web3.utils.toHex(Price * 1.40),
         
-        to: '0x5aDbF49A30A8d64bBed86a91a685e4DFe17D90Fc',                   //---> for game 
-      // to: '0x1b00eE4be1c450a9D1FD3211aF9f6895998da818',                 //----->for nft     
-       // to: '0xDbe03C5DcDB823664936F406cf87Eedc625B8cF8',                 //----->fir stars    
-        from: account1, //change here 
+        to: '0x4021A83f962071f116dC700Aa388b89869F80517',                   //---> for game 
+//       to: '0xfa35faEB6C9dA21e858055b371Fa5Bca5B778EB8',                 //----->for nft     
+//        to: '0xe71B521027F32e861CA223d911d808AA3757DccE',                 //----->fir stars    
+        from: account3, //change here 
         
         data: data
         
@@ -88,11 +82,11 @@ async function run_code(data){
                 
         var run_code = new TX(txData, {'chain': 'rinkeby'});
         
-        run_code.sign(privateKey1); //change here 
+        run_code.sign(privateKey3); //change here 
         
         var serialisedrun_code = run_code.serialize().toString('hex');
         
-        const result = await  web3.eth.sendSignedrun_code('0x' + serialisedrun_code);
+        const result = await  web3.eth.sendSignedTransaction('0x' + serialisedrun_code);
         console.log(result);
       
 };
@@ -197,6 +191,7 @@ async function playGame( player1 ,player2 , token1 , token2 ){
         }
         catch{
                 throw{message: "ERROR: unable to process game"};
+
         }
 
 }
@@ -385,16 +380,17 @@ async function getbalance(_address){
 
 
 
-returnIDs(account1);
+// returnIDs(account2);
  //totalcards(account1);
 //signUP();
 //showstars(account1);
-//nft('0x1b00eE4be1c450a9D1FD3211aF9f6895998da818');
-//set_ERC20_Contract_address('0x8E6BBb04A13a53beb903000F6C034e0C278Bab03');
-//setowner('0x5aDbF49A30A8d64bBed86a91a685e4DFe17D90Fc');
+// setowner('0x4021A83f962071f116dC700Aa388b89869F80517'); //game
+//  nft('0xfa35faEB6C9dA21e858055b371Fa5Bca5B778EB8'); //tokens
+// set_ERC20_Contract_address('0xe71B521027F32e861CA223d911d808AA3757DccE');//stars
+
 
 var gameblock=function(account1){
-showstars(account1);
+  setowner(account1)
 }
 
 var givetoken = function(account1)

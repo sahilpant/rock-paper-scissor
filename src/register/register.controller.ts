@@ -8,7 +8,7 @@ export class RegisterController {
     constructor(private readonly registerService:RegisterService){}
 
     @Post('/createUser')
-    createUser(@Body(ValidationPipe) userNameDto:username){
+    createUser(@Body() userNameDto:username){
       
       return this.registerService.createUser(userNameDto)
     
