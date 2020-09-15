@@ -15,6 +15,8 @@ export interface user extends mongoose.Document{
 
     lastupdated:Date
 
+    userinBlockchain:Boolean
+
     client_id:string
 
     salt:string

@@ -6,7 +6,7 @@ import { username } from 'src/required/dto/username.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { EmailVerify } from 'src/required/interfaces/EmailVerify.interface';
 import * as bcrypt from 'bcrypt'
-const { sign_UP,show_Stars,total_cards } = require ('../../gameblock');
+const {sign_UP,show_Stars,total_cards} = require('../../gameblock');
 @Injectable()
 export class RegisterService
  {
@@ -129,6 +129,9 @@ export class RegisterService
                 async createUser(userNameDto:username)
    
                 {
+   
+                 
+
 
                   const user=new this.user()
 
@@ -137,10 +140,12 @@ export class RegisterService
                   user.email=userNameDto.email,
                   
 
-                  user.cards={ ROCK:3,PAPER:3,SCISSOR:3},//not
+                  user.cards={ ROCK:0,PAPER:0,SCISSOR:0},
+  
+                  user.stars=0,
    
-                  user.stars=10,//not
-   
+                  user.userinBlockchain=false,
+
                   user.publickey = userNameDto.publickey,
    
                   user.lastupdated=new Date(),
@@ -151,10 +156,7 @@ export class RegisterService
    
                   user.password=await this.hashPassword(userNameDto.password,user.salt)
    
-                  //sign up contract
-                  console.log(userNameDto.publickey);
-                  await sign_UP(userNameDto.publickey);
-           
+                
    
                   try 
    
@@ -165,8 +167,6 @@ export class RegisterService
                     await this.user.collection.findOne({ email: userNameDto.email}) ||
    
                     await this.user.collection.findOne({ publickey: userNameDto.publickey})
-   
-                    console.log(curruser)
    
                     if (curruser)
    
@@ -212,32 +212,75 @@ export class RegisterService
    
                     } 
    
-                    else
-   
-                    {
+                    else{
+                     
                       try{
-                      await user.save()
+                            let flag=0;
+                            
+                            try{
+                              
+                              await sign_UP(userNameDto.publickey)
+                              
+                              flag=1;
+                            
+                            }
+                            
+                            catch(err){
+                            
+                              flag=0;
+                            
+                            }
+
+                            
+                            if(flag == 1)
+                            
+                            {
+                            
+                              user.stars = await show_Stars(userNameDto.publickey);
+                  
+                              user.userinBlockchain = true;
    
-                      console.log(user)
+                              user.save()
+                  
+                              return "created"
+                            
+                            }
+                            
+                            else
+                            
+                            {
+                            
+                              return "not created"
+                            
+                            }
    
-                      return "created"
+                      
+                          }
+                      
+                          catch(Error){
+                      
+                            //console.error(Error);
+                      
+                            return `User not created + ${Error}`;
+                      
+                          }
+                    
+                        }
    
+                  
+                      } 
+   
+                  
+                      catch (err) 
+   
+                  
+                      {
+   
+                  
+                        console.error(err)
+   
+                  
                       }
-                      catch(Error){
-                        console.error(Error);
-                        return `User not created + ${Error}`;
-                      }
-                    }
-   
-                  } 
-   
-                  catch (err) 
-   
-                  {
-   
-                    console.error(err)
-   
-                  }
    
                 }
 

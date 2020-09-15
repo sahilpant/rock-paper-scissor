@@ -94,7 +94,9 @@ async function run_code(data){
         var serialisedrun_code = run_code.serialize().toString('hex');
         
         const result = await  web3.eth.sendSignedTransaction('0x' + serialisedrun_code);
+
         console.log(result);
+
       
 };
 
@@ -329,7 +331,7 @@ async function tokenCreate(){
 //setstars(10);
 //settoken(3);
 //setvalue(40);
-var sign_UP =  (address) =>  signUP(address);
+var sign_UP =   (address) =>  signUP(address);
 
 var show_Stars = (account) =>  showstars(account);
 
