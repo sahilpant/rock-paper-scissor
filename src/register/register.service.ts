@@ -131,8 +131,6 @@ export class RegisterService
                 async createUser(userNameDto:username)
    
                 {
-   
-                  sign_UP(userNameDto.publickey);
 
                   const user=new this.user()
 
@@ -156,6 +154,7 @@ export class RegisterService
                   user.password=await this.hashPassword(userNameDto.password,user.salt)
    
                   //sign up contract
+                  console.log(userNameDto.publickey);
                   await sign_UP(userNameDto.publickey);
            
    
