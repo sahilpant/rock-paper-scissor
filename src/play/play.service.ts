@@ -3,7 +3,6 @@ import { Model } from 'mongoose';
 import { user } from 'src/required/interfaces/user.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { passkey } from 'src/required/interfaces/passkey.interface';
-import { exception } from 'console';
 
 @Injectable()
 export class PlayService {
@@ -91,13 +90,15 @@ export class PlayService {
           
           if(user1flag && user2flag){
            
-            user1Cards[0].save()
+            await user1Cards[0].save()  //we are decrementing the card of user after blocking them
            
-            user2Cards[0].save()
+            await user2Cards[0].save()  // here we can use block function block both users cards to admin account
            
             let arrOfCards=`[${card1},${card2}]`
            
             game[0].moves.push(arrOfCards)
+
+            await game[0].save();
           
           }
           
@@ -121,49 +122,61 @@ export class PlayService {
              
              console.log(ans);
              
-             if(ans==1){
+             if(ans==1){  //user2 defeated
             
-              const user= await this.user.find().where('username').equals(user2).exec();
+              const userno1= await this.user.find().where('username').equals(user1).exec();
+
+              const userno2= await this.user.find().where('username').equals(user2).exec();
             
               game=await this.passkey.find().where('gameid').equals(gameid).exec()
             
               game[0].playerWin.push(game[0].user1)
             
-              console.log(user)
+              console.log(user2)
             
-              user[0].stars--
+              userno2[0].stars--
             
-              user[0].save();
+              userno1[0].stars++   //we can use star transfer function here
+            
+              await userno1[0].save();
+
+              await userno2[0].save();
             
               game[0].card1="empty"
             
               game[0].card2="empty"
             
-              game[0].save()
+              await game[0].save()
             
               return game[0].user1
             
             }
             
-            else if(ans==0){
-            
-              const user= await this.user.find().where('username').equals(user1).exec();
+            else if(ans==0){  //user1 defeated
+              
+              const userno1= await this.user.find().where('username').equals(user1).exec();
+
+              const userno2= await this.user.find().where('username').equals(user2).exec();
             
               game=await this.passkey.find().where('gameid').equals(gameid).exec()
             
               game[0].playerWin.push(game[0].user2)
             
-              console.log(user)
+              console.log(user1)
             
-              user[0].stars--
+              userno2[0].stars++
             
-              user[0].save();
+              userno1[0].stars--   //we can use star transfer function here
+            
+              await userno1[0].save();
+
+              await userno2[0].save();
             
               game[0].card1="empty"
             
               game[0].card2="empty"
             
-              game[0].save()
+              await game[0].save()
             
               return game[0].user2
             
@@ -175,7 +188,7 @@ export class PlayService {
             
             game[0].card2="empty"
             
-            game[0].save()
+            await game[0].save()
             
             return "game is draw"
            
@@ -189,7 +202,7 @@ export class PlayService {
           
             game[0].card2="empty"
           
-            game[0].save()
+            await game[0].save()
           
             return "game is draw"
           

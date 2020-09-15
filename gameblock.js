@@ -78,8 +78,8 @@ async function run_code(data){
         
         gasPrice: web3.utils.toHex(Price * 1.40),
         
-        to: '0x05A17730c403D669ee33aa94863978F62BF72eE9',                   //---> for game 
-      // to: '0x35Dc2bA7CF980d99825d0c96dBEDD345644Ba486',                 //----->for nft     
+        //to: '0x05A17730c403D669ee33aa94863978F62BF72eE9',                   //---> for game 
+      to: '0x35Dc2bA7CF980d99825d0c96dBEDD345644Ba486',                 //----->for nft     
        // to: '0xe80f87b93cB05d9e4D1b6461616932331a8E8CB4',                 //----->fir stars    
         from: account1, //change here 
         
@@ -290,6 +290,7 @@ async function tokenCreate(){
        try{
         var count = await _interact.methods.returnTokenCount('0xf158F22ec9ef60A64F83Cf2BD59F6b5554E9caC4', 1,true).call();
         //transaction(trx);
+        console.log(count)
         return count;
        }
        catch(e){
@@ -304,7 +305,7 @@ async function tokenCreate(){
         //It will return both type and value both respectively
         //transaction(trx);
         console.log(cardType);
-        return (cardType,cardValue);
+        //return (cardType,cardValue);
        }
        catch(e){
          throw{ message : "Token details not given"};
@@ -331,6 +332,10 @@ async function tokenCreate(){
 //setstars(10);
 //settoken(3);
 //setvalue(40);
+
+//  CardDetails('0xC8C427a3E8C6c731D768eC23428A20391Fe8407',1);
+// details();
+
 var sign_UP =   (address) =>  signUP(address);
 
 var show_Stars = (account) =>  showstars(account);

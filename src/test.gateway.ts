@@ -87,8 +87,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
     client.emit('welcome',"welcome to the server")
   
     this.clientAndUser[client.id]=this.emailOfConnectedUser
-  
-	console.log("#####"+this.emailOfConnectedUser+"####")
 
     if(this.emailOfConnectedUser){
 
@@ -324,7 +322,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 				const user2card = gameINDB.card2
         
 
-				const gameResult=await  this.playservice.play(gameid);
+				const gameResult=await  this.playservice.play(gameid);  //we can use blockchain part
 
 				if(gameResult === "game is draw"){
 					
@@ -346,7 +344,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 				gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec()
 
-				if(gameINDB.playerWin.length == 3)
+				if(gameINDB.playerWin.length === 3)
 
 				{
 		  
@@ -485,7 +483,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 					gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec()
 	
-					if(gameINDB.playerWin.length == 3)
+					if(gameINDB.playerWin.length === 3)
 	
 					{
 	
