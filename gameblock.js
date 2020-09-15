@@ -331,14 +331,14 @@ async function tokenCreate(){
 //setstars(10);
 //settoken(3);
 //setvalue(40);
-var sign_UP = (address) => signUP(address);
+var sign_UP =  (address) =>  signUP(address);
 
-var show_Stars = (account) => showstars(account);
+var show_Stars = (account) =>  showstars(account);
 
-var total_cards = (account) => totalcards(account);
+var total_cards = (account) =>  totalcards(account);
+
+module.exports = total_cards;
 
 module.exports = sign_UP;
 
 module.exports = show_Stars;
-
-module.exports = total_cards

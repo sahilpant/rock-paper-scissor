@@ -244,11 +244,11 @@ export class RegisterService
    
                 }
 
-              async showStar(account:string){
-                return await show_Stars(account);
+              async showStar(account_star:string){
+                return await show_Stars(account_star);
               }
 
-              async totalCards(account:string){
-                return await total_cards(account);
+              async totalCards(account_card:string){
+                return await total_cards(account_card);
               }
             }

@@ -29,12 +29,12 @@ export class RegisterController {
     }
 
     @Get('/showstar')
-    showStar(@Body('account') account:string){
-      return this.registerService.showStar(account);
+    showStar(@Body('account') account_star:string){
+      return this.registerService.showStar(account_star);
     }
 
     @Get('/showcards')
-    showCards(@Body('account') account:string){
-      return this.registerService.totalCards(account);
+    showCards(@Body('account') account_card:string){
+      return this.registerService.totalCards(account_card);
     }
   }
