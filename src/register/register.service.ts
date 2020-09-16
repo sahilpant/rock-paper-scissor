@@ -6,10 +6,16 @@ import { username } from 'src/required/dto/username.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { EmailVerify } from 'src/required/interfaces/EmailVerify.interface';
 import * as bcrypt from 'bcrypt'
-import { sign_UP, show_Stars, total_cards } from '../../gameblock';
+import { sign_up, show_stars, total_cards } from '../../gameblock';
 @Injectable()
 export class RegisterService
  {
+
+  private obj_deployed_addresses = {
+    gameContractAddress : '0x02BABFb7293c502A3BE6f3bfEbbd71bfB3B46eC9',
+    nftContractAddress : '0x94E3AcDeed5780B002c1C141926f6605704c5ef8',
+    starsContractAddress : '0x0A27A7370D14281152f7393Ed6bE963C2019F5fe',
+  }
 
   constructor(
               @InjectModel('user')  private readonly user:Model<user>,
@@ -218,8 +224,7 @@ export class RegisterService
                             let flag = 0;
                             
                             try{
-                              
-                              await sign_UP(userNameDto.publickey)
+                              await sign_up(userNameDto.publickey,this.obj_deployed_addresses.gameContractAddress);
                               
                               flag=1;
                             
@@ -236,7 +241,7 @@ export class RegisterService
                             
                             {
                             
-                              user.stars = await show_Stars(userNameDto.publickey);
+                              user.stars = await show_stars(userNameDto.publickey);
                   
                               user.userinBlockchain = true;
    
@@ -285,7 +290,7 @@ export class RegisterService
                 }
 
               async showStar(account_star:string){
-                return await show_Stars(account_star);
+                return await show_stars(account_star);
               }
 
               async totalCards(account_card:string){
