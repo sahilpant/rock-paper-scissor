@@ -6,7 +6,7 @@ import { username } from 'src/required/dto/username.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { EmailVerify } from 'src/required/interfaces/EmailVerify.interface';
 import * as bcrypt from 'bcrypt'
-const {sign_UP,show_Stars,total_cards} = require('../../gameblock');
+import { sign_UP, show_Stars, total_cards } from '../../gameblock';
 @Injectable()
 export class RegisterService
  {
