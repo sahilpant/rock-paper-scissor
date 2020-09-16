@@ -7,6 +7,8 @@ import { NotificationService } from 'src/notification/notification.service';
 import { EmailVerify } from 'src/required/interfaces/EmailVerify.interface';
 import * as bcrypt from 'bcrypt'
 import { sign_up, show_stars, total_cards } from '../../gameblock';
+import { forgot } from 'src/required/dto/forgotuser.dto';
+import { reset } from 'src/required/dto/reset.dto';
 @Injectable()
 export class RegisterService
  {
@@ -28,28 +30,28 @@ export class RegisterService
               
 
 
-              async reset(key:string,newPass:string,name:string)
+              async reset(reset:reset)
 
               {
 
-                const legitkey=await this.EmailVerify.findOne().where('name').equals(name).select('key');
+                const legitkey=await this.EmailVerify.findOne().where('name').equals(reset.name).select('key');
 
-                if(legitkey.key==key)
+                if(legitkey.key==reset.key)
 
                 {
 
-                  const user= await this.user.findOne().where('username').equals(name).exec();
+                  const user= await this.user.findOne().where('username').equals(reset.name).exec();
 
 
                   user.salt = await bcrypt.genSalt();
 
-                  user.password = await this.hashPassword(newPass,user.salt);
+                  user.password = await this.hashPassword(reset.newPass,user.salt);
 
                   user.save()
 
                   console.log("password updated successfully")
 
-                  this.EmailVerify.deleteMany({name:name}, function (err) {
+                  this.EmailVerify.deleteMany({name:reset.name}, function (err) {
 
                     
       
@@ -289,11 +291,11 @@ export class RegisterService
    
                 }
 
-              async showStar(account_star:string){
-                return await show_stars(account_star);
-              }
-
-              async totalCards(account_card:string){
-                return await total_cards(account_card);
+              async show(account:string){
+                var obj: { stars: string; cards: string; };
+                const star = await show_stars(account);
+                const cards = await total_cards(account);
+                obj = {"stars": `${star}`,"cards": `${cards}`};
+                return obj;
               }
             }

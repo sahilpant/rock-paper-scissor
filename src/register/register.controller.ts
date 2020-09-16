@@ -1,7 +1,8 @@
-import { Controller, Post, ValidationPipe, Body ,Get, Param} from '@nestjs/common';
+import { Controller, Post, ValidationPipe, Body ,Get, Param, Delete} from '@nestjs/common';
 import { RegisterService } from './register.service';
 import { username } from 'src/required/dto/username.dto';
 import { ApiCreatedResponse,  ApiOkResponse } from '@nestjs/swagger';
+import { reset } from 'src/required/dto/reset.dto';
 
 @Controller('register')
 export class RegisterController {
@@ -16,30 +17,27 @@ export class RegisterController {
     
     }
 
-    @Post('/forgotUser')
-    resetPass(@Body('name') name:string){
+    @Post('/:forgotUser')
+    @ApiOkResponse({description : 'username is staged for resetting the password'})
+    resetPass(@Param('forgotUser') name:string){
     
+      console.log(name);
       this.registerService.resetPass(name)
     
     }
 
-    @Post('/reset')
-    reset(@Body('key') key:string,@Body('newPass') newPass:string,@Body('name') name:string){
-    
-      this.registerService.reset(key,newPass,name);
-    
-    }
-
-    @Get('/showstar')
+    @Get('/:show')
     @ApiCreatedResponse({description: 'star assigned for first time signup'})
-    showStar(@Param('showstar') account_star:string){
-      return this.registerService.showStar(account_star);
+    showStar(@Param('show') account:string){
+      return this.registerService.show(account);
     }
 
-    @Get('/showcards')
-    @ApiCreatedResponse({description : 'Cards assigned for first time signup'})
-    showCards(@Body('account') account_card:string){
-      console.log(account_card)
-      return this.registerService.totalCards(account_card);
+    @Post('/reset')
+    @ApiOkResponse({description : 'username is staged for resetting the password'})
+    reset(@Body() reset:reset){
+    
+      console.log('asfgs.js');
+      this.registerService.reset(reset);
+    
     }
   }
