@@ -240,9 +240,9 @@ export class RegisterService
                   
                               user.userinBlockchain = true;
    
-                              user.save()
+                              user.save();
                   
-                              return "created"
+                              return "SignUp Successfull account successfully created starter benefits also credited";
                             
                             }
                             
