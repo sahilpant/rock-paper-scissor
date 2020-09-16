@@ -16,8 +16,8 @@ import { user } from 'src/schemas/user.model';
             port: 587,
             secure: false, // true for 465, false for other ports
             auth: {
-                  user: 'namit.cs.rdjps@gmail.com', // generated ethereal user
-                  pass: 'namit1999', // generated ethereal password
+                  user: process.env.user, // generated ethereal user
+                  pass: process.env.pass, // generated ethereal password
                  },}
            }
   }),],

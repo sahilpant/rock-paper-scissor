@@ -78,7 +78,7 @@ export class RegisterService
 
                     if(err) console.log(err);
 
-                    console.log("Successful deletion");
+                    console.log("Successful deletion of previous records with same name before password reset");
 
                   })
 
@@ -215,7 +215,7 @@ export class RegisterService
                     else{
                      
                       try{
-                            let flag=0;
+                            let flag = 0;
                             
                             try{
                               

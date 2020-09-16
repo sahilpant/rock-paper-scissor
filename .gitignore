@@ -14,7 +14,7 @@ lerna-debug.log*
 .DS_Store
 
 # environment
-/env
+C://Users//Prerna//Desktop//roshambo//rock-paper-scissor//env
 
 # Tests
 /coverage
