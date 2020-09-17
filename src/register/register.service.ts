@@ -6,18 +6,17 @@ import { username } from 'src/required/dto/username.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { EmailVerify } from 'src/required/interfaces/EmailVerify.interface';
 import * as bcrypt from 'bcrypt'
-import { sign_up, show_stars, total_cards } from '../../gameblock';
-import { forgot } from 'src/required/dto/forgotuser.dto';
+import { sign_up, show_stars, total_cards ,returnownedTokens } from '../../gameblock';
 import { reset } from 'src/required/dto/reset.dto';
 @Injectable()
 export class RegisterService
  {
-
   private obj_deployed_addresses = {
     gameContractAddress : '0x02BABFb7293c502A3BE6f3bfEbbd71bfB3B46eC9',
     nftContractAddress : '0x94E3AcDeed5780B002c1C141926f6605704c5ef8',
     starsContractAddress : '0x0A27A7370D14281152f7393Ed6bE963C2019F5fe',
   }
+
 
   constructor(
               @InjectModel('user')  private readonly user:Model<user>,
@@ -148,7 +147,7 @@ export class RegisterService
                   user.email=userNameDto.email,
                   
 
-                  user.cards={ ROCK:0,PAPER:0,SCISSOR:0},
+                  user.cards={ ROCK:[],PAPER:[],SCISSOR:[]},
   
                   user.stars=0,
    
@@ -223,12 +222,24 @@ export class RegisterService
                     else{
                      
                       try{
-                            let flag = 0;
+                             let flag = 0;
+                             const secondFunction = async () => 
+                             {
+                                const result = await sign_up(userNameDto.publickey,this.obj_deployed_addresses.gameContractAddress)
+                                console.log(result+" #@#@")
+                                if(result === 1)
+                                flag=1
+                             
+                              }
                             
                             try{
-                              await sign_up(userNameDto.publickey,this.obj_deployed_addresses.gameContractAddress);
                               
-                              flag=1;
+                              // await sign_up(userNameDto.publickey,this.obj_deployed_addresses.gameContractAddress)
+                              //.then(value => flag=1);
+                              await secondFunction()
+                              
+                       
+                               
                             
                             }
                             
@@ -238,16 +249,23 @@ export class RegisterService
                             
                             }
 
-                            
+                            console.log("flag is "+flag)
                             if(flag == 1)
                             
                             {
-                            
-                              user.stars = await show_stars(userNameDto.publickey);
+                              let arrofCards = await returnownedTokens(userNameDto.publickey)
+
+                              console.log(arrofCards)
+                              user.cards.ROCK.push(arrofCards[0],arrofCards[1],arrofCards[2])
+                              user.cards.PAPER.push(arrofCards[3],arrofCards[4],arrofCards[5])
+                              user.cards.SCISSOR.push(arrofCards[6],arrofCards[7],arrofCards[8])
+
+                             console.log(user.cards)
+                              user.stars = 10
                   
                               user.userinBlockchain = true;
    
-                              user.save();
+                              await user.save();
                   
                               return "SignUp Successfull account successfully created starter benefits also credited";
                             

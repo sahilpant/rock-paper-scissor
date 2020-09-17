@@ -1,9 +1,9 @@
 export interface cards{
     
-    ROCK:number,
+    ROCK:Array<any>,
     
-    PAPER:number,
+    PAPER:Array<any>,
     
-    SCISSOR:number
+    SCISSOR:Array<any>
 
 }

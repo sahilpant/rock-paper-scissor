@@ -23,11 +23,11 @@ export const user = new mongoose.Schema({
     
     cards:{
     
-        ROCK:{type:Number},
+        ROCK:{type:Array},
     
-        PAPER:{type:Number},
+        PAPER:{type:Array},
     
-        SCISSOR:{type:Number}
+        SCISSOR:{type:Array}
     
     },
 

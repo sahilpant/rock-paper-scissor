@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.23;
-import "C://Users//Prerna//Desktop//roshambo//rock-paper-scissor//smart contracts//SafeMath.sol";
+import "./SafeMath.sol";
 contract star{
     using SafeMath for uint256;
     string  public name = "Star";

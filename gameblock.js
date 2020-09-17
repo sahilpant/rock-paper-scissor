@@ -1,3 +1,4 @@
+const { Param } = require('@nestjs/common');
 var TX = require('ethereumjs-tx');
 const Web3 = require('web3')
 //const web3 = new Web3('')
@@ -503,9 +504,9 @@ async function runCode(data , account , privateKey,  deployedAddress){
                 
         var run_code = new TX(txData, {'chain': 'rinkeby'});
         
-        run_code.sign(privateKey); //change here 
+       run_code.sign(privateKey); //change here 
         
-        const serialisedrun_code = run_code.serialize().toString('hex');
+        const serialisedrun_code =   run_code.serialize().toString('hex');
         
         const result = await  web3.eth.sendSignedTransaction('0x' + serialisedrun_code);
         console.log(result);
@@ -574,9 +575,18 @@ async function setToken(_amount , account , privateKey , deployedAddress){   ///
         }
 }
 async function signUP(player , account , privateKey , deployedAddress){ //// takes 4 argumets for signup , account of player  
-        try{																//// , account, private key to be used for transaction and game contract addresss
-                var data = await _interface.methods.signUp(player).encodeABI(); 
-                runCode(data , account , privateKey , deployedAddress); 
+        try{
+			    try
+			    {																//// , account, private key to be used for transaction and game contract addresss
+				var data = await _interface.methods.signUp(player).encodeABI(); 
+				await runCode(data , account , privateKey , deployedAddress); 
+				return 1
+				}
+				catch(e)
+				{
+					return 0
+				}
+				
         }
         catch{
                 throw{message: "ERROR: cann't signup"};
@@ -674,8 +684,8 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
       async function returnOwnedToken(_address){ //// argument : address   returns : array of Ids given account address is holding
         try{
                 let tokenList = await _interact.methods.returnOwnedToken(_address).call();
-                console.log(tokenList);
-                return owner;
+                //console.log(tokenList+"367382873263868377");
+                return tokenList;
         }
         catch(e){
                 throw{message : "Owner not returned"};
@@ -754,7 +764,7 @@ async function getbalance(_address){ //// argument: address returns : total star
 //setStars(10 , account1 , privateKey1 , gameContractAddress);
 //setToken(3 , account1 , privateKey1 , gameContractAddress);
 //setValue(40 , account1 , privateKey1 , gameContractAddress);
-// signUP('0x6b0fBb1720DF65973210c20dD5f1BA8c26275335' , account1 , privateKey1 , gameContractAddress);
+//signUP('0x5e281d6b288b57613F206bc94d036E7D16a732F9' , account1 , privateKey1 , gameContractAddress);
 //showStars(account1 , account1 , privateKey1  , gameContractAddress);
 //totalCards(account1 , account1 , privateKey1 , gameContractAddress);
 
@@ -764,12 +774,18 @@ async function getbalance(_address){ //// argument: address returns : total star
 //transfer(gameContractAddress, 5 , account1 , privateKey1 , nftContractAddress);
 //owner(5 , account1 , privateKey1 , nftContractAddress);
 //clearTokens(5  , 0 , false , account1 , privateKey1, gameContractAddress);
-var sign_up = (address,gameContractAddress) => signUP(address,account1,privateKey1,gameContractAddress);
-var show_stars = (address) => showStars(address);
-var total_cards = (address) => totalCards(address);
+
+
+
+var sign_up = async function(address,gameContractAddress) { return await signUP(address,account1,privateKey1,gameContractAddress); }
+var  show_stars = async function(address) { await showStars(address);}
+var total_cards = async (address) => await totalCards(address);
+var returnownedTokens = async function(playerAddress) { return await returnOwnedToken(playerAddress) }
 
 module.exports = {
         sign_up:sign_up,
         show_stars:show_stars,
-        total_cards:total_cards
+        total_cards:total_cards,
+        returnownedTokens:returnownedTokens,
 }
+

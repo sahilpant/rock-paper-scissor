@@ -34,23 +34,23 @@ export class PlayService {
           
           const user1Cards = await this.user.find().where('username').equals(user1).exec()
 
-          if(card1 === "PAPER" && user1Cards[0].cards.PAPER>0)
+          if(card1 === "PAPER" && user1Cards[0].cards.PAPER.length>0)  //use .length here
           {
-             user1Cards[0].cards.PAPER--;
+             user1Cards[0].cards.PAPER.length--;
           
              user1flag=true;
           }
           else
           {
-            if(card1 === "ROCK" && user1Cards[0].cards.ROCK>0){
+            if(card1 === "ROCK" && user1Cards[0].cards.ROCK.length>0){
             
-              user1Cards[0].cards.ROCK--
+              user1Cards[0].cards.ROCK.length--
             
               user1flag=true;
             }
-            else if(card1 === "SCISSOR" && user1Cards[0].cards.SCISSOR>0){
+            else if(card1 === "SCISSOR" && user1Cards[0].cards.SCISSOR.length>0){
             
-              user1Cards[0].cards.SCISSOR--
+              user1Cards[0].cards.SCISSOR.length--
             
               user1flag=true; 
            
@@ -60,10 +60,10 @@ export class PlayService {
 
           const user2Cards = await this.user.find().where('username').equals(user2).exec()
 
-          if(card2 === "PAPER" && user2Cards[0].cards.PAPER>0)
+          if(card2 === "PAPER" && user2Cards[0].cards.PAPER.length>0)
           {
           
-            user2Cards[0].cards.PAPER--
+            user2Cards[0].cards.PAPER.length--
           
             user2flag=true;
         
@@ -72,16 +72,16 @@ export class PlayService {
           else
           {
            
-            if(card2 === "ROCK" && user2Cards[0].cards.ROCK>0){
+            if(card2 === "ROCK" && user2Cards[0].cards.ROCK.length>0){
            
-              user2Cards[0].cards.ROCK--;
+              user2Cards[0].cards.ROCK.length--;
            
               user2flag=true;
             }
            
-            else if(card2 === "SCISSOR" && user2Cards[0].cards.SCISSOR>0){
+            else if(card2 === "SCISSOR" && user2Cards[0].cards.SCISSOR.length>0){
             
-              user2Cards[0].cards.SCISSOR--;
+              user2Cards[0].cards.SCISSOR.length--;
               
               user2flag=true;
             }
