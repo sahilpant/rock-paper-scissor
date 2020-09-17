@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { user } from './required/interfaces/user.interface';
 import { JwtPayLoad } from './required/interfaces/jwt-payload.interface';
 import * as bcrypt from 'bcrypt'
+import { signin } from './required/dto/sign.dto';
 @Injectable()
 export class AppService 
 {
@@ -28,7 +29,7 @@ export class AppService
   
               async validatePassword(realPassword:string,givenPassword:string,salt:string):Promise<boolean>{
   
-                const hash=await bcrypt.hash(givenPassword,salt);
+                const hash = await bcrypt.hash(givenPassword,salt);
   
                 return realPassword === hash;
   
@@ -37,9 +38,9 @@ export class AppService
   
 
   
-              async signIn(username:string,pass:string):Promise<string>{
+              async signIn(signin : signin):Promise<string>{
   
-                const userinDB= await this.user.findOne().where('username').equals(username).exec();
+                const userinDB= await this.user.findOne({username: `${signin.name}`}).exec();
   
                 console.log(userinDB)
   
@@ -57,13 +58,13 @@ export class AppService
   
                   console.log("user exists")
   
-                  const result = await this.validatePassword(userinDB.password,pass,userinDB.salt)
+                  const result = await this.validatePassword(userinDB.password,signin.password,userinDB.salt)
   
                   if(result)
   
                   {
   
-                    const payload:JwtPayLoad = {email: userinDB.email ,username: userinDB.username}
+                    const payload:JwtPayLoad = {email: userinDB.email ,username: userinDB.username, role: userinDB.role = 'PLAYER'}
   
                     this.accessToken= await this.jwtService.sign(payload);
   

@@ -40,6 +40,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   private emailOfConnectedUser;//email of users fetched from db using their given accesstoken
   
   private nameOfConnectedUser;//name of users fetched from db using their given accesstoken
+
+  private roleOfConnectedUser;
   
   private gameCollection={} //{gameid:{userarray:[],timestamp,typeOfGame,status,Moves,RoomName}}
   
@@ -74,9 +76,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
       const ans=<JwtPayLoad>jwt.verify(data,'hello')
   
-      this.emailOfConnectedUser=ans.email
+      this.emailOfConnectedUser = ans.email
   
-      this.nameOfConnectedUser=ans.username
+	  this.nameOfConnectedUser = ans.username
+	  
+	  this.roleOfConnectedUser = ans.role
   
 	  client.emit('return',await this.jwtstrategy.validate(ans))
 	  

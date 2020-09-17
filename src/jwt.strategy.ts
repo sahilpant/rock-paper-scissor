@@ -29,14 +29,14 @@ export class jwtStrategy extends PassportStrategy(Strategy){
 
     async validate(payload:JwtPayLoad):Promise<any>{
 
-        const  { email }  = payload;
+        const  { email,role }  = payload;
 
         console.log(payload)
 
         // console.log(payload)
 
-        const user= await this.user.findOne().where('email').equals(email).exec();
-
+        console.log(role);
+        const user = await this.user.findOne({email : `${email}`, role:`${role}`});
 
         if(!user){
 

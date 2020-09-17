@@ -8,24 +8,23 @@ import { EmailVerify } from 'src/required/interfaces/EmailVerify.interface';
 import * as bcrypt from 'bcrypt'
 import { sign_up, show_stars, total_cards ,returnownedTokens } from '../../gameblock';
 import { reset } from 'src/required/dto/reset.dto';
+import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class RegisterService
  {
-  private obj_deployed_addresses = {
-    gameContractAddress : '0x02BABFb7293c502A3BE6f3bfEbbd71bfB3B46eC9',
-    nftContractAddress : '0x94E3AcDeed5780B002c1C141926f6605704c5ef8',
-    starsContractAddress : '0x0A27A7370D14281152f7393Ed6bE963C2019F5fe',
-  }
-
-
   constructor(
               @InjectModel('user')  private readonly user:Model<user>,
    
               @InjectModel('EmailVerify') private readonly EmailVerify:Model<EmailVerify>,
    
-              private readonly notificationService:NotificationService){}
+              private readonly notificationService:NotificationService,
+              private configueservice : ConfigService ){}
   
-
+              private obj_deployed_addresses = {
+              gameContractAddress : this.configueservice.get<string>('gameContractAddress'),
+              nftContractAddress : this.configueservice.get<string>('nftContractAddress'),
+              starsContractAddress : this.configueservice.get<string>('starsContractAddress'),
+              }
               
 
 
@@ -162,13 +161,17 @@ export class RegisterService
                   user.salt=await bcrypt.genSalt(),
    
                   user.password=await this.hashPassword(userNameDto.password,user.salt)
+
+                  user.role = 'PLAYER';
    
                 
    
-                  try 
-   
+                  try
+                  
                   {
-   
+
+                    console.log(user)
+
                     let curruser = await this.user.collection.findOne({ username: userNameDto.username}) || 
    
                     await this.user.collection.findOne({ email: userNameDto.email}) ||

@@ -684,7 +684,7 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
       async function returnOwnedToken(_address){ //// argument : address   returns : array of Ids given account address is holding
         try{
                 let tokenList = await _interact.methods.returnOwnedToken(_address).call();
-                //console.log(tokenList+"367382873263868377");
+                console.log(tokenList);
                 return tokenList;
         }
         catch(e){
@@ -777,8 +777,8 @@ async function getbalance(_address){ //// argument: address returns : total star
 
 
 
-var sign_up = async function(address,gameContractAddress) { return await signUP(address,account1,privateKey1,gameContractAddress); }
-var  show_stars = async function(address) { await showStars(address);}
+var sign_up = async (address,gameContractAddress) => { return await signUP(address,account1,privateKey1,gameContractAddress); }
+var  show_stars = (address) => showStars(address);
 var total_cards = async (address) => await totalCards(address);
 var returnownedTokens = async function(playerAddress) { return await returnOwnedToken(playerAddress) }
 
@@ -789,3 +789,4 @@ module.exports = {
         returnownedTokens:returnownedTokens,
 }
 
+returnOwnedToken('0x2648C58B9E247345DCcd11Ab2638Db5Cf5BdE7BB')

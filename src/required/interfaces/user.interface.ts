@@ -23,4 +23,6 @@ export interface user extends mongoose.Document{
 
     password:string
 
+    role: string
+
 }

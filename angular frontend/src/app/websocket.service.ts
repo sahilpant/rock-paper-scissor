@@ -14,7 +14,7 @@ export class WebsocketService {
 
    handlereq(){
 
-     this.socket.emit('handler',"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImhpbWFuc2h1MDAwQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiaGltYW5zaHUiLCJpYXQiOjE2MDAxNzYzMzIsImV4cCI6MTYwMDE3OTkzMn0.gIlhjPJ3xS7JZdrAt7phRW1ltrKbeyiXnKIdMJ-iwCg")
+     this.socket.emit('handler',"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN0cmluZzk5OSIsInVzZXJuYW1lIjoic3RyaW5nOTk5Iiwicm9sZSI6IlBMQVlFUiIsImlhdCI6MTYwMDM0NDIyNywiZXhwIjoxNjAwMzQ3ODI3fQ.yVi1WZr8IOJwuW2KPOV3AVk-NfDQuhtqeRuRVHmoeJs")
    }
 
    

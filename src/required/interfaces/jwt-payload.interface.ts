@@ -4,4 +4,6 @@ export interface JwtPayLoad{
     
     username:String;
 
+    role: string;
+
 }
