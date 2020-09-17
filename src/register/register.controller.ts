@@ -32,11 +32,9 @@ export class RegisterController {
       return this.registerService.show(account);
     }
 
-    @Post('/reset')
+    @Delete('/reset')
     @ApiOkResponse({description : 'username is staged for resetting the password'})
     reset(@Body() reset:reset){
-    
-      console.log('asfgs.js');
       this.registerService.reset(reset);
     
     }
