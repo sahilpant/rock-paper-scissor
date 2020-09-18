@@ -147,6 +147,10 @@ export class RegisterService
                   
 
                   user.cards={ ROCK:[],PAPER:[],SCISSOR:[]},
+
+                  user.usedCards=[],
+
+                  user.notUsedCards=[],
   
                   user.stars=0,
    
@@ -236,16 +240,8 @@ export class RegisterService
                               }
                             
                             try{
-                              
-                              // await sign_up(userNameDto.publickey,this.obj_deployed_addresses.gameContractAddress)
-                              //.then(value => flag=1);
                               await secondFunction()
-                              
-                       
-                               
-                            
                             }
-                            
                             catch(err){
                             
                               flag=0;
@@ -258,12 +254,22 @@ export class RegisterService
                             {
                               let arrofCards = await returnownedTokens(userNameDto.publickey)
 
-                              console.log(arrofCards)
-                              user.cards.ROCK.push(arrofCards[0],arrofCards[1],arrofCards[2])
-                              user.cards.PAPER.push(arrofCards[3],arrofCards[4],arrofCards[5])
-                              user.cards.SCISSOR.push(arrofCards[6],arrofCards[7],arrofCards[8])
+                              console.log(<Int32Array>arrofCards)
 
-                             console.log(user.cards)
+                              for(var i=0;i<3;i++)
+                              user.cards.ROCK.push(arrofCards[i])
+
+                              for(var i=3;i<6;i++)
+                              user.cards.PAPER.push(arrofCards[i])
+                              
+                              for(var i=6;i<9;i++)
+                              user.cards.SCISSOR.push(arrofCards[i])
+
+                              for(var i=0;i<9;i++)
+                              user.notUsedCards.push(arrofCards[i])
+                             
+                              console.log(user.cards)
+                              
                               user.stars = 10
                   
                               user.userinBlockchain = true;

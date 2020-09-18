@@ -777,16 +777,30 @@ async function getbalance(_address){ //// argument: address returns : total star
 
 
 
-var sign_up = async (address,gameContractAddress) => { return await signUP(address,account1,privateKey1,gameContractAddress); }
-var  show_stars = (address) => showStars(address);
-var total_cards = async (address) => await totalCards(address);
+var sign_up = async function(address,gameContractAddress) { return await signUP(address,account1,privateKey1,gameContractAddress); }
+var  show_stars = async function(address) { await showStars(address);}
+var total_cards = async function (address) { await totalCards(address); }
 var returnownedTokens = async function(playerAddress) { return await returnOwnedToken(playerAddress) }
+var detailOfCard = async function(tokenId) { return await details(tokenId)}
+var ownerof = async function(tokenId) { return await ownerOf(tokenId)}
+var Transfer =async function(_to,value,gameContractAddress) { await Transfer(_to,value,account1,privateKey1,gameContractAddress)}
+var burn = async function(tokenId,gameContractAddress) {  await burn(tokenId,account1,privateKey1,gameContractAddress)}
 
 module.exports = {
         sign_up:sign_up,
         show_stars:show_stars,
         total_cards:total_cards,
-        returnownedTokens:returnownedTokens,
+		returnownedTokens:returnownedTokens,
+		detailOfCard:detailOfCard,
+		ownerof:ownerof,
+		Transfer:Transfer,
+		burn:burn
 }
+// details(392);
+// const rescard = aawait details(392);
+// console.log(rescard[0]+"   "+rescard[1])
+// ownerOf(392)
 
-returnOwnedToken('0x2648C58B9E247345DCcd11Ab2638Db5Cf5BdE7BB')
+//burn(501,account1,privateKey1,gameContractAddress)
+
+//Transfer("0x3A6c34D81cc09e12fB7f62CA2E7cd7d2f08BcD92",5,account1,privateKey1,starsContractAddress)

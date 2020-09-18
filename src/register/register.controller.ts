@@ -3,7 +3,8 @@ import { RegisterService } from './register.service';
 import { username } from 'src/required/dto/username.dto';
 import { ApiBody, ApiCreatedResponse,  ApiNotFoundResponse,  ApiOkResponse, ApiParam } from '@nestjs/swagger';
 import { reset } from 'src/required/dto/reset.dto';
-
+import { detailOfCard} from '../../gameblock'
+import { defaultMaxListeners } from 'stream';
 @Controller('register')
 export class RegisterController {
 
@@ -40,5 +41,11 @@ export class RegisterController {
       console.log(reset); 
       this.registerService.reset(reset);
     
+    }
+
+    @Get('/test')
+    async getcards(){
+         const data = await detailOfCard(392);
+         console.log(data+"   "+data[0]+"   "+data[1]);
     }
   }

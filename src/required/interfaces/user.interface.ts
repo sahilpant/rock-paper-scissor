@@ -9,6 +9,10 @@ export interface user extends mongoose.Document{
 
     cards:cards
 
+    usedCards:Array<Number>
+    
+    notUsedCards:Array<Number>
+
     stars:number
 
     publickey:string

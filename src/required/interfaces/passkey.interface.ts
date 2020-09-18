@@ -2,9 +2,13 @@ import * as mongoose from 'mongoose'
 
 export interface passkey extends mongoose.Document{
     
-    name:string
+    player1address:string
     
-    key:string
+    player2address:string
+
+    token1:Number
+
+    token2:Number
     
     card1:string
     

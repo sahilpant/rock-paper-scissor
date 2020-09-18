@@ -12,7 +12,7 @@ import { PlayService } from './play/play.service';
 import {jwtStrategy} from './jwt.strategy'
 import * as jwt from 'jsonwebtoken'
 import {JwtPayLoad} from './required/interfaces/jwt-payload.interface'
-
+import { ownerof,detailOfCard} from '.././gameblock'
 
 @WebSocketGateway({namespace:'/game'})
 export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatewayDisconnect{
@@ -250,14 +250,27 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   
   @SubscribeMessage('add1')
-  async playgame(client: Socket, data: string)
+  async playgame(client: Socket, data: Number) //here user gives card id as data
 
   {
+	 //store id of given card
+	
+	  const carddetail = await detailOfCard(data);
+	
+	  console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
 
+	  let givenCardType
+
+	  (carddetail[0] === "1")?(givenCardType="ROCK"):(
+							           (carddetail[0] === "2")?(givenCardType="PAPER"):(
+																			(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
+																			
+	console.log(data)					
+	
 	let gameid=this.users[client.id]  
 
 
-	if(data==CardStatus.PAPER || data==CardStatus.ROCK || data==CardStatus.SCISSOR)
+	if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
 
 	{
 
@@ -268,22 +281,36 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			let gameexist= await this.passkey.findOne().where('gameid').equals(gameid).exec();
 
 			let nameinUSERDB =await this.user.findOne().where('client_id').equals(client.id).exec();
-    
 
-			if(gameexist)
+            //find index of given card
+			
+			let indexofCard =(nameinUSERDB.notUsedCards.indexOf(data))
+			console.log(indexofCard)
+			// console.log(nameinUSERDB.notUsedCards.findIndex(givencardid))
+			if(gameexist && indexofCard !== -1)
 
 			{
 
-				gameexist.card1=data
+				gameexist.card1 = givenCardType
+
+				gameexist.player1address=nameinUSERDB.publickey
 
 				gameexist.user1=nameinUSERDB.username
+
+				gameexist.token1=data
+
+				nameinUSERDB.usedCards.push(data)
+
+	            nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+
+				await nameinUSERDB.save()
 
 				await gameexist.save()
 
 			}
       
 
-			else
+			else if(indexofCard !== -1)
 
 			{
 
@@ -291,12 +318,24 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 					gameid:gameid,
 
-					card1:data,
+					card1:givenCardType,
 
 					user1:nameinUSERDB.username,
 
+					player1address:nameinUSERDB.publickey,
+
+					token1:data
+					
+
 				})
-    
+	
+				console.log( nameinUSERDB.notUsedCards[indexofCard])
+
+				await nameinUSERDB.usedCards.push(data);
+
+			    nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+
+				await nameinUSERDB.save()
 
 				await cardDetail.save()
 
@@ -324,7 +363,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 				const user1card = gameINDB.card1
 
 				const user2card = gameINDB.card2
-        
+
+				// const addressofplayer1 = gameINDB.player1address
+
+				// const addressofplayer2 = gameINDB.player2address
 
 				const gameResult=await  this.playservice.play(gameid);  //we can use blockchain part
 
@@ -395,13 +437,25 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   
 	@SubscribeMessage('add2')
-	async playgame1(client: Socket, data: string)
+	async playgame1(client: Socket, data: Number)
 	{
+         //store id of given card
+	
+	  const carddetail = await detailOfCard(data);
+	
+	  console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
 
+	  let givenCardType
+
+	  (carddetail[0] === "1")?(givenCardType="ROCK"):(
+							           (carddetail[0] === "2")?(givenCardType="PAPER"):(
+																			(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
+																			
+	   console.log(data)		
 	
 		let gameid=this.users[client.id]  
 
-		if(data==CardStatus.PAPER || data==CardStatus.ROCK || data==CardStatus.SCISSOR)
+		if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
 
 		{
 
@@ -411,24 +465,38 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 				let gameexist= await this.passkey.findOne().where('gameid').equals(gameid).exec();
 
-				let userINUSERDB =await this.user.findOne().where('client_id').equals(client.id).exec()
+				let nameinUSERDB =await this.user.findOne().where('client_id').equals(client.id).exec()
 	
-				console.log(gameexist)
-	
-				if(gameexist)
+				//find index of given card
+			
+			let indexofCard =(nameinUSERDB.notUsedCards.indexOf(data))
+			console.log(indexofCard)
+			// console.log(nameinUSERDB.notUsedCards.findIndex(givencardid))
+
+				if(gameexist && indexofCard !== -1)
 	
 				{
 	
-					gameexist.card2=data
+					gameexist.card2 = givenCardType
 	
-					gameexist.user2=userINUSERDB.username
+					gameexist.user2=nameinUSERDB.username
+
+					gameexist.player2address=nameinUSERDB.publickey
+
+					gameexist.token2 = data
+
+					nameinUSERDB.usedCards.push(data)
+
+					nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+	
+					await nameinUSERDB.save()
 	
 					await gameexist.save()
 	
 				}
         
 	
-				else
+				else if(indexofCard !== -1)
 	
 				{
 	
@@ -436,12 +504,23 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 						gameid:gameid,
 	
-						card2:data,
+						card2:givenCardType,
 	
-						user2:userINUSERDB.username
+						user2:nameinUSERDB.username,
+
+						player2address:nameinUSERDB.publickey,
+
+						token2:data
 	
 					})
-      
+	  
+					console.log( nameinUSERDB.notUsedCards[indexofCard])
+
+					await nameinUSERDB.usedCards.push(data);
+	
+					nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+	
+					await nameinUSERDB.save()
 	
 					await cardDetail.save()
 	
@@ -465,9 +544,12 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 					const user1card = gameINDB.card1
 	
 					const user2card = gameINDB.card2
-          
-	
-					const gameResult=await  this.playservice.play(gameid);
+		  
+					// const addressofplayer1 = gameINDB.player1address
+
+				    // const addressofplayer2 = gameINDB.player2address
+
+				    const gameResult=await  this.playservice.play(gameid);
 	
 					if(gameResult === "game is draw")
 	

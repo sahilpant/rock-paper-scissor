@@ -2,9 +2,13 @@ import * as mongoose from "mongoose";
 
 export const passKey = new mongoose.Schema({
       
-      name:{type:String},
+      player1address:{type:String},
       
-      key:{type:String},
+      player2address:{type:String},
+
+      token1:{type:Number},
+
+      token2:{type:Number},
       
       gameid:{type:String},
       
