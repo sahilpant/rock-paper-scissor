@@ -13,6 +13,7 @@ import {jwtStrategy} from './jwt.strategy'
 import * as jwt from 'jsonwebtoken'
 import {JwtPayLoad} from './required/interfaces/jwt-payload.interface'
 import { ownerof,detailOfCard} from '.././gameblock'
+import { ConfigService } from '@nestjs/config';
 
 @WebSocketGateway({namespace:'/game'})
 export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatewayDisconnect{
@@ -27,7 +28,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
               
               @InjectModel('passkey') private readonly passkey:Model<passkey>,
               
-              private readonly playservice:PlayService){}
+			  private readonly playservice:PlayService,
+			  
+			  private configservice: ConfigService){}
 
   private logger:Logger = new Logger('TestGateway');
 
@@ -37,11 +40,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
   private noOfusers=1 //to count no of users in game room
   
-  private emailOfConnectedUser;//email of users fetched from db using their given accesstoken
+  private emailOfConnectedUser: String;//email of users fetched from db using their given accesstoken
   
-  private nameOfConnectedUser;//name of users fetched from db using their given accesstoken
+  private nameOfConnectedUser: String;//name of users fetched from db using their given accesstoken
 
-  private roleOfConnectedUser;
+  private roleOfConnectedUser: string;
   
   private gameCollection={} //{gameid:{userarray:[],timestamp,typeOfGame,status,Moves,RoomName}}
   
@@ -74,7 +77,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
     {
   
-      const ans=<JwtPayLoad>jwt.verify(data,'hello')
+	  const ans = <JwtPayLoad>jwt.verify(data,this.configservice.get<string>('JWT_SECRET'))
+	  
+	  console.log(ans);
   
       this.emailOfConnectedUser = ans.email
   
