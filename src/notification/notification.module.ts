@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
-import {MailerModule} from 'nestjs-mailer'
+import {getMailerConnectionToken, MailerModule} from 'nestjs-mailer'
 import { MongooseModule } from '@nestjs/mongoose';
 import { user } from 'src/schemas/user.model';
+import { ConfigService } from '@nestjs/config';
 @Module({
   imports:[
     MongooseModule.forFeature([{ name: 'user', schema: user },],),
@@ -16,8 +17,8 @@ import { user } from 'src/schemas/user.model';
             port: 587,
             secure: false, // true for 465, false for other ports
             auth: {
-                  user: process.env.user, // generated ethereal user
-                  pass: process.env.pass, // generated ethereal password
+                  user: `namit.cs.rdjps@gmail.com`, // generated ethereal user
+                  pass: `namit1999`, // generated ethereal password
                  },}
            }
   }),],

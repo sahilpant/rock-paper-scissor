@@ -20,6 +20,7 @@ import { PlayService } from './play/play.service';
 import {JwtModule} from '@nestjs/jwt'
 import {PassportModule} from '@nestjs/passport'
 import { jwtStrategy } from './jwt.strategy';
+import { NotificationService } from './notification/notification.service';
 
 @Module({
 
@@ -50,7 +51,7 @@ import { jwtStrategy } from './jwt.strategy';
 
       isGlobal:true,
 
-      envFilePath:[ 'C://Users//Prerna//Desktop//roshambo//rock-paper-scissor//env//.env', 'C://Users//Prerna//Desktop//roshambo//rock-paper-scissor//env//development.env',],
+      envFilePath:['C://Users//SAHIL//Desktop//rock paper//env//.env', 'C://Users//SAHIL//Desktop//rock paper//env//development.env',],
 
       load:[configuration]
 
@@ -94,7 +95,7 @@ import { jwtStrategy } from './jwt.strategy';
   
   controllers: [AppController],
   
-  providers: [AppService,TestGateway,AppGateway,configss,PlayService,jwtStrategy],
+  providers: [AppService,TestGateway,AppGateway,configss,PlayService,jwtStrategy,NotificationService],
   
   exports:[jwtStrategy]
 

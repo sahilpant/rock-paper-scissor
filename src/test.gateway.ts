@@ -1,6 +1,6 @@
 import { SubscribeMessage, OnGatewayConnection, OnGatewayInit, OnGatewayDisconnect, WebSocketServer, WebSocketGateway ,} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import {v4 as uuid} from 'uuid'
 import { AppGateway } from './app.gateway';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,8 +12,10 @@ import { PlayService } from './play/play.service';
 import {jwtStrategy} from './jwt.strategy'
 import * as jwt from 'jsonwebtoken'
 import {JwtPayLoad} from './required/interfaces/jwt-payload.interface'
-import { ownerof,detailOfCard} from '.././gameblock'
+import { detailOfCard} from '.././gameblock'
 import { ConfigService } from '@nestjs/config';
+import { NotificationService } from './notification/notification.service';
+import { x } from '@hapi/joi';
 
 @WebSocketGateway({namespace:'/game'})
 export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatewayDisconnect{
@@ -30,7 +32,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
               
 			  private readonly playservice:PlayService,
 			  
-			  private configservice: ConfigService){}
+			  private configservice: ConfigService,
+			  
+			  private NotificationService:NotificationService ){}
 
   private logger:Logger = new Logger('TestGateway');
 
@@ -61,6 +65,12 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   private room_status = {} //room.id : true if game has been started in that room
 
   private games = [] // gameid and other user details
+
+  public room_with_codes = {} //room id : rood joining code
+
+  public room_invite_flag = {} //room id and status if there is a pending invitition
+
+  public room_invited_player_email = {} //room id and email of the player who is invited
   
   @WebSocketServer() wss:Server;
   
@@ -72,7 +82,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 
   async handleConnection(client:Socket) {
-   
+
     client.on('handler',async (data)=> 
   
     {
@@ -124,7 +134,19 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		this.handleDisconnect(client);
 	}
 
-	if(this.check[client.id]){
+	console.log(this.emailOfConnectedUser);
+	const values = Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser);
+	console.log(values);
+	const keys = Object.keys(this.room_invited_player_email);
+	console.log(keys);
+	if( this.check[client.id] && values != -1){
+		console.log(keys[values]);
+		this.room_invited_player_email[keys[values]] = null;
+		console.log(keys);
+		this.handleJoin(client,keys[values]);
+	}
+
+	else if(this.check[client.id]){
 
 		this.currConnected[client.id]=this.noOfusers++
   
@@ -139,15 +161,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		this.nameOfConnectedUser=null
   
 		client.emit('joined', `welcome user ${client.id}`);
-	}
-
-	if(this.check[client.id])
   
-    {
+        const pos = this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
   
-      const pos = this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
-  
-      if(pos != -1 && (this.room_status[this.games[pos].gameRoom] != true)){
+        if(pos != -1 && (this.room_status[this.games[pos].gameRoom] != true) && this.room_invite_flag[this.games[pos].gameRoom] != true){
   
         const game_pos = this.games.findIndex((game) => { return game.gameRoom == this.games[pos].gameRoom});
   
@@ -183,7 +200,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
     {
   
-      let gameId=uuid()
+	  let gameId = uuid();
+	  
+	  this.room_with_codes[gameId] = uuid();
+
+	  this.room_invite_flag[gameId] = false;
   
       this.games.push({
   
@@ -749,7 +770,76 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 
 		}
+		@SubscribeMessage('invite')
+		handleinvite(client: Socket, email:string){
 
+			const room = this.users[client.id];
+			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
+			if(this.games[pos].players<2){
+				this.room_invite_flag[room] = true;
+				this.room_invited_player_email[room] = email;
+				this.games[pos].players++;
+				// this.NotificationService.send_room_code(email,this.room_with_codes[room]);
+			}
+			else{
+				client.emit('Error','Room full');
+			}
+			
+			//this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
+		  
+		}
+
+		@SubscribeMessage('cancel_invite')
+		handleCancel(client:Socket){
+			const room = this.users[client.id];
+			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
+			this.games[pos].players--;
+			delete this.room_invited_player_email[room];
+			client.emit("Success","Invitation has been canceled")
+		}
+
+		@SubscribeMessage('free_room')
+		handlefreeroom(client:Socket){
+			const room = this.users[client.id];
+			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
+			if(this.games[pos].players<2)
+			{
+				client.emit("Success","anyone can join now")
+				this.room_invite_flag = false;
+			}
+			else{
+				client.emit("Warning","Cancle the invite first");
+			}
+		}
+	  
+		@SubscribeMessage('show')
+		handleshow(): void {
+			console.log(`--------------------------------------------`)
+			console.log(`client.id : room.id`);
+			console.log(this.users);
+			console.log(`room.id : player count`);
+			console.log(this.room_status);
+			console.log(`client.id : timestamp`);
+			console.log(this.user_timestamp);
+			console.log(`client.id : check weather they are currently in a room or not`);
+			console.log(this.user_check);
+			console.log(`client.id : custom id using uuid()`);
+			console.log(this.custom_id);
+			console.log(` room_id : Game status in the room`);
+			console.log(this.room_status);
+			console.log('games');
+			console.log(this.games);
+			console.log("currConnected")
+			console.log(this.currConnected);
+			console.log("check");
+			console.log(this.check);
+			console.log("gameCollection");
+			console.log(this.gameCollection);
+			console.log("clientAndUser");
+			console.log(this.clientAndUser);
+			console.log(`--------------------------------------------`)
+		}
+	  
 	}
 	// @SubscribeMessage('list')
 	// handlelist(client: Socket, data: string):void {
@@ -816,5 +906,3 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   //      this.check[client.id]=true
   //    }
   // }
-
-

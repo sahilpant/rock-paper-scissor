@@ -41,4 +41,23 @@ export class NotificationService {
         
        return email
     }
+    async send_room_code(email:string,code:string)
+    {
+        this.mailer.sendMail
+        ({
+
+            to: email, //Receivers email address
+            
+            from: 'user@outlook.com', // Senders email address
+            
+            subject: 'Join game with this code',
+            
+            text: code,
+            
+            html: "Enter this code to enter the game::::" + `${code}`
+            // template('template/index.hbs', { name: 'durward' })
+        }).catch((e: any) => console.log(e));
+        
+       return email
+    }
 }
