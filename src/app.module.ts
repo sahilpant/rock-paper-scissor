@@ -50,7 +50,7 @@ import { jwtStrategy } from './jwt.strategy';
 
       isGlobal:true,
 
-      envFilePath:['C://Users//Prerna//Desktop//roshambo//rock-paper-scissor//env//.env', 'C://Users//Prerna//Desktop//roshambo//rock-paper-scissor//env//development.env',],
+      envFilePath:[ 'C://Users//Prerna//Desktop//roshambo//rock-paper-scissor//env//.env', 'C://Users//Prerna//Desktop//roshambo//rock-paper-scissor//env//development.env',],
 
       load:[configuration]
 

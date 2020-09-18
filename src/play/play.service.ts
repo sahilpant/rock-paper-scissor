@@ -127,6 +127,12 @@ export class PlayService {
            {
           
              console.log(card1+" "+card2);
+
+             let arrOfCards=`[${card1},${card2}]`
+           
+             game[0].moves.push(arrOfCards)
+
+             await game[0].save();
             
              (card1.match("ROCK"))?
              (ans=(card2.match("SCISSOR"))?1:0) : 
@@ -212,6 +218,13 @@ export class PlayService {
             
             game[0].playerWin.push("tie")
 
+             let arrOfCard=`[${card1},${card2}]`
+           
+             game[0].moves.push(arrOfCard)
+
+             await game[0].save();
+            
+
             // await burn(token1,this.obj_deployed_addresses.gameContractAddress)
 
             // await burn(token2,this.obj_deployed_addresses.gameContractAddress)
@@ -235,6 +248,12 @@ export class PlayService {
           
             game[0].playerWin.push("tie")
 
+            let arrOfCard=`[${card1},${card2}]`
+           
+             game[0].moves.push(arrOfCard)
+
+             await game[0].save();
+             
             // await Transfer(player1address,1,this.obj_deployed_addresses.gameContractAddress)
 
             // await Transfer(player2address,1,this.obj_deployed_addresses.gameContractAddress)
