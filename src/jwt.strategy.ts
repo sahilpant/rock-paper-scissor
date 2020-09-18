@@ -38,14 +38,6 @@ export class jwtStrategy extends PassportStrategy(Strategy){
         console.log(role);
         const user = await this.user.findOne({email : `${email}`, role:`${role}`});
 
-        if(!user){
-
-            throw new  UnauthorizedException("user away");
-
-        }
-
-        else
-
         return user;
 
     }

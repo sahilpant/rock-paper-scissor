@@ -81,8 +81,23 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	  this.nameOfConnectedUser = ans.username
 	  
 	  this.roleOfConnectedUser = ans.role
+
+	  let isuserValidatedwithPlayload = await this.jwtstrategy.validate(ans)
+
+	  if(isuserValidatedwithPlayload)
+	  {
+	  client.emit('return',isuserValidatedwithPlayload)
+	  }
+	  else
+	  {
+		client.emit('return',"client not verified with this payload")
+
+		this.emailOfConnectedUser = null
   
-	  client.emit('return',await this.jwtstrategy.validate(ans))
+		this.nameOfConnectedUser = null
+		
+		this.roleOfConnectedUser = null
+	  }
 	  
 	  console.log("calling handler")
   

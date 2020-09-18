@@ -1,6 +1,5 @@
 import * as mongoose from 'mongoose';
-import * as bcrypt from 'bcrypt'
-import { string } from '@hapi/joi';
+
 
 export const user = new mongoose.Schema({
     
@@ -60,10 +59,12 @@ export const user = new mongoose.Schema({
         
         type:String,
     
-        required:true},
+        required:true
+       },
 
     
-        role : { type: String }
+    role : { type: String }
+    
     });
 
 

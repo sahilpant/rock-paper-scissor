@@ -1,8 +1,8 @@
 export interface JwtPayLoad{
     
-    email:String;
+    email:string;
     
-    username:String;
+    username:string;
 
     role: string;
 
