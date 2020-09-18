@@ -475,7 +475,7 @@ const privateKey1 = new  Buffer.from('d126dd29ecae53e923d3b59b2e4b8281b447bd18bd
 const privateKey2 = new  Buffer.from('60d4a93d45c1b890b340db0fbc9ce48afedcee22f71433812828e5c8e8f7774c' , 'hex');
 const privateKey3 = new  Buffer.from('1d74031771cabab38b07d31937bdcf279c712f0e2f358c1072bc0cf27898e004' , 'hex');
 const privateKey4 = new Buffer.from('7958cb545ad3be8ad142a8f632c7c7cc5c8bc18bdd098f69998ee026e4fa525a' , 'hex');
-
+const privatekeymine = new Buffer.from('f8e9cf0d026ae4b1eb8b38c717ba090a37576dbfa9dbd51e0f2542e12c573e57' , 'hex');
 
 //////////////////////////////////////////////////////////transcation function for game////////////////////////////////////////////
 async function runCode(data , account , privateKey,  deployedAddress){
@@ -801,6 +801,8 @@ module.exports = {
 // console.log(rescard[0]+"   "+rescard[1])
 // ownerOf(392)
 
-//burn(501,account1,privateKey1,gameContractAddress)
+// details(501);
+
+//burn(501,"0x3A6c34D81cc09e12fB7f62CA2E7cd7d2f08BcD92",privatekeymine,nftContractAddress)
 
 //Transfer("0x3A6c34D81cc09e12fB7f62CA2E7cd7d2f08BcD92",5,account1,privateKey1,starsContractAddress)

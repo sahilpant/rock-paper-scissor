@@ -148,11 +148,11 @@ export class PlayService {
             
               console.log(user2)
             
-              await burn(token1,this.obj_deployed_addresses.gameContractAddress)
+              // await burn(token1,this.obj_deployed_addresses.gameContractAddress)
 
-              await burn(token2,this.obj_deployed_addresses.gameContractAddress)
+              // await burn(token2,this.obj_deployed_addresses.gameContractAddress)
 
-              await Transfer(player1address,2,this.obj_deployed_addresses.gameContractAddress)
+              // await Transfer(player1address,2,this.obj_deployed_addresses.gameContractAddress)
 
               userno2[0].stars--
             
@@ -184,11 +184,11 @@ export class PlayService {
             
               console.log(user1)
 
-              await burn(token1,this.obj_deployed_addresses.gameContractAddress)
+              // await burn(token1,this.obj_deployed_addresses.gameContractAddress)
 
-              await burn(token2,this.obj_deployed_addresses.gameContractAddress)
+              // await burn(token2,this.obj_deployed_addresses.gameContractAddress)
 
-              await Transfer(player2address,2,this.obj_deployed_addresses.gameContractAddress)
+              // await Transfer(player2address,2,this.obj_deployed_addresses.gameContractAddress)
             
               userno2[0].stars++
             
@@ -212,13 +212,13 @@ export class PlayService {
             
             game[0].playerWin.push("tie")
 
-            await burn(token1,this.obj_deployed_addresses.gameContractAddress)
+            // await burn(token1,this.obj_deployed_addresses.gameContractAddress)
 
-            await burn(token2,this.obj_deployed_addresses.gameContractAddress)
+            // await burn(token2,this.obj_deployed_addresses.gameContractAddress)
             
-            await Transfer(player1address,1,this.obj_deployed_addresses.gameContractAddress)
+            // await Transfer(player1address,1,this.obj_deployed_addresses.gameContractAddress)
 
-            await Transfer(player2address,1,this.obj_deployed_addresses.gameContractAddress)
+            // await Transfer(player2address,1,this.obj_deployed_addresses.gameContractAddress)
 
             game[0].card1="empty"
             
@@ -235,9 +235,9 @@ export class PlayService {
           
             game[0].playerWin.push("tie")
 
-            await Transfer(player1address,1,this.obj_deployed_addresses.gameContractAddress)
+            // await Transfer(player1address,1,this.obj_deployed_addresses.gameContractAddress)
 
-            await Transfer(player2address,1,this.obj_deployed_addresses.gameContractAddress)
+            // await Transfer(player2address,1,this.obj_deployed_addresses.gameContractAddress)
           
             game[0].card1="empty"
           
