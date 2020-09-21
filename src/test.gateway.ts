@@ -80,83 +80,84 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   async handleConnection(client:Socket) {
 
-    client.on('handler',async (data)=> 
-  
-    {
-  
-	  const ans = <JwtPayLoad>jwt.verify(data,this.configservice.get<string>('JWT_SECRET'))
-	  
-	  console.log(ans);
-  
-      this.emailOfConnectedUser = ans.email
-  
-	  this.nameOfConnectedUser = ans.username
-	  
-	  this.roleOfConnectedUser = ans.role
-
-	  let isuserValidatedwithPlayload = await this.jwtstrategy.validate(ans)
-
-	  if(isuserValidatedwithPlayload)
-	  {
-	  client.emit('return',isuserValidatedwithPlayload)
-	  }
-	  else
-	  {
-		client.emit('return',"client not verified with this payload")
-
-		this.emailOfConnectedUser = null
-  
-		this.nameOfConnectedUser = null
-		
-		this.roleOfConnectedUser = null
-
-		this.handleDisconnect(client);
-	  }
-  
-    })
-  
-    client.emit('welcome',"welcome to the server")
-  
-    this.clientAndUser[client.id] = this.emailOfConnectedUser;
-
-    if(this.emailOfConnectedUser){
-
-		this.check[client.id] = true; //check that user has verified there payload
+		client.on('handler',async (data) => {
 	
-	}
-	else{
+			console.log('I ran');
 
-		client.emit('ERROR','PAYLOAD NOT VERFIFIED HENCE NOT AUTHENTICATED');
+			const ans = <JwtPayLoad>jwt.verify(data,this.configservice.get<string>('JWT_SECRET'))
+
+			this.emailOfConnectedUser = ans.email
 		
-		this.handleDisconnect(client);
-	}
+			this.nameOfConnectedUser = ans.username
+			
+			this.roleOfConnectedUser = ans.role
 
-	/*------logic for checking the invitation email------*/
-	if( this.check[client.id] && Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser) != -1){
-		this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser)]);
-	}
-	/*---------------------------------------------------*/
+			let isuserValidatedwithPlayload = await this.jwtstrategy.validate(ans)
 
-	else if(this.check[client.id]){
+			if(isuserValidatedwithPlayload) {
+				client.emit('return',isuserValidatedwithPlayload) //in the browser console this output will be showm
+			}
 
-		this.currConnected[client.id] = this.noOfusers++;
-  
-		const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
-  	
-		userdata.client_id = client.id;
-  	
-		userdata.save();
-  
-		this.emailOfConnectedUser=null
-  
-		this.nameOfConnectedUser=null
-  
-		client.emit('joined', `welcome user ${client.id}`);
-  
-        const pos = this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
-  
-        if(pos != -1 && (this.room_status[this.games[pos].gameRoom] != true) && this.room_invite_flag[this.games[pos].gameRoom] != true){
-  
+			else{
+				client.emit('return',"client not verified with this payload")
+
+				this.emailOfConnectedUser = null
+		
+				this.nameOfConnectedUser = null
+				
+				this.roleOfConnectedUser = null
+
+				client.disconnect();
+			}
+	
+		})
+	
+		client.emit('welcome',"welcome to the server")
+	
+		this.clientAndUser[client.id] = this.emailOfConnectedUser;
+
+		if(this.emailOfConnectedUser){
+
+			this.check[client.id] = true; //check that user has verified there payload
+		
+		}
+		else{
+
+			client.emit('ERROR','NO PAYLOAD TO VERIFY');
+			
+			this.handleDisconnect(client);
+		}
+
+		/*------logic for checking the invitation email------*/
+		if( this.check[client.id] && Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser) != -1){
+			this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser)]);
+		}
+		/*---------------------------------------------------*/
+
+		else if(this.check[client.id]){
+
+			this.currConnected[client.id] = this.noOfusers++;
+	
+			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
+		
+			userdata.client_id = client.id;
+		
+			userdata.save();
+	
+			this.emailOfConnectedUser=null
+	
+			this.nameOfConnectedUser=null
+	
+			client.emit('joined', `welcome user ${client.id}`);
+		}
+  }
+
+  	@SubscribeMessage('Join_Alone')
+	handleJoin_Alone(client: Socket){
+		const pos = this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
+
+		if(pos != -1 && (this.room_status[this.games[pos].gameRoom] != true) && this.room_invite_flag[this.games[pos].gameRoom] != true){
+
 			const game_pos = this.games.findIndex((game) => { return game.gameRoom == this.games[pos].gameRoom});
 	
 			// this.games[game_pos].users.push(client.id);
@@ -168,28 +169,30 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			this.games[pos].players++;
 	
 			this.user_check[client.id] = `true`;
-  
-    	}
-  
-      	else{
-  
-        	this.user_timestamp[client.id] = Date.now();
-  
- 	        this.handlejoinFirstTime(client);
-         
-      	}
-  
-    }
 
-  
-  }
+		}
+		else {
+			client.emit('NOTICE','No room is free now wait for someone to join')
+			this.handlejoinFirstTime(client);
+			this.user_timestamp[client.id] = Date.now();
+		}
+	}
+
+	@SubscribeMessage('Join_With_Friend')
+	handleJoin_with_Friend(client: Socket) {
+		this.handlejoinFirstTime(client);
+		const room = this.users[client.id];
+		this.room_invite_flag[room] = true;
+		this.user_timestamp[client.id] = Date.now();
+	}
+
 
   handleJoinInvitation(client: Socket,room: string) {
 
 	const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 	client.join(room);
 	client.emit('Joined',`Welcome to the room ${room}`);
-	client.broadcast.to(room).emit('user joined', `User ${client.id} ahs joined he room`);
+	client.broadcast.to(room).emit('user joined', `User ${client.id} has joined he room`);
 
 	this.user_timestamp[client.id] = Date.now();
 	this.currConnected[client.id] = this.noOfusers++;
@@ -202,52 +205,51 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   }
   
   handlejoinFirstTime(client:Socket){
-  
-    if(this.check[client.id])
-  
-    {
-  
-	  let gameId = uuid();
+		if(this.check[client.id])
+	
+		{
+	
+			let gameId = uuid();
+		
+			this.games.push({
+		
+					gameRoom: `${gameId}`,
+			
+					players: 1
+		
+			})
+		
+			client.join(gameId)
 
-	  this.room_invite_flag[gameId] = false;
+			this.room_invite_flag[gameId] = false;
+		
+			client.emit('joinedGame',`welcome to ${gameId}`)
+		
+			this.users[client.id]=gameId
+		
+			this.user_check[client.id] = `true`;
+		
+			this.custom_id[client.id] = uuid();
+		
+			this.gameCollection[gameId]={
+		
+				"userarray":[this.clientAndUser[client.id],],
+		
+				"timestamp":new Date(),
+		
+				"typeOfGame":"normal",
+		
+				"status":true,
+		
+				"moves":10,
+		
+				"RoomName":"testroom"
+	
+			}               
+	
+		}
   
-      this.games.push({
-  
-        gameRoom: `${gameId}`,
-  
-        players: 1
-  
-      })
-  
-      client.join(gameId)
-  
-      client.emit('joinedGame',`welcome to ${gameId}`)
-  
-      this.users[client.id]=gameId
-  
-      this.user_check[client.id] = `true`;
-  
-      this.custom_id[client.id] = uuid();
-  
-      this.gameCollection[gameId]={
-  
-        "userarray":[this.clientAndUser[client.id],],
-  
-        "timestamp":new Date(),
-  
-        "typeOfGame":"normal",
-  
-        "status":true,
-  
-        "moves":10,
-  
-        "RoomName":"testroom"
-  
-      }               
-  
-    }
-  
-  }
+	}
 
   
 
@@ -264,7 +266,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
 	this.custom_id[client.id] = uuid();
 	
-	this.user_timestamp = Date.now();
+	this.user_timestamp[client.id] = Date.now();
   
   }
 
@@ -277,6 +279,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			this.games[pos].players--;
 			delete this.users[client.id]
 			delete this.currConnected[client.id];
+			delete this.user_timestamp[client.id];
+			delete this.check[client.id];
+			delete this.user_check[client.id];
+			delete this.custom_id[client.id];
 		}
 		this.logger.log(`${client.id} disconnected`);
   	}
