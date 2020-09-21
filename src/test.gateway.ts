@@ -395,65 +395,75 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 
 
-
 /*---------Game logic------------*/
 		@SubscribeMessage('add1')
 		async playgame(client: Socket, data: Number)
 		{
-			 //store id of given card
-			 let carddetail,flag=1
-		
-			 try
-			 {
-		
-				carddetail = await detailOfCard(data);
 			
+			let flag=1;
+			
+			let userDatawithThisClientId = await this.user.findOne().where('client_id').equals(client.id).exec()
+
+			let noOfStarsHolding = userDatawithThisClientId.stars;
+
+			if(noOfStarsHolding>0){
+
+				userDatawithThisClientId.stars = noOfStarsHolding-1;
+				
+				await userDatawithThisClientId.save();
+
+			}
+			else
+			{
+			        //transfer other user star back to him	
+		
+					flag=0;
+			
+					let gameidOfUser = this.users[client.id]
+			
+					let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
+				 
+					if(currentGame)
+			
+					{
+			
+						//other user card is given back to him
+			
+						let publickeyofthatUser = currentGame.player2address
+		
+						currentGame.card2 = "empty"
+		
+						await currentGame.save()
+		
+						let user2details =await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
+		
+						let returnedTokenId = await user2details.usedCards.pop()
+		
+						await user2details.notUsedCards.push(returnedTokenId)
+
+						await user2details.stars++; //transfer user2 star from admin to user2 account
+		
+						await user2details.save();
+		
+						let name2 = currentGame.user2
+		
+						this.wss.to(gameidOfUser).emit('card not played',`${name2} your card is not used as other user have not minimum no. of stars required to play `)
+		
+						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
+		
+					}
+		
 			}
 		
-			catch
-		
-			{
-		
-				flag=0;
-		
-				let gameidOfUser = this.users[client.id]
-		
-				let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
-			 
-				if(currentGame)
-		
-				{
-		
-					//other user card is given back to him
-		
-					let publickeyofthatUser = currentGame.player2address
-	
-					currentGame.card2 = "empty"
-	
-					await currentGame.save()
-	
-					let user2details =await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
-	
-					let returnedTokenId = await user2details.usedCards.pop()
-	
-					await user2details.notUsedCards.push(returnedTokenId)
-	
-					await user2details.save();
-	
-					let name2 = currentGame.user2
-	
-					this.wss.to(gameidOfUser).emit('card not played',`${name2} your card is not used as other user card is not valid`)
-	
-					client.emit('not valid card','your card is not valid')
-	
-				}
-	
-	
-			}
-	
-			if(flag==1)
-			{
-		
+			
+			//store id of given card
+
+			 let carddetail;
+
+			 carddetail = await detailOfCard(data);
+			
+			 if(flag == 1)
+			 {
 				console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
 	
 				let givenCardType
@@ -502,6 +512,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 								nameinUSERDB.usedCards.push(data)
 	
 								nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+
+								nameinUSERDB.stars--
 		
 								await nameinUSERDB.save()
 		
@@ -532,6 +544,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 							await nameinUSERDB.usedCards.push(data);
 		
 							nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+
+							nameinUSERDB.stars--
 		
 							await nameinUSERDB.save()
 		
@@ -633,67 +647,76 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 					}
 	  
 		
-				}
+			 }
 	
 	
 			}
 	
 	  
 		@SubscribeMessage('add2')
-		async playgame1(client: Socket, data: Number)
+		async playgame1(client:Socket, data: Number)
 		{
-			 //store id of given card
-			 let carddetail,flag=1
-		
-			 try
-			 {
-		
-				carddetail = await detailOfCard(data);
-			
+
+			let flag = 1;
+
+			let userDatawithThisClientId = await this.user.findOne().where('client_id').equals(client.id).exec()
+
+			let noOfStarsHolding = userDatawithThisClientId.stars;
+
+			if(noOfStarsHolding > 0){
+
+				userDatawithThisClientId.stars = noOfStarsHolding-1;
+				
+				await userDatawithThisClientId.save();
 			}
-		
-			catch
-		
+			else
 			{
+				
 		
-				flag=0;
+					flag=0;
+			
+					let gameidOfUser = this.users[client.id]
+			
+					let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
+				 
+					if(currentGame)
+			
+					{
+			
+						//other user card is given back to him
+			
+						let publickeyofthatUser = currentGame.player1address
 		
-				let gameidOfUser = this.users[client.id]
+						currentGame.card1 = "empty"
 		
-				let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
-			 
-				if(currentGame)
+						await currentGame.save()
 		
-				{
+						let user1details =await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
 		
-					//other user card is given back to him
+						let returnedTokenId = await user1details.usedCards.pop()
 		
-					let publickeyofthatUser = currentGame.player1address
-	
-					currentGame.card1 = "empty"
-	
-					await currentGame.save()
-	
-					let user1details =await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
-	
-					let returnedTokenId = await user1details.usedCards.pop()
-	
-					await user1details.notUsedCards.push(returnedTokenId)
-	
-					await user1details.save();
-	
-					let name1 = currentGame.user1
-	
-					this.wss.to(gameidOfUser).emit('card not played',`${name1} your card is not used as other user card is not valid`)
-	
-					client.emit('not valid card','your card is not valid')
-	
-				}
-	
-	
+						await user1details.notUsedCards.push(returnedTokenId)
+
+						await user1details.stars++; //transfer user1 star from admin to user1 account
+		
+						await user1details.save();
+		
+						let name1 = currentGame.user1
+		
+						this.wss.to(gameidOfUser).emit('card not played',`${name1} your card is not used as other user have not minimum no. of stars required to play `)
+		
+						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
+		
+					}
+		
 			}
-	
-			if(flag==1)
+			
+			 //store id of given card
+			 let carddetail;
+		
+	         carddetail = await detailOfCard(data);
+			
+			if(flag == 1)
 			{
 		
 				console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
@@ -744,6 +767,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 								nameinUSERDB.usedCards.push(data)
 	
 								nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+
+								nameinUSERDB.stars--
 		
 								await nameinUSERDB.save()
 		
@@ -774,6 +799,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 							await nameinUSERDB.usedCards.push(data);
 		
 							nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+
+							nameinUSERDB.stars--
 		
 							await nameinUSERDB.save()
 		
@@ -872,9 +899,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	  
 		
 				}
+			
 	
-	
-			}
+		}
+
+	}
 	// @SubscribeMessage('list')
 	// handlelist(client: Socket, data: string):void {
 
@@ -940,4 +969,4 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   //      this.check[client.id]=true
   //    }
   // }
-}
+

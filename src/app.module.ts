@@ -51,7 +51,7 @@ import { NotificationService } from './notification/notification.service';
 
       isGlobal:true,
 
-      envFilePath:['C://Users//SAHIL//Desktop//rock paper//env//.env', 'C://Users//SAHIL//Desktop//rock paper//env//development.env',],
+      envFilePath:['C://Users//Prerna//Desktop//new Roshambo//rock-paper-scissor//env//.env', 'C://Users//Prerna//Desktop//new Roshambo//rock-paper-scissor//env//development.env',],
 
       load:[configuration]
 
