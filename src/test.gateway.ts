@@ -15,7 +15,6 @@ import {JwtPayLoad} from './required/interfaces/jwt-payload.interface'
 import { detailOfCard} from '.././gameblock'
 import { ConfigService } from '@nestjs/config';
 import { NotificationService } from './notification/notification.service';
-import { x } from '@hapi/joi';
 
 @WebSocketGateway({namespace:'/game'})
 export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatewayDisconnect{
@@ -42,7 +41,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
   private currConnected={};//currently connected clients
   
-  private noOfusers=1 //to count no of users in game room
+  private noOfusers = 1 //to count no of users in game room
   
   private emailOfConnectedUser: String;//email of users fetched from db using their given accesstoken
   
@@ -65,8 +64,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   private room_status = {} //room.id : true if game has been started in that room
 
   private games = [] // gameid and other user details
-
-  public room_with_codes = {} //room id : rood joining code
 
   public room_invite_flag = {} //room id and status if there is a pending invitition
 
@@ -112,19 +109,19 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		this.nameOfConnectedUser = null
 		
 		this.roleOfConnectedUser = null
+
+		this.handleDisconnect(client);
 	  }
-	  
-	  console.log("calling handler")
   
     })
   
     client.emit('welcome',"welcome to the server")
   
-    this.clientAndUser[client.id]=this.emailOfConnectedUser
+    this.clientAndUser[client.id] = this.emailOfConnectedUser;
 
     if(this.emailOfConnectedUser){
 
-		this.check[client.id]=true;
+		this.check[client.id] = true; //check that user has verified there payload
 	
 	}
 	else{
@@ -134,23 +131,17 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		this.handleDisconnect(client);
 	}
 
-	console.log(this.emailOfConnectedUser);
-	const values = Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser);
-	console.log(values);
-	const keys = Object.keys(this.room_invited_player_email);
-	console.log(keys);
-	if( this.check[client.id] && values != -1){
-		console.log(keys[values]);
-		this.room_invited_player_email[keys[values]] = null;
-		console.log(keys);
-		this.handleJoin(client,keys[values]);
+	/*------logic for checking the invitation email------*/
+	if( this.check[client.id] && Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser) != -1){
+		this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser)]);
 	}
+	/*---------------------------------------------------*/
 
 	else if(this.check[client.id]){
 
-		this.currConnected[client.id]=this.noOfusers++
+		this.currConnected[client.id] = this.noOfusers++;
   
-		const userdata=await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
+		const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
   	
 		userdata.client_id = client.id;
   	
@@ -166,33 +157,49 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
         if(pos != -1 && (this.room_status[this.games[pos].gameRoom] != true) && this.room_invite_flag[this.games[pos].gameRoom] != true){
   
-        const game_pos = this.games.findIndex((game) => { return game.gameRoom == this.games[pos].gameRoom});
+			const game_pos = this.games.findIndex((game) => { return game.gameRoom == this.games[pos].gameRoom});
+	
+			// this.games[game_pos].users.push(client.id);
+	
+			this.user_timestamp[client.id] = Date.now();
+	
+			this.handleJoin( client, this.games[pos].gameRoom);
+	
+			this.games[pos].players++;
+	
+			this.user_check[client.id] = `true`;
   
-        // this.games[game_pos].users.push(client.id);
+    	}
   
-        this.user_timestamp[client.id] = Date.now();
-  
-        this.handleJoin( client, this.games[pos].gameRoom);
-  
-        this.games[pos].players++;
-  
-        this.user_check[client.id] = `true`;
-  
-      }
-  
-      else if(this.check[client.id]){
+      	else{
   
         	this.user_timestamp[client.id] = Date.now();
   
  	        this.handlejoinFirstTime(client);
          
-      }
+      	}
   
     }
 
   
   }
 
+  handleJoinInvitation(client: Socket,room: string) {
+
+	const pos  =  this.games.findIndex((game) => game.gameRoom == room);
+	client.join(room);
+	client.emit('Joined',`Welcome to the room ${room}`);
+	client.broadcast.to(room).emit('user joined', `User ${client.id} ahs joined he room`);
+
+	this.user_timestamp[client.id] = Date.now();
+	this.currConnected[client.id] = this.noOfusers++;
+	this.games[pos].players++;		
+	this.user_check[client.id] = 'true';
+	this.users[client.id] = room;
+	this.custom_id[client.id] = uuid();
+	delete this.room_invited_player_email[room];
+
+  }
   
   handlejoinFirstTime(client:Socket){
   
@@ -201,8 +208,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
     {
   
 	  let gameId = uuid();
-	  
-	  this.room_with_codes[gameId] = uuid();
 
 	  this.room_invite_flag[gameId] = false;
   
@@ -257,23 +262,24 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
     this.users[client.id] = game;
   
-    this.custom_id[client.id] = uuid();
+	this.custom_id[client.id] = uuid();
+	
+	this.user_timestamp = Date.now();
   
   }
 
   
-  handleDisconnect(client: Socket):void {
-  
-    this.logger.log(`${client.id} disconnected`);
-  
-	if(this.currConnected[client.id]){
-
-		delete this.currConnected[client.id]
-   }
-
-    client.emit('disconnectuser',`user ${client.id} disconnect`)
-  
-  }
+  	handleDisconnect(client: Socket):void {
+		if(this.user_check[client.id]){
+			const room = this.users[client.id];
+			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
+			this.wss.to(this.users[client.id]).emit('user-disconnected',`user ${client.id} disconnected`);
+			this.games[pos].players--;
+			delete this.users[client.id]
+			delete this.currConnected[client.id];
+		}
+		this.logger.log(`${client.id} disconnected`);
+  	}
 
   
 
@@ -292,526 +298,63 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
 
 
-    @SubscribeMessage('add1')
-	async playgame(client: Socket, data: Number)
-	{
-		 //store id of given card
-		 let carddetail,flag=1
-	
-		 try
-		 {
-	
-			carddetail = await detailOfCard(data);
-		
-		}
-	
-		catch
-	
-		{
-	
-			flag=0;
-	
-			let gameidOfUser = this.users[client.id]
-	
-			let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
-         
-			if(currentGame)
-	
-			{
-	
-				//other user card is given back to him
-	
-				let publickeyofthatUser = currentGame.player2address
-
-				currentGame.card2 = "empty"
-
-				await currentGame.save()
-
-				let user2details =await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
-
-				let returnedTokenId = await user2details.usedCards.pop()
-
-				await user2details.notUsedCards.push(returnedTokenId)
-
-				await user2details.save();
-
-				let name2 = currentGame.user2
-
-				this.wss.to(gameidOfUser).emit('card not played',`${name2} your card is not used as other user card is not valid`)
-
-				client.emit('not valid card','your card is not valid')
-
-			}
-
-
-		}
-
-		if(flag==1)
-		{
-	
-			console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
-
-			let givenCardType
-
-			(carddetail[0] === "1")?(givenCardType="ROCK"):(
-							           (carddetail[0] === "2")?(givenCardType="PAPER"):(
-																			(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
-																			
-    	    console.log(data)		
-	
-			let gameid=this.users[client.id]  
-
-			if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
-
-			{
-
-				if(this.check[client.id])
-
-				{
-				
-					let gameexist= await this.passkey.findOne().where('gameid').equals(gameid).exec();
-
-					let nameinUSERDB =await this.user.findOne().where('client_id').equals(client.id).exec()
-	
-					//find index of given card
-			
-					let indexofCard =(nameinUSERDB.notUsedCards.indexOf(data))
-	
-					console.log(indexofCard)
-	
-					// console.log(nameinUSERDB.notUsedCards.findIndex(givencardid))
-
-					if(gameexist && indexofCard !== -1)
-	
-	
-					{
-	
-							gameexist.card1 = givenCardType
-
-							gameexist.user1=nameinUSERDB.username
-
-							gameexist.player1address=nameinUSERDB.publickey
-
-							gameexist.token1 = data
-
-							nameinUSERDB.usedCards.push(data)
-
-							nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
-	
-							await nameinUSERDB.save()
-	
-							await gameexist.save()
-	
-	
-						}
-        
-						else if(indexofCard !== -1)
-	
-						{
-	
-							const cardDetail = new this.passkey({
-	
-							gameid:gameid,
-	
-							card1:givenCardType,
-	
-							user1:nameinUSERDB.username,
-
-							player1address:nameinUSERDB.publickey,
-
-							token1:data
-						})
-	  
-						console.log( nameinUSERDB.notUsedCards[indexofCard])
-
-						await nameinUSERDB.usedCards.push(data);
-	
-						nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
-	
-						await nameinUSERDB.save()
-	
-						await cardDetail.save()
-	
-					}
-
-					gameexist = await this.passkey.findOne().where('gameid').equals(gameid).exec();
-
-					if(gameexist.card1 && gameexist.card2 && gameexist.card1 !== "empty" && gameexist.card2 !== "empty")
-	
-					{
-        					let gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec();
-	
-							const user1name = gameINDB.user1
-	
-							const user2name = gameINDB.user2
-	
-							const user1card = gameINDB.card1
-	
-							const user2card = gameINDB.card2
-		  
-							// const addressofplayer1 = gameINDB.player1address
-
-							// const addressofplayer2 = gameINDB.player2address
-
-							const gameResult=await  this.playservice.play(gameid);
-	
-							if(gameResult === "game is draw")
-	
-							this.wss.to(gameid).emit('result',"game is draw")
-	
-							else
-	
-							{
-	
-								this.wss.to(gameid).emit('result of round',gameResult+" WON ");
-	
-								this.wss.to(gameid).emit(`${user1name}+"cards"`,user1card);
-	
-								this.wss.to(gameid).emit(`${user2name}+"cards"`,user2card);
-	
-	
-							}
-	
-							gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec()
-	
-							if(gameINDB.playerWin.length === 3)
-	
-							{
-	
-								let user1=0,user2=0,tie=0;
-	
-								console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
-	
-								for(const player in gameINDB.playerWin)
-	
-								{
-	
-									console.log(gameINDB[player]+"#####")
-	
-									if(gameINDB.playerWin[player] === user1name)
-	
-									user1++;  
-	
-									else if(gameINDB.playerWin[player] === user2name)
-	
-									user2++;
-	
-									else
-	
-									tie++;
-	
-	
-								}
-	
-								console.log(user1+"###"+user2+"###"+tie)
-	
-								const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
-	
-								this.wss.to(gameid).emit('final',finalPlayerWon);
-
-
-								//delete this gameid data from database too
-
-								await gameINDB.deleteOne()
-
-								await gameINDB.save()
-	
-	
-							
-							}
-        
-						
-						}
-
-					}
-
-				}
-  
-	
-			}
-
-
-		}
-
-  
-	@SubscribeMessage('add2')
-	async playgame1(client: Socket, data: Number)
-	{
-		 //store id of given card
-		 let carddetail,flag=1
-	
-		 try
-		 {
-	
-			carddetail = await detailOfCard(data);
-		
-		}
-	
-		catch
-	
-		{
-	
-			flag=0;
-	
-			let gameidOfUser = this.users[client.id]
-	
-			let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
-         
-			if(currentGame)
-	
-			{
-	
-				//other user card is given back to him
-	
-				let publickeyofthatUser = currentGame.player1address
-
-				currentGame.card1 = "empty"
-
-				await currentGame.save()
-
-				let user1details =await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
-
-				let returnedTokenId = await user1details.usedCards.pop()
-
-				await user1details.notUsedCards.push(returnedTokenId)
-
-				await user1details.save();
-
-				let name1 = currentGame.user1
-
-				this.wss.to(gameidOfUser).emit('card not played',`${name1} your card is not used as other user card is not valid`)
-
-				client.emit('not valid card','your card is not valid')
-
-			}
-
-
-		}
-
-		if(flag==1)
-		{
-	
-			console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
-
-			let givenCardType
-
-			(carddetail[0] === "1")?(givenCardType="ROCK"):(
-							           (carddetail[0] === "2")?(givenCardType="PAPER"):(
-																			(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
-																			
-    	    console.log(data)		
-	
-			let gameid=this.users[client.id]  
-
-			if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
-
-			{
-
-				if(this.check[client.id])
-
-				{
-				
-					let gameexist= await this.passkey.findOne().where('gameid').equals(gameid).exec();
-
-					let nameinUSERDB =await this.user.findOne().where('client_id').equals(client.id).exec()
-	
-					//find index of given card
-			
-					let indexofCard =(nameinUSERDB.notUsedCards.indexOf(data))
-	
-					console.log(indexofCard)
-	
-					// console.log(nameinUSERDB.notUsedCards.findIndex(givencardid))
-
-					if(gameexist && indexofCard !== -1)
-	
-	
-					{
-	
-							gameexist.card2 = givenCardType
-
-							gameexist.user2=nameinUSERDB.username
-
-							gameexist.player2address=nameinUSERDB.publickey
-
-							gameexist.token2 = data
-
-							nameinUSERDB.usedCards.push(data)
-
-							nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
-	
-							await nameinUSERDB.save()
-	
-							await gameexist.save()
-	
-	
-						}
-        
-						else if(indexofCard !== -1)
-	
-						{
-	
-							const cardDetail = new this.passkey({
-	
-							gameid:gameid,
-	
-							card2:givenCardType,
-	
-							user2:nameinUSERDB.username,
-
-							player2address:nameinUSERDB.publickey,
-
-							token2:data
-						})
-	  
-						console.log( nameinUSERDB.notUsedCards[indexofCard])
-
-						await nameinUSERDB.usedCards.push(data);
-	
-						nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
-	
-						await nameinUSERDB.save()
-	
-						await cardDetail.save()
-	
-					}
-
-					gameexist = await this.passkey.findOne().where('gameid').equals(gameid).exec();
-
-					if(gameexist.card1 && gameexist.card2 && gameexist.card1 !== "empty" && gameexist.card2 !== "empty")
-	
-					{
-        					let gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec();
-	
-							const user1name = gameINDB.user1
-	
-							const user2name = gameINDB.user2
-	
-							const user1card = gameINDB.card1
-	
-							const user2card = gameINDB.card2
-		  
-							// const addressofplayer1 = gameINDB.player1address
-
-							// const addressofplayer2 = gameINDB.player2address
-
-							const gameResult=await  this.playservice.play(gameid);
-	
-							if(gameResult === "game is draw")
-	
-							this.wss.to(gameid).emit('result',"game is draw")
-	
-							else
-	
-							{
-	
-								this.wss.to(gameid).emit('result of round',gameResult+" WON ");
-	
-								this.wss.to(gameid).emit(`${user1name}+"cards"`,user1card);
-	
-								this.wss.to(gameid).emit(`${user2name}+"cards"`,user2card);
-	
-	
-							}
-	
-							gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec()
-	
-							if(gameINDB.playerWin.length === 3)
-	
-							{
-	
-								let user1=0,user2=0,tie=0;
-	
-								console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
-	
-								for(const player in gameINDB.playerWin)
-	
-								{
-	
-									console.log(gameINDB[player]+"#####")
-	
-									if(gameINDB.playerWin[player] === user1name)
-	
-									user1++;  
-	
-									else if(gameINDB.playerWin[player] === user2name)
-	
-									user2++;
-	
-									else
-	
-									tie++;
-	
-	
-								}
-	
-								console.log(user1+"###"+user2+"###"+tie)
-	
-								const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
-	
-								this.wss.to(gameid).emit('final',finalPlayerWon);
-	
-
-								await gameINDB.deleteOne()
-
-								await gameINDB.save()
-							
-							}
-        
-						
-						}
-
-					}
-
-				}
-  
-	
-			}
-
-
-		}
+ 
 		@SubscribeMessage('invite')
-		handleinvite(client: Socket, email:string){
+		handleinvite(client: Socket,email:string){
 
 			const room = this.users[client.id];
 			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 			if(this.games[pos].players<2){
 				this.room_invite_flag[room] = true;
 				this.room_invited_player_email[room] = email;
-				this.games[pos].players++;
-				// this.NotificationService.send_room_code(email,this.room_with_codes[room]);
+				client.emit("Success",`Invitation sent to ${email}`);
+				this.NotificationService.send_room_code(email);
 			}
 			else{
 				client.emit('Error','Room full');
 			}
 			
 			//this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
-		  
+			
 		}
 
 		@SubscribeMessage('cancel_invite')
 		handleCancel(client:Socket){
 			const room = this.users[client.id];
-			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
-			this.games[pos].players--;
+			// const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 			delete this.room_invited_player_email[room];
-			client.emit("Success","Invitation has been canceled")
+			client.emit("Success","Invitation has been canceled");
 		}
 
 		@SubscribeMessage('free_room')
 		handlefreeroom(client:Socket){
 			const room = this.users[client.id];
-			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
-			if(this.games[pos].players<2)
-			{
+			if(this.room_invite_flag[room]){
+				// const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 				client.emit("Success","anyone can join now")
-				this.room_invite_flag = false;
+				this.room_invite_flag[room] = false;
 			}
+
 			else{
 				client.emit("Warning","Cancle the invite first");
 			}
 		}
-	  
+
+		@SubscribeMessage('leaveRoom')
+		handleLeave(client:Socket, room:string):void {
+			const _room = this.users[client.id];
+			const pos  =  this.games.findIndex((game) => game.gameRoom == _room);
+		  	if(this.currConnected[client.id]){
+				client.leave(room);
+				client.emit('leave',`left the room ${room}`);
+				client.broadcast.to(room).emit('UserLeftRoom', `${this.custom_id[client.id]} left the room`);
+				this.games[pos].players--;
+		  	}
+		 	else{
+				client.emit('Error',`Enter a room to leave`);
+		  	}
+		}
+
 		@SubscribeMessage('show')
 		handleshow(): void {
 			console.log(`--------------------------------------------`)
@@ -837,10 +380,495 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			console.log(this.gameCollection);
 			console.log("clientAndUser");
 			console.log(this.clientAndUser);
+			console.log("roomid:invited email")
+			console.log(this.room_invited_player_email);
+			console.log("rood id : true if there is a pending invitation")
+			console.log(this.room_invite_flag)
 			console.log(`--------------------------------------------`)
 		}
+
+
+
+
+/*---------Game logic------------*/
+		@SubscribeMessage('add1')
+		async playgame(client: Socket, data: Number)
+		{
+			 //store id of given card
+			 let carddetail,flag=1
+		
+			 try
+			 {
+		
+				carddetail = await detailOfCard(data);
+			
+			}
+		
+			catch
+		
+			{
+		
+				flag=0;
+		
+				let gameidOfUser = this.users[client.id]
+		
+				let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
+			 
+				if(currentGame)
+		
+				{
+		
+					//other user card is given back to him
+		
+					let publickeyofthatUser = currentGame.player2address
+	
+					currentGame.card2 = "empty"
+	
+					await currentGame.save()
+	
+					let user2details =await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
+	
+					let returnedTokenId = await user2details.usedCards.pop()
+	
+					await user2details.notUsedCards.push(returnedTokenId)
+	
+					await user2details.save();
+	
+					let name2 = currentGame.user2
+	
+					this.wss.to(gameidOfUser).emit('card not played',`${name2} your card is not used as other user card is not valid`)
+	
+					client.emit('not valid card','your card is not valid')
+	
+				}
+	
+	
+			}
+	
+			if(flag==1)
+			{
+		
+				console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
+	
+				let givenCardType
+	
+				(carddetail[0] === "1")?(givenCardType="ROCK"):(
+										   (carddetail[0] === "2")?(givenCardType="PAPER"):(
+																				(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
+																				
+				console.log(data)		
+		
+				let gameid=this.users[client.id]  
+	
+				if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
+	
+				{
+	
+					if(this.check[client.id])
+	
+					{
+					
+						let gameexist= await this.passkey.findOne().where('gameid').equals(gameid).exec();
+	
+						let nameinUSERDB =await this.user.findOne().where('client_id').equals(client.id).exec()
+		
+						//find index of given card
+				
+						let indexofCard =(nameinUSERDB.notUsedCards.indexOf(data))
+		
+						console.log(indexofCard)
+		
+						// console.log(nameinUSERDB.notUsedCards.findIndex(givencardid))
+	
+						if(gameexist && indexofCard !== -1)
+		
+		
+						{
+		
+								gameexist.card1 = givenCardType
+	
+								gameexist.user1=nameinUSERDB.username
+	
+								gameexist.player1address=nameinUSERDB.publickey
+	
+								gameexist.token1 = data
+	
+								nameinUSERDB.usedCards.push(data)
+	
+								nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+		
+								await nameinUSERDB.save()
+		
+								await gameexist.save()
+		
+		
+							}
+			
+							else if(indexofCard !== -1)
+		
+							{
+		
+								const cardDetail = new this.passkey({
+		
+								gameid:gameid,
+		
+								card1:givenCardType,
+		
+								user1:nameinUSERDB.username,
+	
+								player1address:nameinUSERDB.publickey,
+	
+								token1:data
+							})
+		  
+							console.log( nameinUSERDB.notUsedCards[indexofCard])
+	
+							await nameinUSERDB.usedCards.push(data);
+		
+							nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+		
+							await nameinUSERDB.save()
+		
+							await cardDetail.save()
+		
+						}
+	
+						gameexist = await this.passkey.findOne().where('gameid').equals(gameid).exec();
+	
+						if(gameexist.card1 && gameexist.card2 && gameexist.card1 !== "empty" && gameexist.card2 !== "empty")
+		
+						{
+								let gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec();
+		
+								const user1name = gameINDB.user1
+		
+								const user2name = gameINDB.user2
+		
+								const user1card = gameINDB.card1
+		
+								const user2card = gameINDB.card2
+			  
+								// const addressofplayer1 = gameINDB.player1address
+	
+								// const addressofplayer2 = gameINDB.player2address
+	
+								const gameResult=await  this.playservice.play(gameid);
+		
+								if(gameResult === "game is draw")
+		
+								this.wss.to(gameid).emit('result',"game is draw")
+		
+								else
+		
+								{
+		
+									this.wss.to(gameid).emit('result of round',gameResult+" WON ");
+		
+									this.wss.to(gameid).emit(`${user1name}+"cards"`,user1card);
+		
+									this.wss.to(gameid).emit(`${user2name}+"cards"`,user2card);
+		
+		
+								}
+		
+								gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec()
+		
+								if(gameINDB.playerWin.length === 3)
+		
+								{
+		
+									let user1=0,user2=0,tie=0;
+		
+									console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
+		
+									for(const player in gameINDB.playerWin)
+		
+									{
+		
+										console.log(gameINDB[player]+"#####")
+		
+										if(gameINDB.playerWin[player] === user1name)
+		
+										user1++;  
+		
+										else if(gameINDB.playerWin[player] === user2name)
+		
+										user2++;
+		
+										else
+		
+										tie++;
+		
+		
+									}
+		
+									console.log(user1+"###"+user2+"###"+tie)
+		
+									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
+		
+									this.wss.to(gameid).emit('final',finalPlayerWon);
+	
+	
+									//delete this gameid data from database too
+	
+									await gameINDB.deleteOne()
+	
+									await gameINDB.save()
+		
+		
+								
+								}
+			
+							
+							}
+	
+						}
+	
+					}
 	  
-	}
+		
+				}
+	
+	
+			}
+	
+	  
+		@SubscribeMessage('add2')
+		async playgame1(client: Socket, data: Number)
+		{
+			 //store id of given card
+			 let carddetail,flag=1
+		
+			 try
+			 {
+		
+				carddetail = await detailOfCard(data);
+			
+			}
+		
+			catch
+		
+			{
+		
+				flag=0;
+		
+				let gameidOfUser = this.users[client.id]
+		
+				let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
+			 
+				if(currentGame)
+		
+				{
+		
+					//other user card is given back to him
+		
+					let publickeyofthatUser = currentGame.player1address
+	
+					currentGame.card1 = "empty"
+	
+					await currentGame.save()
+	
+					let user1details =await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
+	
+					let returnedTokenId = await user1details.usedCards.pop()
+	
+					await user1details.notUsedCards.push(returnedTokenId)
+	
+					await user1details.save();
+	
+					let name1 = currentGame.user1
+	
+					this.wss.to(gameidOfUser).emit('card not played',`${name1} your card is not used as other user card is not valid`)
+	
+					client.emit('not valid card','your card is not valid')
+	
+				}
+	
+	
+			}
+	
+			if(flag==1)
+			{
+		
+				console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
+	
+				let givenCardType
+	
+				(carddetail[0] === "1")?(givenCardType="ROCK"):(
+										   (carddetail[0] === "2")?(givenCardType="PAPER"):(
+																				(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
+																				
+				console.log(data)		
+		
+				let gameid=this.users[client.id]  
+	
+				if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
+	
+				{
+	
+					if(this.check[client.id])
+	
+					{
+					
+						let gameexist= await this.passkey.findOne().where('gameid').equals(gameid).exec();
+	
+						let nameinUSERDB =await this.user.findOne().where('client_id').equals(client.id).exec()
+		
+						//find index of given card
+				
+						let indexofCard =(nameinUSERDB.notUsedCards.indexOf(data))
+		
+						console.log(indexofCard)
+		
+						// console.log(nameinUSERDB.notUsedCards.findIndex(givencardid))
+	
+						if(gameexist && indexofCard !== -1)
+		
+		
+						{
+		
+								gameexist.card2 = givenCardType
+	
+								gameexist.user2=nameinUSERDB.username
+	
+								gameexist.player2address=nameinUSERDB.publickey
+	
+								gameexist.token2 = data
+	
+								nameinUSERDB.usedCards.push(data)
+	
+								nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+		
+								await nameinUSERDB.save()
+		
+								await gameexist.save()
+		
+		
+							}
+			
+							else if(indexofCard !== -1)
+		
+							{
+		
+								const cardDetail = new this.passkey({
+		
+								gameid:gameid,
+		
+								card2:givenCardType,
+		
+								user2:nameinUSERDB.username,
+	
+								player2address:nameinUSERDB.publickey,
+	
+								token2:data
+							})
+		  
+							console.log( nameinUSERDB.notUsedCards[indexofCard])
+	
+							await nameinUSERDB.usedCards.push(data);
+		
+							nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
+		
+							await nameinUSERDB.save()
+		
+							await cardDetail.save()
+		
+						}
+	
+						gameexist = await this.passkey.findOne().where('gameid').equals(gameid).exec();
+	
+						if(gameexist.card1 && gameexist.card2 && gameexist.card1 !== "empty" && gameexist.card2 !== "empty")
+		
+						{
+								let gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec();
+		
+								const user1name = gameINDB.user1
+		
+								const user2name = gameINDB.user2
+		
+								const user1card = gameINDB.card1
+		
+								const user2card = gameINDB.card2
+			  
+								// const addressofplayer1 = gameINDB.player1address
+	
+								// const addressofplayer2 = gameINDB.player2address
+	
+								const gameResult=await  this.playservice.play(gameid);
+		
+								if(gameResult === "game is draw")
+		
+								this.wss.to(gameid).emit('result',"game is draw")
+		
+								else
+		
+								{
+		
+									this.wss.to(gameid).emit('result of round',gameResult+" WON ");
+		
+									this.wss.to(gameid).emit(`${user1name}+"cards"`,user1card);
+		
+									this.wss.to(gameid).emit(`${user2name}+"cards"`,user2card);
+		
+		
+								}
+		
+								gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec()
+		
+								if(gameINDB.playerWin.length === 3)
+		
+								{
+		
+									let user1=0,user2=0,tie=0;
+		
+									console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
+		
+									for(const player in gameINDB.playerWin)
+		
+									{
+		
+										console.log(gameINDB[player]+"#####")
+		
+										if(gameINDB.playerWin[player] === user1name)
+		
+										user1++;  
+		
+										else if(gameINDB.playerWin[player] === user2name)
+		
+										user2++;
+		
+										else
+		
+										tie++;
+		
+		
+									}
+		
+									console.log(user1+"###"+user2+"###"+tie)
+		
+									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
+		
+									this.wss.to(gameid).emit('final',finalPlayerWon);
+		
+	
+									await gameINDB.deleteOne()
+	
+									await gameINDB.save()
+								
+								}
+			
+							
+							}
+	
+						}
+	
+					}
+	  
+		
+				}
+	
+	
+			}
 	// @SubscribeMessage('list')
 	// handlelist(client: Socket, data: string):void {
 
@@ -906,3 +934,4 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   //      this.check[client.id]=true
   //    }
   // }
+}

@@ -729,7 +729,7 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
 async function Transfer(_to,value, account , privateKey , deployedAddress){ ///transfer stars from self to other
 	try{
                 var data = await star.methods.transfer(_to,value).encodeABI();
-                runCode(data1 , account , privateKey , deployedAddress);
+                runCode(data , account , privateKey , deployedAddress);
         }catch(err){
 	        throw{ message : "ERROR : Token not transferred using transfer"};
 }
@@ -805,4 +805,5 @@ module.exports = {
 
 //burn(501,"0x3A6c34D81cc09e12fB7f62CA2E7cd7d2f08BcD92",privatekeymine,nftContractAddress)
 
-//Transfer("0x3A6c34D81cc09e12fB7f62CA2E7cd7d2f08BcD92",5,account1,privateKey1,starsContractAddress)
+// Transfer("0x3A6c34D81cc09e12fB7f62CA2E7cd7d2f08BcD92",5,account1,privateKey1,starsContractAddress)
+// Transfer('0xfD21dd58A3842eC823830EbDb08293b963086506',3,account1,privateKey1,starsContractAddress);

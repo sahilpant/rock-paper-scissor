@@ -41,20 +41,16 @@ export class NotificationService {
         
        return email
     }
-    async send_room_code(email:string,code:string)
+    async send_room_code(email:string)
     {
         this.mailer.sendMail
         ({
 
             to: email, //Receivers email address
-            
-            from: 'user@outlook.com', // Senders email address
-            
-            subject: 'Join game with this code',
-            
-            text: code,
-            
-            html: "Enter this code to enter the game::::" + `${code}`
+
+            subject: 'Join game with this link',
+
+            html: "<b>click on the link below to join the game ----><b>" + `<br><a href = "https://hoppscotch.io/">Link to tthe game</a>`
             // template('template/index.hbs', { name: 'durward' })
         }).catch((e: any) => console.log(e));
         
