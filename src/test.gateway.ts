@@ -101,11 +101,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			else{
 				client.emit('return',"client not verified with this payload")
 
-				this.emailOfConnectedUser = null
+				this.emailOfConnectedUser = null;
 		
-				this.nameOfConnectedUser = null
+				this.nameOfConnectedUser = null;
 				
-				this.roleOfConnectedUser = null
+				this.roleOfConnectedUser = null;
 
 				client.disconnect();
 			}
@@ -144,9 +144,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 			userdata.save();
 	
-			this.emailOfConnectedUser=null
+			this.emailOfConnectedUser = null;
 	
-			this.nameOfConnectedUser=null
+			this.nameOfConnectedUser = null;
+
+			this.roleOfConnectedUser = null;
 	
 			client.emit('joined', `welcome user ${client.id}`);
 		}
@@ -154,36 +156,51 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   	@SubscribeMessage('Join_Alone')
 	handleJoin_Alone(client: Socket){
-		const pos = this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
+		if(this.check[client.id]){
 
-		if(pos != -1 && (this.room_status[this.games[pos].gameRoom] != true) && this.room_invite_flag[this.games[pos].gameRoom] != true){
+			const pos = this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
 
-			const game_pos = this.games.findIndex((game) => { return game.gameRoom == this.games[pos].gameRoom});
-	
-			// this.games[game_pos].users.push(client.id);
-	
-			this.user_timestamp[client.id] = Date.now();
-	
-			this.handleJoin( client, this.games[pos].gameRoom);
-	
-			this.games[pos].players++;
-	
-			this.user_check[client.id] = `true`;
+			if(pos != -1 && (this.room_status[this.games[pos].gameRoom] != true) && this.room_invite_flag[this.games[pos].gameRoom] != true){
 
+				const game_pos = this.games.findIndex((game) => { return game.gameRoom == this.games[pos].gameRoom});
+		
+				// this.games[game_pos].users.push(client.id);
+		
+				this.user_timestamp[client.id] = Date.now();
+		
+				this.handleJoin( client, this.games[pos].gameRoom);
+		
+				this.games[pos].players++;
+		
+				this.user_check[client.id] = `true`;
+
+			}
+
+			else {
+				client.emit('NOTICE','No room is free now wait for someone to join')
+				this.handlejoinFirstTime(client);
+				this.user_timestamp[client.id] = Date.now();
+			}
 		}
+
 		else {
-			client.emit('NOTICE','No room is free now wait for someone to join')
-			this.handlejoinFirstTime(client);
-			this.user_timestamp[client.id] = Date.now();
+			client.emit('Error','Unverified payload');
+			client.disconnect();
 		}
 	}
 
 	@SubscribeMessage('Join_With_Friend')
 	handleJoin_with_Friend(client: Socket) {
-		this.handlejoinFirstTime(client);
-		const room = this.users[client.id];
-		this.room_invite_flag[room] = true;
-		this.user_timestamp[client.id] = Date.now();
+		if(this.check[client.id]){
+			this.handlejoinFirstTime(client);
+			const room = this.users[client.id];
+			this.room_invite_flag[room] = true;
+			this.user_timestamp[client.id] = Date.now();
+		}
+		else{
+			client.emit("Error","Unverified payload");
+			client.disconnect();
+		}
 	}
 
 
@@ -233,7 +250,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 			this.gameCollection[gameId]={
 		
-				"userarray":[this.clientAndUser[client.id],],
+				"userarray":[this.clientAndUser[client.id]],
 		
 				"timestamp":new Date(),
 		
@@ -285,17 +302,15 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			delete this.custom_id[client.id];
 		}
 		this.logger.log(`${client.id} disconnected`);
-  	}
-
-  
+	}
 
   @SubscribeMessage('chat')
   handlechat(client: Socket, data: string):void {
    
-	if(this.check[client.id]) 
-	
-	this.wss.emit('chat',data);
-	
+	if(this.check[client.id]) {
+		const room = this.users[client.id];
+		this.wss.to(room).emit('chat', data);
+	}
 	else client.disconnect();
   
  }
@@ -311,7 +326,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			const room = this.users[client.id];
 			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 			if(this.games[pos].players<2){
-				this.room_invite_flag[room] = true;
+				// this.room_invite_flag[room] = true;
 				this.room_invited_player_email[room] = email;
 				client.emit("Success",`Invitation sent to ${email}`);
 				this.NotificationService.send_room_code(email);
@@ -324,50 +339,54 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			
 		}
 
-		@SubscribeMessage('cancel_invite')
-		handleCancel(client:Socket){
-			const room = this.users[client.id];
-			// const pos  =  this.games.findIndex((game) => game.gameRoom == room);
-			delete this.room_invited_player_email[room];
-			client.emit("Success","Invitation has been canceled");
-		}
+		// @SubscribeMessage('cancel_invite')
+		// handleCancel(client:Socket){
+		// 	const room = this.users[client.id];
+		// 	// const pos  =  this.games.findIndex((game) => game.gameRoom == room);
+		// 	delete this.room_invited_player_email[room];
+		// 	client.emit("Success","Invitation has been canceled");
+		// }
 
-		@SubscribeMessage('free_room')
-		handlefreeroom(client:Socket){
-			const room = this.users[client.id];
-			if(this.room_invite_flag[room]){
-				// const pos  =  this.games.findIndex((game) => game.gameRoom == room);
-				client.emit("Success","anyone can join now")
-				this.room_invite_flag[room] = false;
-			}
+		// @SubscribeMessage('free_room')
+		// handlefreeroom(client:Socket){
+		// 	const room = this.users[client.id];
+		// 	if(this.room_invite_flag[room]){
+		// 		// const pos  =  this.games.findIndex((game) => game.gameRoom == room);
+		// 		client.emit("Success","anyone can join now")
+		// 		this.room_invite_flag[room] = false;
+		// 	}
 
-			else{
-				client.emit("Warning","Cancle the invite first");
-			}
-		}
+		// 	else{
+		// 		client.emit("Warning","Cancle the invite first");
+		// 	}
+		// }
 
 		@SubscribeMessage('leaveRoom')
 		handleLeave(client:Socket, room:string):void {
 			const _room = this.users[client.id];
 			const pos  =  this.games.findIndex((game) => game.gameRoom == _room);
-		  	if(this.currConnected[client.id]){
+		  	if(this.user_check[client.id]){
 				client.leave(room);
 				client.emit('leave',`left the room ${room}`);
 				client.broadcast.to(room).emit('UserLeftRoom', `${this.custom_id[client.id]} left the room`);
 				this.games[pos].players--;
+				delete this.users[client.id];
+				delete this.user_timestamp[client.id];
 		  	}
 		 	else{
 				client.emit('Error',`Enter a room to leave`);
 		  	}
 		}
 
+
+
+
+
 		@SubscribeMessage('show')
 		handleshow(): void {
 			console.log(`--------------------------------------------`)
 			console.log(`client.id : room.id`);
 			console.log(this.users);
-			console.log(`room.id : player count`);
-			console.log(this.room_status);
 			console.log(`client.id : timestamp`);
 			console.log(this.user_timestamp);
 			console.log(`client.id : check weather they are currently in a room or not`);
