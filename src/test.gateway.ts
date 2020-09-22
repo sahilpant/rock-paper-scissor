@@ -49,7 +49,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   private roleOfConnectedUser: string;
   
-  private gameCollection={} //{gameid:{userarray:[],timestamp,typeOfGame,status,Moves,RoomName}}
+//   private gameCollection={} //{gameid:{userarray:[],timestamp,typeOfGame,status,Moves,RoomName}}
   
   private clientAndUser={}             //{client.id:this.emailofconnecteduser}
   
@@ -248,21 +248,21 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 			this.custom_id[client.id] = uuid();
 		
-			this.gameCollection[gameId]={
+			// this.gameCollection[gameId]={
 		
-				"userarray":[this.clientAndUser[client.id]],
+			// 	"userarray":[this.clientAndUser[client.id]],
 		
-				"timestamp":new Date(),
+			// 	"timestamp":new Date(),
 		
-				"typeOfGame":"normal",
+			// 	"typeOfGame":"normal",
 		
-				"status":true,
+			// 	"status":true,
 		
-				"moves":10,
+			// 	"moves":10,
 		
-				"RoomName":"testroom"
+			// 	"RoomName":"testroom"
 	
-			}               
+			// }               
 	
 		}
   
@@ -277,7 +277,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
     client.emit('joinedRoom',`welcome to ${game}`);
   
-    this.gameCollection[game].userarray.push(this.clientAndUser[client.id])
+    // this.gameCollection[game].userarray.push(this.clientAndUser[client.id])
   
     this.users[client.id] = game;
   
@@ -401,8 +401,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			console.log(this.currConnected);
 			console.log("check");
 			console.log(this.check);
-			console.log("gameCollection");
-			console.log(this.gameCollection);
+			// console.log("gameCollection");
+			// console.log(this.gameCollection);
 			console.log("clientAndUser");
 			console.log(this.clientAndUser);
 			console.log("roomid:invited email")
