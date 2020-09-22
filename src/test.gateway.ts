@@ -39,9 +39,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   private check={}//check whether a client is authorized or not
   
-  private currConnected={};//currently connected clients
+  private currConnected={};//currently connected clients  to any room true or false
   
-  private noOfusers = 1 //to count no of users in game room
+//   private noOfusers = 1 //to count no of users connected
   
   private emailOfConnectedUser: String;//email of users fetched from db using their given accesstoken
   
@@ -51,7 +51,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
 //   private gameCollection={} //{gameid:{userarray:[],timestamp,typeOfGame,status,Moves,RoomName}}
   
-  private clientAndUser={}             //{client.id:this.emailofconnecteduser}
+//   private clientAndUser={}             //{client.id:this.emailofconnecteduser}
   
   private users ={}     // client id:game id
 
@@ -68,6 +68,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   public room_invite_flag = {} //room id and status if there is a pending invitition
 
   public room_invited_player_email = {} //room id and email of the player who is invited
+
+  private adminBlockStars = {} //client id with no of blocked stars by admin
   
   @WebSocketServer() wss:Server;
   
@@ -114,7 +116,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 		client.emit('welcome',"welcome to the server")
 	
-		this.clientAndUser[client.id] = this.emailOfConnectedUser;
+		// this.clientAndUser[client.id] = this.emailOfConnectedUser;
 
 		if(this.emailOfConnectedUser){
 
@@ -130,17 +132,84 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 		/*------logic for checking the invitation email------*/
 		if( this.check[client.id] && Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser) != -1){
+
+			// this.currConnected[client.id] = this.noOfusers++;
+	
+			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
+		
+			userdata.client_id = client.id;
+
+			// transfer stars from user to admin account and keep track of it
+			let noOfStarsHolding = userdata.stars;
+            
+			if(noOfStarsHolding>3){
+
+				userdata.stars = noOfStarsHolding-3;
+				this.adminBlockStars[client.id] = 3
+			}
+			else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
+			{
+			userdata.stars = 0;
+			this.adminBlockStars[client.id] = noOfStarsHolding
+			}
+			else{
+				client.emit('no stars','you have zero stars')
+
+				this.emailOfConnectedUser=null
+	
+		     	this.nameOfConnectedUser=null
+
+		    	this.roleOfConnectedUser =null
+
+				client.disconnect();
+			}
+		
+			userdata.save();
+	
+			this.emailOfConnectedUser=null
+	
+			this.nameOfConnectedUser=null
+
+			this.roleOfConnectedUser =null
+	
+			// client.emit('joined', `welcome user ${client.id}`);
+
 			this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser)]);
 		}
 		/*---------------------------------------------------*/
 
 		else if(this.check[client.id]){
 
-			this.currConnected[client.id] = this.noOfusers++;
+			//  this.currConnected[client.id] = true;
 	
 			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
 		
 			userdata.client_id = client.id;
+
+			let noOfStarsHolding = userdata.stars;
+
+			if(noOfStarsHolding>3){
+
+				userdata.stars = noOfStarsHolding-3;
+				this.adminBlockStars[client.id] = 3
+			}
+			else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
+			{
+			userdata.stars = 0;
+			this.adminBlockStars[client.id] = noOfStarsHolding
+			}
+			else{
+				client.emit('no stars','you have zero stars')
+
+				this.emailOfConnectedUser=null
+	
+		     	this.nameOfConnectedUser=null
+
+		    	this.roleOfConnectedUser =null
+
+				client.disconnect();
+			}
+		
 		
 			userdata.save();
 	
@@ -209,10 +278,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 	client.join(room);
 	client.emit('Joined',`Welcome to the room ${room}`);
-	client.broadcast.to(room).emit('user joined', `User ${client.id} has joined he room`);
+	client.broadcast.to(room).emit('user joined', `User ${client.id} has joined the room`);
 
 	this.user_timestamp[client.id] = Date.now();
-	this.currConnected[client.id] = this.noOfusers++;
+	this.currConnected[client.id] = true;
 	this.games[pos].players++;		
 	this.user_check[client.id] = 'true';
 	this.users[client.id] = room;
@@ -241,6 +310,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			this.room_invite_flag[gameId] = false;
 		
 			client.emit('joinedGame',`welcome to ${gameId}`)
+
+			this.currConnected[client.id] = true
 		
 			this.users[client.id]=gameId
 		
@@ -250,7 +321,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 			// this.gameCollection[gameId]={
 		
-			// 	"userarray":[this.clientAndUser[client.id]],
+			// 	"userarray":[this.clientAndUser[client.id],],
 		
 			// 	"timestamp":new Date(),
 		
@@ -277,7 +348,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
     client.emit('joinedRoom',`welcome to ${game}`);
   
-    // this.gameCollection[game].userarray.push(this.clientAndUser[client.id])
+	// this.gameCollection[game].userarray.push(this.clientAndUser[client.id])
+	
+	this.currConnected[client.id] = true
   
     this.users[client.id] = game;
   
@@ -361,6 +434,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		// 	}
 		// }
 
+		
 		@SubscribeMessage('leaveRoom')
 		handleLeave(client:Socket, room:string):void {
 			const _room = this.users[client.id];
@@ -372,6 +446,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 				this.games[pos].players--;
 				delete this.users[client.id];
 				delete this.user_timestamp[client.id];
+				this.user_check[client.id] = false;
+				this.games[pos].players--;
+				
+				
 		  	}
 		 	else{
 				client.emit('Error',`Enter a room to leave`);
@@ -403,8 +481,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			console.log(this.check);
 			// console.log("gameCollection");
 			// console.log(this.gameCollection);
-			console.log("clientAndUser");
-			console.log(this.clientAndUser);
+			// console.log("clientAndUser");
+			// console.log(this.clientAndUser);
 			console.log("roomid:invited email")
 			console.log(this.room_invited_player_email);
 			console.log("rood id : true if there is a pending invitation")
@@ -421,18 +499,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			
 			let flag=1;
 			
-			let userDatawithThisClientId = await this.user.findOne().where('client_id').equals(client.id).exec()
+			
 
-			let noOfStarsHolding = userDatawithThisClientId.stars;
+			let noOfStarsHoldingbyAdminforThisClient = this.adminBlockStars[client.id]
 
-			if(noOfStarsHolding>0){
-
-				userDatawithThisClientId.stars = noOfStarsHolding-1;
-				
-				await userDatawithThisClientId.save();
-
-			}
-			else
+			if(noOfStarsHoldingbyAdminforThisClient <= 0)
 			{
 			        //transfer other user star back to him	
 		
@@ -442,7 +513,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			
 					let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
 				 
-					if(currentGame)
+					if(currentGame && currentGame.card2 !== "empty")
 			
 					{
 			
@@ -460,7 +531,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 						await user2details.notUsedCards.push(returnedTokenId)
 
-						await user2details.stars++; //transfer user2 star from admin to user2 account
+						//transfer user2 star from admin to user2 account
+
+						user2details.stars = this.adminBlockStars[user2details.client_id]
 		
 						await user2details.save();
 		
@@ -471,8 +544,17 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
 		
 					}
+
+					else{
+						client.emit('card not played',`your card is not used as you have zero stars`)
+		
+						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
+	
+					}
+					this.handleLeave(client,this.users[client.id])
 		
 			}
+			
 		
 			
 			//store id of given card
@@ -532,7 +614,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 								nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
 
-								nameinUSERDB.stars--
+								//nameinUSERDB.stars--
 		
 								await nameinUSERDB.save()
 		
@@ -564,7 +646,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 							nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
 
-							nameinUSERDB.stars--
+							//nameinUSERDB.stars--
 		
 							await nameinUSERDB.save()
 		
@@ -577,6 +659,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 						if(gameexist.card1 && gameexist.card2 && gameexist.card1 !== "empty" && gameexist.card2 !== "empty")
 		
 						{
+								
 								let gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec();
 		
 								const user1name = gameINDB.user1
@@ -676,21 +759,13 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		async playgame1(client:Socket, data: Number)
 		{
 
-			let flag = 1;
+			let flag=1;
+			
+			let noOfStarsHoldingbyAdminforThisClient = this.adminBlockStars[client.id]
 
-			let userDatawithThisClientId = await this.user.findOne().where('client_id').equals(client.id).exec()
-
-			let noOfStarsHolding = userDatawithThisClientId.stars;
-
-			if(noOfStarsHolding > 0){
-
-				userDatawithThisClientId.stars = noOfStarsHolding-1;
-				
-				await userDatawithThisClientId.save();
-			}
-			else
+			if(noOfStarsHoldingbyAdminforThisClient <= 0)
 			{
-				
+			        //transfer other user star back to him	
 		
 					flag=0;
 			
@@ -698,7 +773,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			
 					let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
 				 
-					if(currentGame)
+					if(currentGame && currentGame.card1 !== "empty")
 			
 					{
 			
@@ -716,7 +791,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 						await user1details.notUsedCards.push(returnedTokenId)
 
-						await user1details.stars++; //transfer user1 star from admin to user1 account
+						//transfer user2 star from admin to user2 account
+
+						user1details.stars = this.adminBlockStars[user1details.client_id]
 		
 						await user1details.save();
 		
@@ -727,8 +804,17 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
 		
 					}
+					else{
+						client.emit('card not played',`your card is not used as you have zero stars`)
+		
+						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
+	
+					}
+					this.handleLeave(client,this.users[client.id])
 		
 			}
+		
+		
 			
 			 //store id of given card
 			 let carddetail;
@@ -787,7 +873,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 								nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
 
-								nameinUSERDB.stars--
+								//nameinUSERDB.stars--
 		
 								await nameinUSERDB.save()
 		
@@ -819,7 +905,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 							nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
 
-							nameinUSERDB.stars--
+							//nameinUSERDB.stars--
 		
 							await nameinUSERDB.save()
 		
