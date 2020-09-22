@@ -21,6 +21,7 @@ import {JwtModule} from '@nestjs/jwt'
 import {PassportModule} from '@nestjs/passport'
 import { jwtStrategy } from './jwt.strategy';
 import { NotificationService } from './notification/notification.service';
+import { join } from 'path';
 
 @Module({
 
@@ -51,7 +52,7 @@ import { NotificationService } from './notification/notification.service';
 
       isGlobal:true,
 
-      envFilePath:['C://Users//SAHIL//Desktop//rock paper//env//.env', 'C://Users//SAHIL//Desktop//rock paper//env//development.env',],
+      envFilePath:[join(__dirname, "/env","/.env").split('dist').join('').replace(/\\/g, "//"), join(__dirname, "/env","/development.env").split('dist').join('').replace(/\\/g, "//"),],
 
       load:[configuration]
 

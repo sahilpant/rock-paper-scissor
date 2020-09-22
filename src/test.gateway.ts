@@ -166,6 +166,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			}
 		
 			userdata.save();
+
+			this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser)]);
 	
 			this.emailOfConnectedUser=null
 	
@@ -175,7 +177,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 			// client.emit('joined', `welcome user ${client.id}`);
 
-			this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser)]);
+		
 		}
 		/*---------------------------------------------------*/
 
