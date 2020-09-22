@@ -523,7 +523,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 						//transfer user2 star from admin to user2 account
 
-						user2details.stars = this.adminBlockStars[user2details.client_id]
+						user2details.stars += this.adminBlockStars[user2details.client_id]
 		
 						await user2details.save();
 		
@@ -795,7 +795,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 						//transfer user2 star from admin to user2 account
 
-						user1details.stars = this.adminBlockStars[user1details.client_id]
+						user1details.stars += this.adminBlockStars[user1details.client_id]
 		
 						await user1details.save();
 		
