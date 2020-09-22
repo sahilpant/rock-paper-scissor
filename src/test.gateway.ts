@@ -21,7 +21,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
  
   constructor(
-              private  general:AppGateway,
+            //   private  general:AppGateway,
               
               private jwtstrategy:jwtStrategy,
               
@@ -39,28 +39,20 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   private check={}//check whether a client is authorized or not
   
-  private currConnected={};//currently connected clients  to any room true or false
-  
-//   private noOfusers = 1 //to count no of users connected
+  private currConnected={};//client connected to any room or game currently true or false
   
   private emailOfConnectedUser: String;//email of users fetched from db using their given accesstoken
   
   private nameOfConnectedUser: String;//name of users fetched from db using their given accesstoken
 
-  private roleOfConnectedUser: string;
-  
-//   private gameCollection={} //{gameid:{userarray:[],timestamp,typeOfGame,status,Moves,RoomName}}
-  
-//   private clientAndUser={}             //{client.id:this.emailofconnecteduser}
+  private roleOfConnectedUser: String;
   
   private users ={}     // client id:game id
 
   private custom_id = {}; // client.id : custome_id by uuid()
 
-  private user_timestamp = {};  //client 
-
-  private user_check = {} //client.id : true if user is in a room false if user has left the room
-
+  private user_timestamp = {};  //client
+ 
   private room_status = {} //room.id : true if game has been started in that room
 
   private games = [] // gameid and other user details
@@ -70,6 +62,15 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   public room_invited_player_email = {} //room id and email of the player who is invited
 
   private adminBlockStars = {} //client id with no of blocked stars by admin
+    
+//   private noOfusers = 1 //to count no of users connected
+  
+//   private gameCollection={} //{gameid:{userarray:[],timestamp,typeOfGame,status,Moves,RoomName}}
+  
+//   private clientAndUser={}             //{client.id:this.emailofconnecteduser}
+
+//   private user_check = {} //client.id : true if user is in a room false if user has left the room
+
   
   @WebSocketServer() wss:Server;
   
@@ -231,17 +232,14 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 			if(pos != -1 && (this.room_status[this.games[pos].gameRoom] != true) && this.room_invite_flag[this.games[pos].gameRoom] != true){
 
-				const game_pos = this.games.findIndex((game) => { return game.gameRoom == this.games[pos].gameRoom});
-		
-				// this.games[game_pos].users.push(client.id);
-		
-				this.user_timestamp[client.id] = Date.now();
-		
-				this.handleJoin( client, this.games[pos].gameRoom);
+
+				this.room_status[this.games[pos].gameRoom] = true
 		
 				this.games[pos].players++;
+
+				this.handleJoin( client, this.games[pos].gameRoom);
 		
-				this.user_check[client.id] = `true`;
+				// this.user_check[client.id] = `true`;
 
 			}
 
@@ -264,7 +262,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			this.handlejoinFirstTime(client);
 			const room = this.users[client.id];
 			this.room_invite_flag[room] = true;
-			this.user_timestamp[client.id] = Date.now();
 		}
 		else{
 			client.emit("Error","Unverified payload");
@@ -280,12 +277,14 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	client.emit('Joined',`Welcome to the room ${room}`);
 	client.broadcast.to(room).emit('user joined', `User ${client.id} has joined the room`);
 
-	this.user_timestamp[client.id] = Date.now();
 	this.currConnected[client.id] = true;
-	this.games[pos].players++;		
-	this.user_check[client.id] = 'true';
 	this.users[client.id] = room;
 	this.custom_id[client.id] = uuid();
+	this.user_timestamp[client.id] = Date.now();
+	this.room_status[this.games[pos].gameRoom] = true
+	this.games[pos].players++;		
+	
+	// this.user_check[client.id] = 'true';
 	delete this.room_invited_player_email[room];
 
   }
@@ -307,33 +306,17 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 			client.join(gameId)
 
+			this.currConnected[client.id] = true
+
+			this.users[client.id]=gameId
+
+			this.custom_id[client.id] = uuid();
+
+			this.user_timestamp[client.id] = Date.now()
+
 			this.room_invite_flag[gameId] = false;
 		
-			client.emit('joinedGame',`welcome to ${gameId}`)
-
-			this.currConnected[client.id] = true
-		
-			this.users[client.id]=gameId
-		
-			this.user_check[client.id] = `true`;
-		
-			this.custom_id[client.id] = uuid();
-		
-			// this.gameCollection[gameId]={
-		
-			// 	"userarray":[this.clientAndUser[client.id],],
-		
-			// 	"timestamp":new Date(),
-		
-			// 	"typeOfGame":"normal",
-		
-			// 	"status":true,
-		
-			// 	"moves":10,
-		
-			// 	"RoomName":"testroom"
-	
-			// }               
+			client.emit('joinedGame',`welcome to ${gameId}`)        
 	
 		}
   
@@ -347,8 +330,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
     client.join(game)
   
     client.emit('joinedRoom',`welcome to ${game}`);
-  
-	// this.gameCollection[game].userarray.push(this.clientAndUser[client.id])
 	
 	this.currConnected[client.id] = true
   
@@ -362,17 +343,22 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   
   	handleDisconnect(client: Socket):void {
-		if(this.user_check[client.id]){
+		if(this.currConnected[client.id]){
 			const room = this.users[client.id];
 			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 			this.wss.to(this.users[client.id]).emit('user-disconnected',`user ${client.id} disconnected`);
+			
 			this.games[pos].players--;
-			delete this.users[client.id]
-			delete this.currConnected[client.id];
-			delete this.user_timestamp[client.id];
+			this.room_status[room]=false
+
 			delete this.check[client.id];
-			delete this.user_check[client.id];
+			delete this.currConnected[client.id];
+			delete this.users[client.id]
 			delete this.custom_id[client.id];
+			delete this.user_timestamp[client.id];
+			
+			// delete this.user_check[client.id];
+			
 		}
 		this.logger.log(`${client.id} disconnected`);
 	}
@@ -439,14 +425,14 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		handleLeave(client:Socket, room:string):void {
 			const _room = this.users[client.id];
 			const pos  =  this.games.findIndex((game) => game.gameRoom == _room);
-		  	if(this.user_check[client.id]){
+		  	if(this.currConnected[client.id]){
 				client.leave(room);
 				client.emit('leave',`left the room ${room}`);
 				client.broadcast.to(room).emit('UserLeftRoom', `${this.custom_id[client.id]} left the room`);
-				this.games[pos].players--;
 				delete this.users[client.id];
 				delete this.user_timestamp[client.id];
-				this.user_check[client.id] = false;
+				this.currConnected[client.id] = false;
+				this.room_status[_room] = false
 				this.games[pos].players--;
 				
 				
@@ -467,27 +453,27 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			console.log(this.users);
 			console.log(`client.id : timestamp`);
 			console.log(this.user_timestamp);
-			console.log(`client.id : check weather they are currently in a room or not`);
-			console.log(this.user_check);
 			console.log(`client.id : custom id using uuid()`);
 			console.log(this.custom_id);
 			console.log(` room_id : Game status in the room`);
 			console.log(this.room_status);
 			console.log('games');
 			console.log(this.games);
-			console.log("currConnected")
+			console.log("client.id : check weather they are currently in a room or not")
 			console.log(this.currConnected);
 			console.log("check");
 			console.log(this.check);
-			// console.log("gameCollection");
-			// console.log(this.gameCollection);
-			// console.log("clientAndUser");
-			// console.log(this.clientAndUser);
 			console.log("roomid:invited email")
 			console.log(this.room_invited_player_email);
 			console.log("rood id : true if there is a pending invitation")
 			console.log(this.room_invite_flag)
 			console.log(`--------------------------------------------`)
+			// console.log(`client.id : check weather they are currently in a room or not`);
+			// console.log(this.user_check);
+			// console.log("gameCollection");
+			// console.log(this.gameCollection);
+			// console.log("clientAndUser");
+			// console.log(this.clientAndUser);
 		}
 
 
