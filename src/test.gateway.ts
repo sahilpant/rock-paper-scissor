@@ -430,7 +430,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		  	if(this.currConnected[client.id]){
 				client.leave(room);
 				client.emit('leave',`left the room ${room}`);
-				client.broadcast.to(room).emit('UserLeftRoom', `${this.custom_id[client.id]} left the room`);
+				client.broadcast.to(room).emit('UserLeftRoom', `${client.id} left the room`);
 				delete this.users[client.id];
 				delete this.user_timestamp[client.id];
 				this.currConnected[client.id] = false;
@@ -469,6 +469,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			console.log(this.room_invited_player_email);
 			console.log("rood id : true if there is a pending invitation")
 			console.log(this.room_invite_flag)
+			console.log("client_id : no.of blockstars")
+			console.log(this.adminBlockStars)
 			console.log(`--------------------------------------------`)
 			// console.log(`client.id : check weather they are currently in a room or not`);
 			// console.log(this.user_check);
@@ -663,14 +665,26 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 								// const addressofplayer2 = gameINDB.player2address
 	
 								const gameResult=await  this.playservice.play(gameid);
+
+								const userno1= await this.user.find().where('username').equals(user1name).exec();
+
+								const userno2= await this.user.find().where('username').equals(user2name).exec();
+
+								this.adminBlockStars[userno1[0].client_id]--;
+
+								this.adminBlockStars[userno2[0].client_id]--;
 		
-								if(gameResult === "game is draw")
+								if(gameResult === "game is draw"){
 		
 								this.wss.to(gameid).emit('result',"game is draw")
+
+
+								}
 		
 								else
 		
 								{
+									
 		
 									this.wss.to(gameid).emit('result of round',gameResult+" WON ");
 		
@@ -921,6 +935,14 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 								// const addressofplayer2 = gameINDB.player2address
 	
 								const gameResult=await  this.playservice.play(gameid);
+
+								const userno1= await this.user.find().where('username').equals(user1name).exec();
+
+								const userno2= await this.user.find().where('username').equals(user2name).exec();
+
+								this.adminBlockStars[userno1[0].client_id]--;
+
+								this.adminBlockStars[userno2[0].client_id]--;
 		
 								if(gameResult === "game is draw")
 		
