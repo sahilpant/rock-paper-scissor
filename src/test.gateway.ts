@@ -543,6 +543,53 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
 	
 					}
+
+					let gameINDB = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
+
+					let user1name = gameINDB.user1;
+
+					let user2name = gameINDB.user2;
+
+                    let user1=0,user2=0,tie=0;
+		
+									console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
+		
+									for(const player in gameINDB.playerWin)
+		
+									{
+		
+										console.log(gameINDB[player]+"#####")
+		
+										if(gameINDB.playerWin[player] === user1name)
+		
+										user1++;  
+		
+										else if(gameINDB.playerWin[player] === user2name)
+		
+										user2++;
+		
+										else
+		
+										tie++;
+		
+		
+									}
+		
+									console.log(user1+"###"+user2+"###"+tie)
+		
+									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
+		
+									this.wss.to(this.users[client.id]).emit('final',finalPlayerWon);
+		
+	
+									await gameINDB.deleteOne()
+	
+									await gameINDB.save()
+								
+
+
+
+
 					this.handleLeave(client,this.users[client.id])
 		
 			}
@@ -816,6 +863,51 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
 	
 					}
+
+					let gameINDB = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
+
+					let user1name = gameINDB.user1;
+
+					let user2name = gameINDB.user2;
+
+                    let user1=0,user2=0,tie=0;
+		
+									console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
+		
+									for(const player in gameINDB.playerWin)
+		
+									{
+		
+										console.log(gameINDB[player]+"#####")
+		
+										if(gameINDB.playerWin[player] === user1name)
+		
+										user1++;  
+		
+										else if(gameINDB.playerWin[player] === user2name)
+		
+										user2++;
+		
+										else
+		
+										tie++;
+		
+		
+									}
+		
+									console.log(user1+"###"+user2+"###"+tie)
+		
+									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
+		
+									this.wss.to(this.users[client.id]).emit('final',finalPlayerWon);
+		
+	
+									await gameINDB.deleteOne()
+	
+									await gameINDB.save()
+								
+
+
 					this.handleLeave(client,this.users[client.id])
 		
 			}
