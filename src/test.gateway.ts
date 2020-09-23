@@ -137,7 +137,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 			client.emit('ERROR','NO PAYLOAD TO VERIFY');
 			
-			this.handleDisconnect(client);
+			client.disconnect();	
 		}
 
 		/*------------------------------------------------------*/
