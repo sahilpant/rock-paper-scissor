@@ -307,7 +307,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 	client.join(room);
 	client.emit('Joined',`Welcome to the room ${room}`);
-	client.broadcast.to(room).emit('user joined', `User ${client.id} has joined the room`);
+	client.to(room).broadcast.emit('user joined', `User ${client.id} has joined the room`);
 
 	this.currConnected[client.id] = true;
 	this.users[client.id] = room;
@@ -361,7 +361,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
     client.join(game)
   
-    client.emit('joinedRoom',`welcome to ${game}`);
+	client.emit('joinedRoom',`welcome to ${game}`);
+	
+	client.to(game).broadcast.emit('joinedRoom',`${client.id} has joined the Game`);
 	
 	this.currConnected[client.id] = true
   
@@ -495,6 +497,19 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 
 
+		@SubscribeMessage('leaveRoom')
+		async handleLeaveRoom(client:Socket){
+			const room = this.users[client.id];
+			if(await this.passkey.findOne().where('gameid').equals(room).exec()){
+				client.emit('Error','Game has not ended yet');
+			}else {
+				client.leave(room);
+				delete this.users[client.id];
+				delete this.user_timestamp[client.id];
+				delete this.adminBlockStars[client.id];
+				client.to(room).broadcast.emit('Left',`${client.id} has left the room`);
+			}
+		}
 
 		// @SubscribeMessage('End_Game')
 		// handleEndGame(client: Socket){
