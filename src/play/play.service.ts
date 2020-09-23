@@ -44,7 +44,7 @@ export class PlayService {
   
           console.log(card1+" "+card2);
 
-          let arrOfCards=`[${card1},${card2}]`
+          let arrOfCards=`[${card1}:${token1},${card2}:${token2}]`
            
           game[0].moves.push(arrOfCards)
 

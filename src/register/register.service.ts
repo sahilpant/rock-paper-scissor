@@ -230,7 +230,7 @@ export class RegisterService
                      
                       try{
 
-                             //await user.save();
+                             await user.save();
 
                              let flag = 0;
 
