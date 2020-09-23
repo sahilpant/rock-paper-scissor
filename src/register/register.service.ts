@@ -229,7 +229,11 @@ export class RegisterService
                     else{
                      
                       try{
+
+                             //await user.save();
+
                              let flag = 0;
+
                              const secondFunction = async () => 
                              {
                                 const result = await sign_up(userNameDto.publickey,this.obj_deployed_addresses.gameContractAddress)

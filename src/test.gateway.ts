@@ -565,6 +565,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 					let gameINDB = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
 
+					if(gameINDB.playerWin.length !== 0)
+					{
 					let user1name = gameINDB.user1;
 
 					let user2name = gameINDB.user2;
@@ -598,16 +600,16 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
 		
-									this.wss.to(this.users[client.id]).emit('final',finalPlayerWon);
-		
+									this.wss.to(this.users[client.id]).emit('final',finalPlayerWon);							
+
+								}
+                      else{
+						this.wss.to(this.users[client.id]).emit('game not played',"not a single game has been played to display the final result");
+					  }
+					  
+					  await gameINDB.deleteOne()
 	
-									await gameINDB.deleteOne()
-	
-									await gameINDB.save()
-								
-
-
-
+					  await gameINDB.save()
 
 					this.handleLeave(client,this.users[client.id])
 		
@@ -885,6 +887,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 					let gameINDB = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
 
+					if(gameINDB.playerWin.length !== 0)
+					{
+
 					let user1name = gameINDB.user1;
 
 					let user2name = gameINDB.user2;
@@ -919,6 +924,15 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
 		
 									this.wss.to(this.users[client.id]).emit('final',finalPlayerWon);
+								}
+									
+								
+								else{
+								
+									this.wss.to(this.users[client.id]).emit('game not played',"not a single game has been played to display the final result");
+								
+								}
+				
 		
 	
 									await gameINDB.deleteOne()
@@ -1134,6 +1148,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		}
 
 	}
+
+
 	// @SubscribeMessage('list')
 	// handlelist(client: Socket, data: string):void {
 
