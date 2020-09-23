@@ -3,15 +3,15 @@ import { Model } from 'mongoose';
 import { user } from 'src/required/interfaces/user.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { passkey } from 'src/required/interfaces/passkey.interface';
-import {Transfer,burn} from '../../gameblock'
+// import {Transfer,burn} from '../../gameblock'
 @Injectable()
 export class PlayService {
 
-  private obj_deployed_addresses = {
-    gameContractAddress : '0x02BABFb7293c502A3BE6f3bfEbbd71bfB3B46eC9',
-    nftContractAddress : '0x94E3AcDeed5780B002c1C141926f6605704c5ef8',
-    starsContractAddress : '0x0A27A7370D14281152f7393Ed6bE963C2019F5fe',
-  }
+  // private obj_deployed_addresses = {
+  //   gameContractAddress : '0x02BABFb7293c502A3BE6f3bfEbbd71bfB3B46eC9',
+  //   nftContractAddress : '0x94E3AcDeed5780B002c1C141926f6605704c5ef8',
+  //   starsContractAddress : '0x0A27A7370D14281152f7393Ed6bE963C2019F5fe',
+  // }
 
      constructor(
                  @InjectModel('user') private readonly user:Model<user>,
@@ -24,9 +24,9 @@ export class PlayService {
 
           let game=await this.passkey.find().where('gameid').equals(gameid).exec()
 
-          const player1address = game[0].player1address
+          // const player1address = game[0].player1address
 
-          const player2address = game[0].player2address
+          // const player2address = game[0].player2address
 
           const card1=game[0].card1
 

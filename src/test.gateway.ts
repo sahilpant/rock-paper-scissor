@@ -136,6 +136,24 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			this.handleDisconnect(client);
 		}
 
+		/*------------------------------------------------------*/
+		if(await this.passkey.findOne().where('user1').equals(this.nameOfConnectedUser)){
+
+			const game = await this.passkey.findOne().where('user1').equals(this.nameOfConnectedUser).exec();
+			const user1 = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
+			user1.client_id = client.id;
+			await user1.save();
+			this.handleJoin(client,game.gameid);
+		}
+		else if(await this.passkey.findOne().where('user2').equals(this.nameOfConnectedUser)){
+			const game = await this.passkey.findOne().where('user2').equals(this.nameOfConnectedUser).exec();
+			const user2 = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
+			user2.client_id = client.id;
+			await user2.save();
+			this.handleJoin(client,game.gameid);
+		}
+		/*------------------------------------------------------*/
+
 		/*------logic for checking the invitation email------*/
 		if( this.check[client.id] && Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser) != -1){
 
@@ -359,20 +377,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   	handleDisconnect(client: Socket):void {
 		if(this.currConnected[client.id]){
 			const room = this.users[client.id];
-			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
-			this.wss.to(this.users[client.id]).emit('user-disconnected',`user ${client.id} disconnected`);
-			
-			this.games[pos].players--;
-			this.room_status[room]=false
-
-			delete this.check[client.id];
-			delete this.currConnected[client.id];
-			delete this.users[client.id]
-			delete this.custom_id[client.id];
-			delete this.user_timestamp[client.id];
-			
-			// delete this.user_check[client.id];
-			
+			this.wss.to(room).emit('disconnect',`${client.id} disconnected`);
 		}
 		this.logger.log(`${client.id} disconnected`);
 	}
@@ -435,36 +440,69 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		// }
 
 		
-		@SubscribeMessage('leaveRoom')
-		handleLeave(client:Socket, room:string):void {
+		@SubscribeMessage('End_Game')
+		async handleEndGame(client:Socket) {
 			const _room = this.users[client.id];
 			const pos  =  this.games.findIndex((game) => game.gameRoom == _room);
 		  	if(this.currConnected[client.id]){
-				client.leave(room);
-				client.emit('leave',`left the room ${room}`);
-				client.broadcast.to(room).emit('UserLeftRoom', `${client.id} left the room`);
+
+
+				//DB access
+
+				const game = await this.passkey.findOne().where('gameid').equals(_room).exec();
+
+				const user_1 =  await this.user.findOne().where('publickey').equals(game.player1address).exec();
+
+				const user_2 = await this.user.findOne().where('publickey').equals(game.player2address).exec();
+
+				user_1.stars += this.adminBlockStars[user_1.client_id];
+				
+				user_2.stars += this.adminBlockStars[user_2.client_id];
+
+				
+				delete this.adminBlockStars[user_1.client_id];
+				delete this.adminBlockStars[user_2.client_id];
+
+				await user_1.save();
+				await user_2.save();
+				await game.deleteOne();
+
+
+				client.leave(_room);
 				delete this.users[client.id];
 				delete this.user_timestamp[client.id];
+				delete this.games[pos]
 				this.currConnected[client.id] = false;
 				this.room_status[_room] = false
-				this.games[pos].players--;
-				
+				client.to(_room).broadcast.emit('End_Game', `${client.id} has ended the Game`);
+				client.disconnect();
+
+				//client_2 changes
+
+				const _pos = Object.values(this.users).indexOf(_room);
+
+				const client_2_id = Object.keys(this.users)[_pos];
+
+				this.currConnected[client_2_id] = false;
+
+				//Blockchain part for star transefer from admin
 				
 		  	}
 		 	else{
-				client.emit('Error',`Enter a room to leave`);
+				client.emit('Error',`Enter to a game`);
 		  	}
 		}
 
 
 
 
-		@SubscribeMessage('End_Game')
-		handleEndGame(client: Socket){
-			const room = this.users[client.id];
-			//this.handleLeave(client, room);
-			console.log(this.wss.sockets);
-		}
+		// @SubscribeMessage('End_Game')
+		// handleEndGame(client: Socket){
+		// 	const room = this.users[client.id];
+		// 	this.handleLeave(client,room);
+		// 	client.disconnect();
+		// 	client.to(room).broadcast.emit('End_Game', `${client.id} has ended the Game`);
+		// }
 
 
 		@SubscribeMessage('show')
@@ -611,7 +649,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 					  await gameINDB.save()
 
-					this.handleLeave(client,this.users[client.id])
+					this.handleEndGame(client)
 		
 			}
 			
@@ -941,7 +979,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 								
 
 
-					this.handleLeave(client,this.users[client.id])
+					this.handleEndGame(client)
 		
 			}
 		
