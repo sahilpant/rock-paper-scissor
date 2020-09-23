@@ -442,7 +442,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		  	if(this.currConnected[client.id]){
 				client.leave(room);
 				client.emit('leave',`left the room ${room}`);
-				client.broadcast.to(room).emit('UserLeftRoom', `${this.custom_id[client.id]} left the room`);
+				client.broadcast.to(room).emit('UserLeftRoom', `${client.id} left the room`);
 				delete this.users[client.id];
 				delete this.user_timestamp[client.id];
 				this.currConnected[client.id] = false;
@@ -488,6 +488,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			console.log(this.room_invited_player_email);
 			console.log("rood id : true if there is a pending invitation")
 			console.log(this.room_invite_flag)
+			console.log("client_id : no.of blockstars")
+			console.log(this.adminBlockStars)
 			console.log(`--------------------------------------------`)
 			// console.log(`client.id : check weather they are currently in a room or not`);
 			// console.log(this.user_check);
@@ -540,7 +542,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 						//transfer user2 star from admin to user2 account
 
-						user2details.stars = this.adminBlockStars[user2details.client_id]
+						user2details.stars += this.adminBlockStars[user2details.client_id]
+
+						this.adminBlockStars[user2details.client_id]=0
 		
 						await user2details.save();
 		
@@ -558,6 +562,53 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
 	
 					}
+
+					let gameINDB = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
+
+					let user1name = gameINDB.user1;
+
+					let user2name = gameINDB.user2;
+
+                    let user1=0,user2=0,tie=0;
+		
+									console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
+		
+									for(const player in gameINDB.playerWin)
+		
+									{
+		
+										console.log(gameINDB[player]+"#####")
+		
+										if(gameINDB.playerWin[player] === user1name)
+		
+										user1++;  
+		
+										else if(gameINDB.playerWin[player] === user2name)
+		
+										user2++;
+		
+										else
+		
+										tie++;
+		
+		
+									}
+		
+									console.log(user1+"###"+user2+"###"+tie)
+		
+									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
+		
+									this.wss.to(this.users[client.id]).emit('final',finalPlayerWon);
+		
+	
+									await gameINDB.deleteOne()
+	
+									await gameINDB.save()
+								
+
+
+
+
 					this.handleLeave(client,this.users[client.id])
 		
 			}
@@ -682,14 +733,26 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 								// const addressofplayer2 = gameINDB.player2address
 	
 								const gameResult=await  this.playservice.play(gameid);
+
+								const userno1= await this.user.find().where('username').equals(user1name).exec();
+
+								const userno2= await this.user.find().where('username').equals(user2name).exec();
+
+								this.adminBlockStars[userno1[0].client_id]--;
+
+								this.adminBlockStars[userno2[0].client_id]--;
 		
-								if(gameResult === "game is draw")
+								if(gameResult === "game is draw"){
 		
 								this.wss.to(gameid).emit('result',"game is draw")
+
+
+								}
 		
 								else
 		
 								{
+									
 		
 									this.wss.to(gameid).emit('result of round',gameResult+" WON ");
 		
@@ -800,7 +863,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 						//transfer user2 star from admin to user2 account
 
-						user1details.stars = this.adminBlockStars[user1details.client_id]
+						user1details.stars += this.adminBlockStars[user1details.client_id]
+
+						this.adminBlockStars[user1details.client_id]=0
 		
 						await user1details.save();
 		
@@ -817,6 +882,51 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
 	
 					}
+
+					let gameINDB = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
+
+					let user1name = gameINDB.user1;
+
+					let user2name = gameINDB.user2;
+
+                    let user1=0,user2=0,tie=0;
+		
+									console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
+		
+									for(const player in gameINDB.playerWin)
+		
+									{
+		
+										console.log(gameINDB[player]+"#####")
+		
+										if(gameINDB.playerWin[player] === user1name)
+		
+										user1++;  
+		
+										else if(gameINDB.playerWin[player] === user2name)
+		
+										user2++;
+		
+										else
+		
+										tie++;
+		
+		
+									}
+		
+									console.log(user1+"###"+user2+"###"+tie)
+		
+									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
+		
+									this.wss.to(this.users[client.id]).emit('final',finalPlayerWon);
+		
+	
+									await gameINDB.deleteOne()
+	
+									await gameINDB.save()
+								
+
+
 					this.handleLeave(client,this.users[client.id])
 		
 			}
@@ -940,6 +1050,14 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 								// const addressofplayer2 = gameINDB.player2address
 	
 								const gameResult=await  this.playservice.play(gameid);
+
+								const userno1= await this.user.find().where('username').equals(user1name).exec();
+
+								const userno2= await this.user.find().where('username').equals(user2name).exec();
+
+								this.adminBlockStars[userno1[0].client_id]--;
+
+								this.adminBlockStars[userno2[0].client_id]--;
 		
 								if(gameResult === "game is draw")
 		

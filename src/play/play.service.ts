@@ -20,7 +20,7 @@ export class PlayService {
 
     async play(gameid:string,)
 {
-          var ans=0;
+          var winner = 0;  //0 if draw and 1 for user1 win and 2 for user2 win
 
           let game=await this.passkey.find().where('gameid').equals(gameid).exec()
 
@@ -49,17 +49,25 @@ export class PlayService {
           game[0].moves.push(arrOfCards)
 
           await game[0].save();
-            
-          (card1.match("ROCK"))?
+
+
+          if(card1 === card2)
+          {}
     
-          (ans=(card2.match("SCISSOR"))?1:0) : 
-             ((card1.match("PAPER")) ? 
-             (ans=(card2.match("ROCK"))?1:0) :
-             ( (card1.match("SCISSOR"))?(ans=(card2.match("PAPER"))?1:0):ans=-1))
-             
-          console.log(ans);   
+          else
+          {
+            if( (card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER") ){
+                winner = 1;
+            }
+            else{
+                winner = 2;
+            }
+        }
            
-          if(ans==1){  //user2 defeated
+             
+          console.log(winner);   
+           
+          if(winner === 1){  //user2 defeated
             
               const userno1= await this.user.find().where('username').equals(user1).exec();
             
@@ -91,7 +99,7 @@ export class PlayService {
             
             }
             
-            else if(ans==0){  //user1 defeated
+            else if(winner === 2){  //user1 defeated
               
 
               const userno2= await this.user.find().where('username').equals(user2).exec();
