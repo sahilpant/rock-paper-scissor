@@ -478,6 +478,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 				delete this.users[client.id];
 				delete this.user_timestamp[client.id];
 				delete this.games[pos]
+				delete this.room_invite_flag[_room];
 				this.currConnected[client.id] = false;
 				this.room_status[_room] = false
 				client.to(_room).broadcast.emit('End_Game', `${client.id} has ended the Game`);
@@ -504,6 +505,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		@SubscribeMessage('leaveRoom')
 		async handleLeaveRoom(client:Socket){
 			const room = this.users[client.id];
+			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 			if(await this.passkey.findOne().where('gameid').equals(room).exec()){
 				client.emit('Error','Game has not ended yet');
 			}else {
@@ -511,6 +513,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 				delete this.users[client.id];
 				delete this.user_timestamp[client.id];
 				delete this.adminBlockStars[client.id];
+				this.currConnected[client.id] = false;
+				this.games[pos].players--;
 				client.to(room).broadcast.emit('Left',`${client.id} has left the room`);
 			}
 		}
