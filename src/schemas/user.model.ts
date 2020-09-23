@@ -50,8 +50,6 @@ export const user = new mongoose.Schema({
     lastupdated:{type:Date},
 
     userinBlockchain:{type:Boolean},
-
-    client_id:{type:String},
     
     salt:{type:String},
 

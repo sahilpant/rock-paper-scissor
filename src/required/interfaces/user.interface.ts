@@ -21,8 +21,6 @@ export interface user extends mongoose.Document{
 
     userinBlockchain:Boolean
 
-    client_id:string
-
     salt:string
 
     password:string

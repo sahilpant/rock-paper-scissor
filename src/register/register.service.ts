@@ -160,8 +160,6 @@ export class RegisterService
    
                   user.lastupdated=new Date(),
    
-                  user.client_id="0",
-   
                   user.salt=await bcrypt.genSalt(),
    
                   user.password=await this.hashPassword(userNameDto.password,user.salt)

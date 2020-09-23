@@ -6,6 +6,10 @@ export const passKey = new mongoose.Schema({
       
       player2address:{type:String},
 
+      client1id:{type:String},
+
+      client2id:{type:String},
+
       token1:{type:Number},
 
       token2:{type:Number},

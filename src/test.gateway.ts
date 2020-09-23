@@ -67,6 +67,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   public room_invited_player_email = {} //room id and email of the player who is invited
 
   private adminBlockStars = {} //client id with no of blocked stars by admin
+
+  private clientidwithName = {} //clientid with associated names
     
 //   private noOfusers = 1 //to count no of users connected
   
@@ -126,6 +128,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 		if(this.emailOfConnectedUser){
 
+			this.clientidwithName[client.id] = this.nameOfConnectedUser
+
 			this.check[client.id] = true; //check that user has verified there payload
 		
 		}
@@ -161,7 +165,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
 		
-			userdata.client_id = client.id;
+			// userdata.client_id = client.id;
 
 			// transfer stars from user to admin account and keep track of it
 			let noOfStarsHolding = userdata.stars;
@@ -210,7 +214,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
 		
-			userdata.client_id = client.id;
+			// userdata.client_id = client.id;
 
 			let noOfStarsHolding = userdata.stars;
 
@@ -595,9 +599,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 						//transfer user2 star from admin to user2 account
 
-						user2details.stars += this.adminBlockStars[user2details.client_id]
+						user2details.stars += this.adminBlockStars[currentGame.client2id]
 
-						this.adminBlockStars[user2details.client_id]=0
+						this.adminBlockStars[currentGame.client2id]=0
 		
 						await user2details.save();
 		
@@ -700,7 +704,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 					
 						let gameexist= await this.passkey.findOne().where('gameid').equals(gameid).exec();
 	
-						let nameinUSERDB =await this.user.findOne().where('client_id').equals(client.id).exec()
+						let nameinUSERDB =await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec()
 		
 						//find index of given card
 				
@@ -793,9 +797,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 								const userno2= await this.user.find().where('username').equals(user2name).exec();
 
-								this.adminBlockStars[userno1[0].client_id]--;
+								this.adminBlockStars[gameINDB.client1id]--;
 
-								this.adminBlockStars[userno2[0].client_id]--;
+								this.adminBlockStars[gameINDB.client2id]--;
 		
 								if(gameResult === "game is draw"){
 		
@@ -918,9 +922,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 						//transfer user2 star from admin to user2 account
 
-						user1details.stars += this.adminBlockStars[user1details.client_id]
+						user1details.stars += this.adminBlockStars[currentGame.client1id]
 
-						this.adminBlockStars[user1details.client_id]=0
+						this.adminBlockStars[currentGame.client1id]=0
 		
 						await user1details.save();
 		
@@ -1030,7 +1034,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 					
 						let gameexist= await this.passkey.findOne().where('gameid').equals(gameid).exec();
 	
-						let nameinUSERDB =await this.user.findOne().where('client_id').equals(client.id).exec()
+						let nameinUSERDB =await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec()
 		
 						//find index of given card
 				
@@ -1118,13 +1122,13 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 								const gameResult=await  this.playservice.play(gameid);
 
-								const userno1= await this.user.find().where('username').equals(user1name).exec();
+								// const userno1= await this.user.find().where('username').equals(user1name).exec();
 
-								const userno2= await this.user.find().where('username').equals(user2name).exec();
+								// const userno2= await this.user.find().where('username').equals(user2name).exec();
 
-								this.adminBlockStars[userno1[0].client_id]--;
+								this.adminBlockStars[gameINDB.client1id]--;
 
-								this.adminBlockStars[userno2[0].client_id]--;
+								this.adminBlockStars[gameINDB.client2id]--;
 		
 								if(gameResult === "game is draw")
 		

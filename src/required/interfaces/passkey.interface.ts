@@ -6,6 +6,10 @@ export interface passkey extends mongoose.Document{
     
     player2address:string
 
+    client1id:string
+
+    client2id:string
+
     token1:Number
 
     token2:Number
