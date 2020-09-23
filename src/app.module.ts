@@ -21,7 +21,7 @@ import {JwtModule} from '@nestjs/jwt'
 import {PassportModule} from '@nestjs/passport'
 import { jwtStrategy } from './jwt.strategy';
 import { NotificationService } from './notification/notification.service';
-import { join } from 'path';
+import { join } from "path"
 
 @Module({
 

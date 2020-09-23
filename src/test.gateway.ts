@@ -2,7 +2,6 @@ import { SubscribeMessage, OnGatewayConnection, OnGatewayInit, OnGatewayDisconne
 import { Socket, Server } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import {v4 as uuid} from 'uuid'
-import { AppGateway } from './app.gateway';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { user } from './required/interfaces/user.interface';
@@ -37,9 +36,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   private logger:Logger = new Logger('TestGateway');
 
-  private check={}//check whether a client is authorized or not
+  private check = {}//check whether a client is authorized or not
   
   private currConnected={};//client connected to any room or game currently true or false
+  
+  //private noOfusers = 1 //to count no of users in game room
   
   private emailOfConnectedUser: String;//email of users fetched from db using their given accesstoken
   
@@ -47,7 +48,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   private roleOfConnectedUser: String;
   
-  private users ={}     // client id:game id
+//   private gameCollection={} //{gameid:{userarray:[],timestamp,typeOfGame,status,Moves,RoomName}}
+  
+  //private clientAndUser = {}             //{client.id:this.emailofconnecteduser}
+  
+  private users = {}     // client id:game id
 
   private custom_id = {}; // client.id : custome_id by uuid()
 
@@ -236,6 +241,13 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 
 				this.room_status[this.games[pos].gameRoom] = true
+				// const game_pos = this.games.findIndex((game) => { return game.gameRoom == this.games[pos].gameRoom});
+		
+				// this.games[game_pos].users.push(client.id);
+		
+				this.user_timestamp[client.id] = Date.now();
+		
+				this.handleJoin( client, this.games[pos].gameRoom);
 		
 				this.games[pos].players++;
 
@@ -446,6 +458,13 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 
 
+
+		@SubscribeMessage('End_Game')
+		handleEndGame(client: Socket){
+			const room = this.users[client.id];
+			//this.handleLeave(client, room);
+			console.log(this.wss.sockets);
+		}
 
 
 		@SubscribeMessage('show')
