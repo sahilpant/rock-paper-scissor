@@ -145,14 +145,16 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 			const game = await this.passkey.findOne().where('user1').equals(this.nameOfConnectedUser).exec();
 			const user1 = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
-			user1.client_id = client.id;
+			game.client1id = client.id
+			await game.save();
 			await user1.save();
 			this.handleJoin(client,game.gameid);
 		}
 		else if(await this.passkey.findOne().where('user2').equals(this.nameOfConnectedUser)){
 			const game = await this.passkey.findOne().where('user2').equals(this.nameOfConnectedUser).exec();
 			const user2 = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
-			user2.client_id = client.id;
+			game.client2id = client.id
+			await game.save();
 			await user2.save();
 			this.handleJoin(client,game.gameid);
 		}
@@ -165,7 +167,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
 		
-			// userdata.client_id = client.id;
 
 			// transfer stars from user to admin account and keep track of it
 			let noOfStarsHolding = userdata.stars;
@@ -214,7 +215,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
 		
-			// userdata.client_id = client.id;
 
 			let noOfStarsHolding = userdata.stars;
 
@@ -461,13 +461,13 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 				const user_2 = await this.user.findOne().where('publickey').equals(game.player2address).exec();
 
-				user_1.stars += this.adminBlockStars[user_1.client_id];
+				user_1.stars += this.adminBlockStars[game.client1id];
 				
-				user_2.stars += this.adminBlockStars[user_2.client_id];
+				user_2.stars += this.adminBlockStars[game.client2id];
 
 				
-				delete this.adminBlockStars[user_1.client_id];
-				delete this.adminBlockStars[user_2.client_id];
+				delete this.adminBlockStars[game.client1id];
+				delete this.adminBlockStars[game.client2id];
 
 				await user_1.save();
 				await user_2.save();
