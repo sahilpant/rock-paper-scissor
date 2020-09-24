@@ -13,6 +13,7 @@ import * as jwt from 'jsonwebtoken'
 import {JwtPayLoad} from './required/interfaces/jwt-payload.interface'
 import { detailOfCard} from '.././gameblock'
 import { ConfigService } from '@nestjs/config';
+import { AppGateway } from './app.gateway'
 import { NotificationService } from './notification/notification.service';
 
 @WebSocketGateway({namespace:'/game'})
@@ -20,7 +21,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
  
   constructor(
-            //   private  general:AppGateway,
+               private  general:AppGateway,
               
               private jwtstrategy:jwtStrategy,
               
@@ -81,7 +82,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
   @WebSocketServer() wss:Server;
   
-  afterInit(server: Server):void {
+async  afterInit(server: Server) {
 
     this.logger.log(`initialised`);
   
@@ -90,9 +91,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   async handleConnection(client:Socket) {
 
-		client.on('handler',async (data) => {
+	console.log("i also")
+
+		client.on('hand',async (data) => {
 	
-			console.log('I ran');
+		    console.log('I ran');
 
 			const ans = <JwtPayLoad>jwt.verify(data,this.configservice.get<string>('JWT_SECRET'))
 
@@ -137,7 +140,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 			client.emit('ERROR','NO PAYLOAD TO VERIFY');
 			
-		    client.disconnect();
+		    this.handleDisconnect(client)
 		}
 
 /*----------------------for long duration game when user leaves room for some time and rejoin it we have to see is there any pending game with that user inside it --------------------------------*/

@@ -82,7 +82,7 @@ import { join } from "path"
     
     PlayModule,
     
-    PassportModule.register({ defaultStrategy:'jwt' , session:true}),
+    PassportModule.register({ defaultStrategy:'jwt'}),
     
     JwtModule.register({
     
