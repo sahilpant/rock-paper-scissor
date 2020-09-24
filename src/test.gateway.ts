@@ -137,11 +137,12 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 			client.emit('ERROR','NO PAYLOAD TO VERIFY');
 			
-			client.disconnect();	
+		    client.disconnect();
 		}
 
-		/*------------------------------------------------------*/
-		if(await this.passkey.findOne().where('user1').equals(this.nameOfConnectedUser)){
+/*----------------------for long duration game when user leaves room for some time and rejoin it we have to see is there any pending game with that user inside it --------------------------------*/
+	
+            if(await this.passkey.findOne().where('user1').equals(this.nameOfConnectedUser)){
 
 			const game = await this.passkey.findOne().where('user1').equals(this.nameOfConnectedUser).exec();
 			const user1 = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
@@ -161,20 +162,20 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		/*------------------------------------------------------*/
 
 		/*------logic for checking the invitation email------*/
+
 		if( this.check[client.id] && Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser) != -1){
 
-			// this.currConnected[client.id] = this.noOfusers++;
-	
 			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
-		
 
 			// transfer stars from user to admin account and keep track of it
+
 			let noOfStarsHolding = userdata.stars;
             
 			if(noOfStarsHolding>3){
 
 				userdata.stars = noOfStarsHolding-3;
 				this.adminBlockStars[client.id] = 3
+			
 			}
 			else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
 			{
@@ -381,6 +382,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   
   	handleDisconnect(client: Socket):void {
+
+		console.log("it happen succesfully")
 		if(this.currConnected[client.id]){
 			const room = this.users[client.id];
 			this.wss.to(room).emit('disconnect',`${client.id} disconnected`);
@@ -482,7 +485,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 				this.currConnected[client.id] = false;
 				this.room_status[_room] = false
 				client.to(_room).broadcast.emit('End_Game', `${client.id} has ended the Game`);
-				client.disconnect();
+				
 
 				//client_2 changes
 
@@ -493,6 +496,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 				this.currConnected[client_2_id] = false;
 
 				//Blockchain part for star transefer from admin
+
+				client.disconnect();
 				
 		  	}
 		 	else{
@@ -547,7 +552,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			console.log(this.check);
 			console.log("roomid:invited email")
 			console.log(this.room_invited_player_email);
-			console.log("rood id : true if there is a pending invitation")
+			console.log("room id : true if there is a pending invitation")
 			console.log(this.room_invite_flag)
 			console.log("client_id : no.of blockstars")
 			console.log(this.adminBlockStars)

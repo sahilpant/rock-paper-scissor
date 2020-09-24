@@ -82,13 +82,13 @@ import { join } from "path"
     
     PlayModule,
     
-    PassportModule.register({ defaultStrategy:'jwt' }),
+    PassportModule.register({ defaultStrategy:'jwt' , session:true}),
     
     JwtModule.register({
     
       secret: "hello",
     
-      signOptions:{ expiresIn:3600, },
+      signOptions:{ expiresIn:36000, },
    
     }),
   
