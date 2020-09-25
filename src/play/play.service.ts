@@ -92,6 +92,10 @@ export class PlayService {
               game[0].card1="empty"
             
               game[0].card2="empty"
+
+              game[0].card1played = false
+
+              game[0].card2played = false
             
               await game[0].save()
             
@@ -126,7 +130,10 @@ export class PlayService {
             
               game[0].card2="empty"
 
+              
+             game[0].card1played = false
 
+             game[0].card2played = false
             
               await game[0].save()
             
@@ -152,6 +159,10 @@ export class PlayService {
              game[0].card1="empty"    
          
              game[0].card2="empty"
+
+             game[0].card1played = false
+
+             game[0].card2played = false
             
              await game[0].save()
             
