@@ -147,10 +147,6 @@ export class PlayService {
 
             game[0].playerWin.push("tie")
 
-             let arrOfCard=`[${card1},${card2}]`
-           
-             game[0].moves.push(arrOfCard)
-
              await game[0].save();
             
              game[0].card1="empty"    
