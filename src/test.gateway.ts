@@ -164,11 +164,6 @@ async  afterInit(server: Server) {
 
 		if( this.check[client.id] && Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser) != -1){
 
-			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
-
-			
-		
-			userdata.save();
 
 			this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser)]);
 	
@@ -187,37 +182,7 @@ async  afterInit(server: Server) {
 		else if(this.check[client.id]){
 
 			//  this.currConnected[client.id] = true;
-	
-			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
-		
 
-			let noOfStarsHolding = userdata.stars;
-
-			if(noOfStarsHolding>3){
-
-				userdata.stars = noOfStarsHolding-3;
-				this.adminBlockStars[client.id] = 3
-			}
-			else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
-			{
-			userdata.stars = 0;
-			this.adminBlockStars[client.id] = noOfStarsHolding
-			}
-			else{
-				client.emit('no stars','you have zero stars')
-
-				this.emailOfConnectedUser=null
-	
-		     	this.nameOfConnectedUser=null
-
-		    	this.roleOfConnectedUser =null
-
-				client.disconnect();
-			}
-		
-		
-			userdata.save();
-	
 			this.emailOfConnectedUser = null;
 	
 			this.nameOfConnectedUser = null;
