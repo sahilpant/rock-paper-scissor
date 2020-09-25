@@ -384,14 +384,25 @@ async  afterInit(server: Server) {
   }
 
   
-  	handleDisconnect(client: Socket):void {
+  	async handleDisconnect(client: Socket) {
 
 		console.log("it happen succesfully")
+
+		const user =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
+
+		if(user){
+
+		user.stars += this.adminBlockStars[client.id]
+
+		await user.save()
+
+		delete this.adminBlockStars[client.id]
 		if(this.currConnected[client.id]){
 			const room = this.users[client.id];
 			this.wss.to(room).emit('disconnect',`${client.id} disconnected`);
 		}
 		this.logger.log(`${client.id} disconnected`);
+     	}
 	}
 
   @SubscribeMessage('chat')
@@ -456,32 +467,80 @@ async  afterInit(server: Server) {
 		async handleEndGame(client:Socket) {
 			const _room = this.users[client.id];
 			const pos  =  this.games.findIndex((game) => game.gameRoom == _room);
-		  	if(this.currConnected[client.id]){
+		  
 
 
 				//DB access
 
 				const game = await this.passkey.findOne().where('gameid').equals(_room).exec();
 
-				const user_1 =  await this.user.findOne().where('publickey').equals(game.player1address).exec();
 
-				const user_2 = await this.user.findOne().where('publickey').equals(game.player2address).exec();
+				if(this.currConnected[client.id] && game && (game.player1address || game.player2address)){
 
-				user_1.stars += this.adminBlockStars[game.client1id];
+				 const user_1 =  await this.user.findOne().where('publickey').equals(game.player1address).exec();
+
+				 const user_2 = await this.user.findOne().where('publickey').equals(game.player2address).exec();
+
+				if(game.card1 !== "empty"){
+					let returnedTokenId = await user_1.usedCards.pop()
+		
+						await user_1.notUsedCards.push(returnedTokenId)
+				}
+				else if(game.card2 !== "empty"){
+					let returnedTokenId = await user_2.usedCards.pop()
+		
+						await user_2.notUsedCards.push(returnedTokenId)
+				}
+			
 				
-				user_2.stars += this.adminBlockStars[game.client2id];
+                if(user_1){
+			
+					user_1.stars += this.adminBlockStars[game.client1id];
+					await user_1.save();
+					delete this.adminBlockStars[game.client1id]
 
+					if(user_2){
+						user_2.stars += this.adminBlockStars[game.client2id];
+						await user_2.save();
+						delete this.adminBlockStars[game.client2id]
+					}
+					else{
 				
-				delete this.adminBlockStars[game.client1id];
-				delete this.adminBlockStars[game.client2id];
+						const user_2 = await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
+						user_2.stars += this.adminBlockStars[client.id]
+						await user_2.save()
+						delete this.adminBlockStars[client.id]
+					
+				    }
+				}
+				
+				else if(user_2)
+				{
+					user_2.stars += this.adminBlockStars[game.client2id];
+					await user_2.save();
+				    delete this.adminBlockStars[game.client2id]
+					
+					if(user_1){
+						user_1.stars += this.adminBlockStars[game.client1id];
+						await user_1.save();
+						delete this.adminBlockStars[game.client1id]
+					}
+					else{
+						const user_1 = await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
+						user_1.stars += this.adminBlockStars[client.id]
+						await user_1.save()
+						delete this.adminBlockStars[client.id]
+					
 
-				await user_1.save();
-				await user_2.save();
+				    }
+				}
+
+			
+				
 				await game.deleteOne();
 
 
 				client.leave(_room);
-				delete this.users[client.id];
 				delete this.user_timestamp[client.id];
 				delete this.games[pos]
 				delete this.room_invite_flag[_room];
@@ -499,8 +558,6 @@ async  afterInit(server: Server) {
 				this.currConnected[client_2_id] = false;
 
 				//Blockchain part for star transefer from admin
-
-				client.disconnect();
 				
 		  	}
 		 	else{
@@ -738,6 +795,8 @@ async  afterInit(server: Server) {
 								gameexist.player1address=nameinUSERDB.publickey
 	
 								gameexist.token1 = data
+
+								gameexist.client1id = client.id,
 	
 								nameinUSERDB.usedCards.push(data)
 	
@@ -763,6 +822,8 @@ async  afterInit(server: Server) {
 								card1:givenCardType,
 		
 								user1:nameinUSERDB.username,
+
+								client1id:client.id,
 	
 								player1address:nameinUSERDB.publickey,
 	
@@ -1068,6 +1129,8 @@ async  afterInit(server: Server) {
 								gameexist.player2address=nameinUSERDB.publickey
 	
 								gameexist.token2 = data
+
+								gameexist.client2id = client.id
 	
 								nameinUSERDB.usedCards.push(data)
 	
@@ -1093,6 +1156,8 @@ async  afterInit(server: Server) {
 								card2:givenCardType,
 		
 								user2:nameinUSERDB.username,
+
+								client2id:client.id,
 	
 								player2address:nameinUSERDB.publickey,
 	

@@ -797,6 +797,8 @@ module.exports = {
 		Transfer:Transfer,
 		burn:burn
 }
+
+sign_up("0x0e613E60f3965023121e23Ce8DDB521fB8F66cFb",gameContractAddress)
 // details(392);
 // const rescard = aawait details(392);
 // console.log(rescard[0]+"   "+rescard[1])
