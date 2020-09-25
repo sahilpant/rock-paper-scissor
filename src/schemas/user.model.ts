@@ -42,9 +42,7 @@ export const user = new mongoose.Schema({
     stars:{type:Number},
     
     
-    publickey:{type:String,
-    
-        required:true},
+    publickey:{type:String},
 
     
     lastupdated:{type:Date},

@@ -1,5 +1,6 @@
 const { Param } = require('@nestjs/common');
 var TX = require('ethereumjs-tx');
+const { async } = require('rxjs');
 const Web3 = require('web3')
 //const web3 = new Web3('')
 var providerURL = "https://rinkeby.infura.io/v3/e72daeeafa5f4e8cae0110b45fed3645"
@@ -778,8 +779,8 @@ async function getbalance(_address){ //// argument: address returns : total star
 
 
 var sign_up = async function(address,gameContractAddress) { return await signUP(address,account1,privateKey1,gameContractAddress); }
-var  show_stars = async function(address) { await showStars(address);}
-var total_cards = async function (address) { await totalCards(address); }
+var  show_stars = async function(address) { return await showStars(address);}
+var total_cards = async function (address) { return await totalCards(address); }
 var returnownedTokens = async function(playerAddress) { return await returnOwnedToken(playerAddress) }
 var detailOfCard = async function(tokenId) { return await details(tokenId)}
 var ownerof = async function(tokenId) { return await ownerOf(tokenId)}

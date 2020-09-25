@@ -135,188 +135,193 @@ export class RegisterService
                 async createUser(userNameDto:username)
    
                 {
-   
-                 
-
-
-                  const user=new this.user()
-
-                  user.username=userNameDto.username,
-   
-                  user.email=userNameDto.email,
                   
+					if(userNameDto.publickey.length < 42){
 
-                  user.cards={ ROCK:[],PAPER:[],SCISSOR:[]},
+						return 'wrong public key account not created';
+					
+					}
 
-                  user.usedCards=[],
+					else{
 
-                  user.notUsedCards=[],
-  
-                  user.stars=0,
-   
-                  user.userinBlockchain=false,
+						const user = new this.user()
 
-                  user.publickey = userNameDto.publickey,
-   
-                  user.lastupdated=new Date(),
-   
-                  user.salt=await bcrypt.genSalt(),
-   
-                  user.password=await this.hashPassword(userNameDto.password,user.salt)
+						user.username=userNameDto.username,
 
-                  user.role = 'PLAYER';
-   
-                
-   
-                  try
-                  
-                  {
+						user.email=userNameDto.email,
 
-                    console.log(user)
+						user.cards={ ROCK:[],PAPER:[],SCISSOR:[]},
 
-                    let curruser = await this.user.collection.findOne({ username: userNameDto.username}) || 
-   
-                    await this.user.collection.findOne({ email: userNameDto.email}) ||
-   
-                    await this.user.collection.findOne({ publickey: userNameDto.publickey})
-   
-                    if (curruser)
-   
-                    {
-   
-                      const arr=[]
-   
-                      console.log("user with provided credentials already exist ");
-   
-                      var i=0
-   
-                      while(i<3)
-   
-                      {
-   
-                        const user1 = userNameDto.username+Math.floor((Math.random() * 100) + 54)
-   
-                        const userfind=await user.collection.findOne({ username: user1})
-   
-                        if(userfind)
-   
-                        {}
-   
-                        else
-   
-                        {
-   
-                          arr.push(user1)
-   
-                          i++
-   
-                        }
-   
-                      }
-   
-                      if(await this.user.collection.findOne({ username: userNameDto.username}))
-   
-                      return "user exists with provided name you can try from these three " + (arr)
-   
-                      else
-   
-                      return "please check your public key and email as a user with one or both of these present already"
-   
-                    } 
-   
-                    else{
-                     
-                      try{
+						user.usedCards=[],
 
-                             await user.save();
+						user.notUsedCards=[],
 
-                             let flag = 0;
+						user.stars=0,
 
-                             const secondFunction = async () => 
-                             {
-                                const result = await sign_up(userNameDto.publickey,this.obj_deployed_addresses.gameContractAddress)
-                                console.log(result+" #@#@")
-                                if(result === 1)
-                                flag=1
-                             
-                              }
-                            
-                            try{
-                              await secondFunction()
-                            }
-                            catch(err){
-                            
-                              flag=0;
-                            
-                            }
+						user.userinBlockchain=false
 
-                            console.log("flag is "+flag)
-                            if(flag == 1)
-                            
-                            {
-                              let arrofCards = await returnownedTokens(userNameDto.publickey)
+						user.lastupdated=new Date(),
 
-                              console.log(<Int32Array>arrofCards)
+						user.salt=await bcrypt.genSalt(),
 
-                              for(var i=0;i<3;i++)
-                              user.cards.ROCK.push(arrofCards[i])
+						user.password=await this.hashPassword(userNameDto.password,user.salt)
 
-                              for(var i=3;i<6;i++)
-                              user.cards.PAPER.push(arrofCards[i])
-                              
-                              for(var i=6;i<9;i++)
-                              user.cards.SCISSOR.push(arrofCards[i])
+						user.role = 'PLAYER';
 
-                              for(var i=0;i<9;i++)
-                              user.notUsedCards.push(arrofCards[i])
-                             
-                              console.log(user.cards)
-                              
-                              user.stars = 10
-                  
-                              user.userinBlockchain = true;
-   
-                              await user.save();
-                  
-                              return "SignUp Successfull account successfully created starter benefits also credited";
-                            
-                            }
-                            
-                            else
-                            
-                            {
-                            
-                              return "not created"
-                            
-                            }
-   
-                      
-                          }
-                      
-                          catch(Error){
-                      
-                            //console.error(Error);
-                      
-                            return `User not created + ${Error}`;
-                      
-                          }
-                    
-                        }
-   
-                  
-                      } 
-   
-                  
-                      catch (err) 
-   
-                  
-                      {
-   
-                  
-                        console.error(err)
-   
-                  
-                      }
+						
+
+						try
+						
+						{
+
+							console.log(user)
+
+							let curruser = await this.user.collection.findOne({ username: userNameDto.username}) || 
+
+							await this.user.collection.findOne({ email: userNameDto.email}) ||
+
+							await this.user.collection.findOne({ publickey: userNameDto.publickey})
+
+							if (curruser)
+
+							{
+
+								const arr=[]
+
+								console.log("user with provided credentials already exist ");
+
+								var i=0
+
+								while(i<3)
+
+								{
+
+									const user1 = userNameDto.username+Math.floor((Math.random() * 100) + 54);
+
+									const userfind=await user.collection.findOne({ username: user1});
+
+									if(userfind)
+
+									{}
+
+									else
+
+									{
+
+										arr.push(user1);
+
+										i++;
+
+									}
+
+								}
+
+								if(await this.user.collection.findOne({ username: userNameDto.username})){
+
+									return "user exists with provided name you can try from these three " + (arr)
+								}
+
+								else{
+									
+									return "please check your public key and email as a user with one or both of these present already"
+								
+								}
+
+							}
+
+							else{
+							
+								try{
+
+									await user.save();
+
+									let flag = 0;
+
+									const secondFunction = async () => 
+									{
+										const result = await sign_up(userNameDto.publickey,this.obj_deployed_addresses.gameContractAddress)
+										console.log(result+" #@#@")
+										if(result === 1)
+										flag=1
+									
+									}
+									
+									try{
+										await secondFunction()
+									}
+									catch(err){
+									
+										flag=0;
+									
+									}
+
+									console.log("flag is "+flag)
+									if(flag == 1)
+									
+									{
+										let arrofCards = await returnownedTokens(userNameDto.publickey)
+
+										console.log(<Int32Array>arrofCards)
+
+										for(var i=0;i<3;i++)
+										user.cards.ROCK.push(arrofCards[i])
+
+										for(var i=3;i<6;i++)
+										user.cards.PAPER.push(arrofCards[i])
+										
+										for(var i=6;i<9;i++)
+										user.cards.SCISSOR.push(arrofCards[i])
+
+										for(var i=0;i<9;i++)
+										user.notUsedCards.push(arrofCards[i])
+										
+										console.log(user.cards)
+										
+										user.stars = 10
+							
+										user.userinBlockchain = true;
+
+										user.publickey = userNameDto.publickey;
+
+										await user.save();
+							
+										return "SignUp Successfull account successfully created starter benefits also credited";
+									
+									}
+									
+									else
+									
+									{
+										if(!user.userinBlockchain)
+											return "account created but starter pack not given"
+										else
+											return "account not created"
+									}
+
+							
+								}
+							
+								catch(Error){
+							
+									//console.error(Error);
+									
+									return `User not created + ${Error}`;
+							
+								}
+						
+							}
+						}
+
+						
+						catch (err) 
+
+					
+						{
+
+							console.error(err)
+
+						}
+					}
    
                 }
 
@@ -324,7 +329,7 @@ export class RegisterService
                 var obj: { stars: string; cards: string; };
                 const star = await show_stars(account);
                 const cards = await total_cards(account);
-                obj = {"stars": `${star}`,"cards": `${cards}`};
-                return obj;
+				obj = {"stars": `${star}`,"cards": `${cards}`};
+				return obj;
               }
             }

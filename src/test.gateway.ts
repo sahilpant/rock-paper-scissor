@@ -93,7 +93,7 @@ async  afterInit(server: Server) {
 
 	console.log("i also")
 
-		client.on('hand',async (data) => {
+		client.on('handler',async (data) => {
 	
 		    console.log('I ran');
 
