@@ -91,12 +91,8 @@ async  afterInit(server: Server) {
 
   async handleConnection(client:Socket) {
 
-	console.log("i also")
-
 		client.on('handler',async (data) => {
 	
-		    console.log('I ran');
-
 			const ans = <JwtPayLoad>jwt.verify(data,this.configservice.get<string>('JWT_SECRET'))
 
 			this.emailOfConnectedUser = ans.email
@@ -170,32 +166,7 @@ async  afterInit(server: Server) {
 
 			const userdata = await this.user.findOne().where('username').equals(this.nameOfConnectedUser).exec();
 
-			// transfer stars from user to admin account and keep track of it
-
-			let noOfStarsHolding = userdata.stars;
-            
-			if(noOfStarsHolding>3){
-
-				userdata.stars = noOfStarsHolding-3;
-				this.adminBlockStars[client.id] = 3
 			
-			}
-			else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
-			{
-			userdata.stars = 0;
-			this.adminBlockStars[client.id] = noOfStarsHolding
-			}
-			else{
-				client.emit('no stars','you have zero stars')
-
-				this.emailOfConnectedUser=null
-	
-		     	this.nameOfConnectedUser=null
-
-		    	this.roleOfConnectedUser =null
-
-				client.disconnect();
-			}
 		
 			userdata.save();
 
@@ -386,21 +357,40 @@ async  afterInit(server: Server) {
   
   	async handleDisconnect(client: Socket) {
 
-		console.log("it happen succesfully")
-
 		const user =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
-
+		const game =  await this.passkey.findOne().where('gameid').equals(this.users[client.id]).exec();
+		
 		if(user){
 
 		user.stars += this.adminBlockStars[client.id]
+		
+		delete this.adminBlockStars[client.id]
 
+		if(game){
+			  if((game.card1played && game.client1id === client.id)||
+			  (game.card2played && game.client2id === client.id))
+			  {
+				let returnedTokenId = await user.usedCards.pop()
+		
+				await user.notUsedCards.push(returnedTokenId);
+
+				await game.deleteOne();
+			  }
+			 
+			            
+		}
 		await user.save()
 
-		delete this.adminBlockStars[client.id]
+
 		if(this.currConnected[client.id]){
 			const room = this.users[client.id];
 			this.wss.to(room).emit('disconnect',`${client.id} disconnected`);
 		}
+		    delete this.currConnected[client.id]
+			delete this.users[client.id]
+			delete this.custom_id[client.id]
+			delete this.user_timestamp[client.id];
+
 		this.logger.log(`${client.id} disconnected`);
      	}
 	}
@@ -796,6 +786,8 @@ async  afterInit(server: Server) {
 	
 								gameexist.token1 = data
 
+								gameexist.card2played = true
+
 								gameexist.client1id = client.id,
 	
 								nameinUSERDB.usedCards.push(data)
@@ -814,6 +806,33 @@ async  afterInit(server: Server) {
 							else if(indexofCard !== -1)
 		
 							{
+
+								// transfer stars from user to admin account and keep track of it
+
+			let noOfStarsHolding = nameinUSERDB.stars;
+            
+			if(noOfStarsHolding>3){
+
+				nameinUSERDB.stars = noOfStarsHolding-3;
+				this.adminBlockStars[client.id] = 3
+			
+			}
+			else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
+			{
+			nameinUSERDB.stars = 0;
+			this.adminBlockStars[client.id] = noOfStarsHolding
+			}
+			else{
+				client.emit('no stars','you have zero stars')
+
+				this.emailOfConnectedUser=null
+	
+		     	this.nameOfConnectedUser=null
+
+		    	this.roleOfConnectedUser =null
+
+				this.handleDisconnect(client);
+			}
 		
 								const cardDetail = new this.passkey({
 		
@@ -825,6 +844,10 @@ async  afterInit(server: Server) {
 
 								client1id:client.id,
 	
+								card1played:true,
+
+								card2played:false,
+
 								player1address:nameinUSERDB.publickey,
 	
 								token1:data
@@ -1131,6 +1154,8 @@ async  afterInit(server: Server) {
 								gameexist.token2 = data
 
 								gameexist.client2id = client.id
+
+								gameexist.card2played = true
 	
 								nameinUSERDB.usedCards.push(data)
 	
@@ -1148,6 +1173,32 @@ async  afterInit(server: Server) {
 							else if(indexofCard !== -1)
 		
 							{
+
+								
+			let noOfStarsHolding = nameinUSERDB.stars;
+            
+			if(noOfStarsHolding>3){
+
+				nameinUSERDB.stars = noOfStarsHolding-3;
+				this.adminBlockStars[client.id] = 3
+			
+			}
+			else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
+			{
+			nameinUSERDB.stars = 0;
+			this.adminBlockStars[client.id] = noOfStarsHolding
+			}
+			else{
+				client.emit('no stars','you have zero stars')
+
+				this.emailOfConnectedUser=null
+	
+		     	this.nameOfConnectedUser=null
+
+		    	this.roleOfConnectedUser =null
+
+				this.handleDisconnect(client);
+			}
 		
 								const cardDetail = new this.passkey({
 		
@@ -1160,6 +1211,10 @@ async  afterInit(server: Server) {
 								client2id:client.id,
 	
 								player2address:nameinUSERDB.publickey,
+								
+								card1played:false,
+
+								card2played:true,
 	
 								token2:data
 							})

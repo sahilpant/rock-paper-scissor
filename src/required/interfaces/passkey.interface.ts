@@ -28,4 +28,8 @@ export interface passkey extends mongoose.Document{
     
     playerWin:string[]
 
+    card1played:boolean
+
+    card2played:boolean
+
 }

@@ -26,6 +26,11 @@ export const passKey = new mongoose.Schema({
       
       moves:{type:Array},
       
-      playerWin:{type:Array}
+      playerWin:{type:Array},
+
+      card1played:{type:Boolean},
+
+      card2played:{type:Boolean},
+   
 
 })
