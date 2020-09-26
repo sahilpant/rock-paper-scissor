@@ -42,17 +42,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
   private currConnected={};//client connected to any room or game currently true or false
   
-  //private noOfusers = 1 //to count no of users in game room
-  
   private emailOfConnectedUser: String;//email of users fetched from db using their given accesstoken
   
   private nameOfConnectedUser: String;//name of users fetched from db using their given accesstoken
 
   private roleOfConnectedUser: String;
-  
-//   private gameCollection={} //{gameid:{userarray:[],timestamp,typeOfGame,status,Moves,RoomName}}
-  
-  //private clientAndUser = {}             //{client.id:this.emailofconnecteduser}
   
   private users = {}     // client id:game id
 
@@ -72,13 +66,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
   private clientidwithName = {} //clientid with associated names
     
-//   private noOfusers = 1 //to count no of users connected
-  
-//   private gameCollection={} //{gameid:{userarray:[],timestamp,typeOfGame,status,Moves,RoomName}}
-  
-//   private clientAndUser={}             //{client.id:this.emailofconnecteduser}
-
-//   private user_check = {} //client.id : true if user is in a room false if user has left the room
 
   
   @WebSocketServer() wss:Server;
@@ -139,7 +126,7 @@ async  afterInit(server: Server) {
 			
 		    this.handleDisconnect(client)
 		}
-
+		
 /*----------------------for long duration game when user leaves room for some time and rejoin it we have to see is there any pending game with that user inside it --------------------------------*/
 	
             if(await this.passkey.findOne().where('user1').equals(this.nameOfConnectedUser)){
@@ -149,7 +136,13 @@ async  afterInit(server: Server) {
 			game.client1id = client.id
 			await game.save();
 			await user1.save();
+			this.emailOfConnectedUser = null;
+		
+		this.nameOfConnectedUser = null;
+		
+		this.roleOfConnectedUser = null;
 			this.handleJoin(client,game.gameid);
+
 		}
 		else if(await this.passkey.findOne().where('user2').equals(this.nameOfConnectedUser)){
 			const game = await this.passkey.findOne().where('user2').equals(this.nameOfConnectedUser).exec();
@@ -157,6 +150,11 @@ async  afterInit(server: Server) {
 			game.client2id = client.id
 			await game.save();
 			await user2.save();
+			this.emailOfConnectedUser = null;
+		
+		this.nameOfConnectedUser = null;
+		
+		this.roleOfConnectedUser = null;
 			this.handleJoin(client,game.gameid);
 		}
 		/*------------------------------------------------------*/
@@ -168,15 +166,7 @@ async  afterInit(server: Server) {
 
 			this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser)]);
 	
-			this.emailOfConnectedUser=null
-	
-			this.nameOfConnectedUser=null
 
-			this.roleOfConnectedUser =null
-	
-			// client.emit('joined', `welcome user ${client.id}`);
-
-		
 		}
 		/*---------------------------------------------------*/
 
@@ -184,12 +174,6 @@ async  afterInit(server: Server) {
 		else if(this.check[client.id]){
 
 			//  this.currConnected[client.id] = true;
-
-			this.emailOfConnectedUser = null;
-	
-			this.nameOfConnectedUser = null;
-
-			this.roleOfConnectedUser = null;
 	
 			client.emit('joined', `welcome user ${client.id}`);
 		}
@@ -586,9 +570,19 @@ async  afterInit(server: Server) {
 			
 			let flag=1;
 			
-			
+			let notFirstgame =  await this.passkey.findOne().where('gameid').equals(this.users[client.id]).exec();
 
-			let noOfStarsHoldingbyAdminforThisClient = this.adminBlockStars[client.id]
+			let noOfStarsHoldingbyAdminforThisClient
+			if(notFirstgame){
+		      noOfStarsHoldingbyAdminforThisClient = this.adminBlockStars[client.id]
+			}
+			else{
+				let Firstgame =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
+				if(Firstgame.stars <= 0)
+				flag =0
+
+				this.handleEndGame(client)
+			}
 
 			if(noOfStarsHoldingbyAdminforThisClient <= 0)
 			{
@@ -739,6 +733,25 @@ async  afterInit(server: Server) {
 		
 		
 						{
+							if(!gameexist.card1){
+								let noOfStarsHolding = nameinUSERDB.stars;
+            
+								if(noOfStarsHolding>3){
+					
+									nameinUSERDB.stars = noOfStarsHolding-3;
+									this.adminBlockStars[client.id] = 3
+								
+								}
+								else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
+								{
+								nameinUSERDB.stars = 0;
+								this.adminBlockStars[client.id] = noOfStarsHolding
+								}
+								else{
+									client.emit('no stars','you have zero stars')
+									this.handleDisconnect(client);
+								}
+							}
 		
 								gameexist.card1 = givenCardType
 	
@@ -948,9 +961,23 @@ async  afterInit(server: Server) {
 
 			let flag=1;
 			
-			let noOfStarsHoldingbyAdminforThisClient = this.adminBlockStars[client.id]
+			let notFirstgame =  await this.passkey.findOne().where('gameid').equals(this.users[client.id]).exec();
 
-			if(noOfStarsHoldingbyAdminforThisClient <= 0)
+			let noOfStarsHoldingbyAdminforThisClient
+			
+			if(notFirstgame){
+		      noOfStarsHoldingbyAdminforThisClient = this.adminBlockStars[client.id]
+			}
+			else{
+				let Firstgame =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
+				if(Firstgame.stars <= 0)
+				flag =0
+
+				this.handleEndGame(client)
+			}
+
+
+			if(noOfStarsHoldingbyAdminforThisClient <= 0 && flag==1)
 			{
 			        //transfer other user star back to him	
 		
@@ -1106,6 +1133,26 @@ async  afterInit(server: Server) {
 		
 		
 						{
+
+							if(!gameexist.card2){
+								let noOfStarsHolding = nameinUSERDB.stars;
+            
+								if(noOfStarsHolding>3){
+					
+									nameinUSERDB.stars = noOfStarsHolding-3;
+									this.adminBlockStars[client.id] = 3
+								
+								}
+								else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
+								{
+								nameinUSERDB.stars = 0;
+								this.adminBlockStars[client.id] = noOfStarsHolding
+								}
+								else{
+									client.emit('no stars','you have zero stars')
+									this.handleDisconnect(client);
+								}
+							}
 		
 								gameexist.card2 = givenCardType
 	
@@ -1152,13 +1199,6 @@ async  afterInit(server: Server) {
 			}
 			else{
 				client.emit('no stars','you have zero stars')
-
-				this.emailOfConnectedUser=null
-	
-		     	this.nameOfConnectedUser=null
-
-		    	this.roleOfConnectedUser =null
-
 				this.handleDisconnect(client);
 			}
 		
