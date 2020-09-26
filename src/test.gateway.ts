@@ -15,6 +15,7 @@ import { detailOfCard} from '.././gameblock'
 import { ConfigService } from '@nestjs/config';
 import { AppGateway } from './app.gateway'
 import { NotificationService } from './notification/notification.service';
+import { EmailVerify } from './schemas/EmailVerify.model';
 
 @WebSocketGateway({namespace:'/game'})
 export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatewayDisconnect{
@@ -179,6 +180,7 @@ async  afterInit(server: Server) {
 		}
 		/*---------------------------------------------------*/
 
+       		/*------logic for checking if user is regular not invited------*/
 		else if(this.check[client.id]){
 
 			//  this.currConnected[client.id] = true;
@@ -191,6 +193,7 @@ async  afterInit(server: Server) {
 	
 			client.emit('joined', `welcome user ${client.id}`);
 		}
+		/*---------------------------------------------------*/
   }
 
   	@SubscribeMessage('Join_Alone')
@@ -357,7 +360,8 @@ async  afterInit(server: Server) {
 			delete this.user_timestamp[client.id];
 
 		this.logger.log(`${client.id} disconnected`);
-     	}
+		client.disconnect();
+		 }
 	}
 
   @SubscribeMessage('chat')
@@ -395,28 +399,6 @@ async  afterInit(server: Server) {
 			
 		}
 
-		// @SubscribeMessage('cancel_invite')
-		// handleCancel(client:Socket){
-		// 	const room = this.users[client.id];
-		// 	// const pos  =  this.games.findIndex((game) => game.gameRoom == room);
-		// 	delete this.room_invited_player_email[room];
-		// 	client.emit("Success","Invitation has been canceled");
-		// }
-
-		// @SubscribeMessage('free_room')
-		// handlefreeroom(client:Socket){
-		// 	const room = this.users[client.id];
-		// 	if(this.room_invite_flag[room]){
-		// 		// const pos  =  this.games.findIndex((game) => game.gameRoom == room);
-		// 		client.emit("Success","anyone can join now")
-		// 		this.room_invite_flag[room] = false;
-		// 	}
-
-		// 	else{
-		// 		client.emit("Warning","Cancle the invite first");
-		// 	}
-		// }
-
 		
 		@SubscribeMessage('End_Game')
 		async handleEndGame(client:Socket) {
@@ -436,6 +418,8 @@ async  afterInit(server: Server) {
 
 				 const user_2 = await this.user.findOne().where('publickey').equals(game.player2address).exec();
 
+				  /*---------------------------Card Returning Logic Starts Here-------------------------*/
+				  
 				if(game.card1 !== "empty"){
 					let returnedTokenId = await user_1.usedCards.pop()
 		
@@ -446,7 +430,10 @@ async  afterInit(server: Server) {
 		
 						await user_2.notUsedCards.push(returnedTokenId)
 				}
-			
+
+				   /*-----------------------Card Returning Logic Ends Here-------------------------------*/
+				   
+				    /*-----------------------Stars Returning Logic Starts Here-------------------------------*/
 				
                 if(user_1){
 			
@@ -489,21 +476,20 @@ async  afterInit(server: Server) {
 
 				    }
 				}
-
+                 /*-----------------------Stars Returning Logic ends Here-------------------------------*/
 			
 				
 				await game.deleteOne();
 
 
-				client.leave(_room);
+			
 				delete this.user_timestamp[client.id];
 				delete this.games[pos]
 				delete this.room_invite_flag[_room];
 				this.currConnected[client.id] = false;
-				this.room_status[_room] = false
-				client.to(_room).broadcast.emit('End_Game', `${client.id} has ended the Game`);
-				
+				this.room_status[_room] = false;
 
+				
 				//client_2 changes
 
 				const _pos = Object.values(this.users).indexOf(_room);
@@ -513,29 +499,40 @@ async  afterInit(server: Server) {
 				this.currConnected[client_2_id] = false;
 
 				//Blockchain part for star transefer from admin
+
+				client.to(_room).broadcast.emit('End_Game', `${client.id} has ended the Game`);
+				client.leave(_room);
+				
+
 				
 		  	}
-		 	else{
+		 	else if(this.currConnected[client.id] === false){
 				client.emit('Error',`Enter to a game`);
-		  	}
+			  }
+			  else{
+				  client.leave(_room);
+			  }
 		}
 
 
 
-		@SubscribeMessage('leaveRoom')
+		@SubscribeMessage('leaveRoom')  //for join again the same room (long duration match) not delete anything
 		async handleLeaveRoom(client:Socket){
 			const room = this.users[client.id];
 			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
-			if(await this.passkey.findOne().where('gameid').equals(room).exec()){
-				client.emit('Error','Game has not ended yet');
-			}else {
-				client.leave(room);
-				delete this.users[client.id];
-				delete this.user_timestamp[client.id];
-				delete this.adminBlockStars[client.id];
-				this.currConnected[client.id] = false;
-				this.games[pos].players--;
+			const gameINDB = await this.passkey.findOne().where('gameid').equals(room).exec()
+			if(gameINDB){
+		
+				// delete this.users[client.id];          
+				// delete this.user_timestamp[client.id];
+				// delete this.adminBlockStars[client.id];
+				// this.currConnected[client.id] = false;
+				// this.room_status[room] = false
+				// this.games[pos].players--;
+
+
 				client.to(room).broadcast.emit('Left',`${client.id} has left the room`);
+				client.leave(room);
 			}
 		}
 
@@ -625,7 +622,7 @@ async  afterInit(server: Server) {
 
 						user2details.stars += this.adminBlockStars[currentGame.client2id]
 
-						this.adminBlockStars[currentGame.client2id]=0
+						this.adminBlockStars[currentGame.client2id] = 0
 		
 						await user2details.save();
 		
@@ -641,7 +638,7 @@ async  afterInit(server: Server) {
 						client.emit('card not played',`your card is not used as you have zero stars`)
 		
 						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
-	
+
 					}
 
 					let gameINDB = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
@@ -688,11 +685,11 @@ async  afterInit(server: Server) {
 						this.wss.to(this.users[client.id]).emit('game not played',"not a single game has been played to display the final result");
 					  }
 					  
-					  await gameINDB.deleteOne()
-	
-					  await gameINDB.save()
+					 await gameINDB.deleteOne()
+					 
+					 await gameINDB.save()
 
-					this.handleEndGame(client)
+					 this.handleEndGame(client)
 		
 			}
 			
@@ -751,7 +748,7 @@ async  afterInit(server: Server) {
 	
 								gameexist.token1 = data
 
-								gameexist.card2played = true
+								gameexist.card1played = true
 
 								gameexist.client1id = client.id,
 	
