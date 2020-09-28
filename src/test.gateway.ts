@@ -520,14 +520,6 @@ async  afterInit(server: Server) {
 			}
 		}
 
-		// @SubscribeMessage('End_Game')
-		// handleEndGame(client: Socket){
-		// 	const room = this.users[client.id];
-		// 	this.handleLeave(client,room);
-		// 	client.disconnect();
-		// 	client.to(room).broadcast.emit('End_Game', `${client.id} has ended the Game`);
-		// }
-
 
 		@SubscribeMessage('show')
 		handleshow(): void {
@@ -672,7 +664,7 @@ async  afterInit(server: Server) {
 		
 									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
 		
-									this.wss.to(this.users[client.id]).emit('final',finalPlayerWon);							
+									this.wss.to(this.users[client.id]).emit(`final  after ${gameINDB.playerWin.length} round `,finalPlayerWon);							
 
 								}
                       else{
@@ -749,7 +741,7 @@ async  afterInit(server: Server) {
 								}
 								else{
 									client.emit('no stars','you have zero stars')
-									this.handleDisconnect(client);
+									this.handleEndGame(client);
 								}
 							}
 		
@@ -806,7 +798,7 @@ async  afterInit(server: Server) {
 
 		    	this.roleOfConnectedUser =null
 
-				this.handleDisconnect(client);
+				this.handleEndGame(client);
 			}
 		
 								const cardDetail = new this.passkey({
@@ -1065,7 +1057,7 @@ async  afterInit(server: Server) {
 		
 									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
 		
-									this.wss.to(this.users[client.id]).emit('final',finalPlayerWon);
+									this.wss.to(this.users[client.id]).emit(`final  after ${gameINDB.playerWin.length} round `,finalPlayerWon);
 								}
 									
 								
@@ -1150,7 +1142,7 @@ async  afterInit(server: Server) {
 								}
 								else{
 									client.emit('no stars','you have zero stars')
-									this.handleDisconnect(client);
+									this.handleEndGame(client);
 								}
 							}
 		
@@ -1199,7 +1191,7 @@ async  afterInit(server: Server) {
 			}
 			else{
 				client.emit('no stars','you have zero stars')
-				this.handleDisconnect(client);
+				this.handleEndGame(client);
 			}
 		
 								const cardDetail = new this.passkey({
