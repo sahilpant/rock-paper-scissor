@@ -165,6 +165,11 @@ async  afterInit(server: Server) {
 
 
 			this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser)]);
+			this.emailOfConnectedUser = null;
+		
+			this.nameOfConnectedUser = null;
+			
+			this.roleOfConnectedUser = null;
 	
 
 		}
@@ -176,6 +181,11 @@ async  afterInit(server: Server) {
 			//  this.currConnected[client.id] = true;
 	
 			client.emit('joined', `welcome user ${client.id}`);
+			this.emailOfConnectedUser = null;
+		
+			this.nameOfConnectedUser = null;
+			
+			this.roleOfConnectedUser = null;
 		}
 		/*---------------------------------------------------*/
   }
