@@ -349,39 +349,44 @@ async  afterInit(server: Server) {
 	}
 
   @SubscribeMessage('chat')
-  handlechat(client: Socket, data: string):void {
-   
-	if(this.check[client.id]) {
-		const room = this.users[client.id];
-		this.wss.to(room).emit('chat', data);
-	}
-	else client.disconnect();
-  
- }
+  handlechat(client: Socket, data: string):void 
+  {
+	   if(this.check[client.id])
+	    {
+			const room = this.users[client.id];
+			this.wss.to(room).emit('chat', data);
+		}
+		else client.disconnect();
+  }
   
 
   
 
 
  
-		@SubscribeMessage('invite')
-		handleinvite(client: Socket,email:string){
 
-			const room = this.users[client.id];
-			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
-			if(this.games[pos].players<2){
-				// this.room_invite_flag[room] = true;
-				this.room_invited_player_email[room] = email;
-				client.emit("Success",`Invitation sent to ${email}`);
-				this.NotificationService.send_room_code(email);
-			}
-			else{
-				client.emit('Error','Room full');
-			}
+  @SubscribeMessage('invite')
+  handleinvite(client: Socket,email:string)
+  {
+	  const room = this.users[client.id];
+	  const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 			
-			//this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
+	  if(this.games[pos].players<2)
+	   {
+			
+			this.room_invited_player_email[room] = email;
+			client.emit("Success",`Invitation sent to ${email}`);
+			this.NotificationService.send_room_code(email);
 			
 		}
+		else
+		{
+			client.emit('Error','Room full');
+			
+		}
+			
+		
+	}
 
 		
 		@SubscribeMessage('End_Game')
@@ -494,6 +499,11 @@ async  afterInit(server: Server) {
 				client.emit('Error',`Enter to a game`);
 			  }
 			  else{
+				delete this.user_timestamp[client.id];
+				delete this.games[pos]
+				delete this.room_invite_flag[_room];
+				this.currConnected[client.id] = false;
+				this.room_status[_room] = false;
 				  client.leave(_room);
 			  }
 		}
@@ -571,12 +581,14 @@ async  afterInit(server: Server) {
 			else{
 				let Firstgame =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
 				if(Firstgame.stars <= 0)
+				{
 				flag =0
 
 				this.handleEndGame(client)
+				}
 			}
 
-			if(noOfStarsHoldingbyAdminforThisClient <= 0)
+			if(noOfStarsHoldingbyAdminforThisClient <= 0 && notFirstgame) 
 			{
 			        //transfer other user star back to him	
 		
@@ -963,13 +975,15 @@ async  afterInit(server: Server) {
 			else{
 				let Firstgame =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
 				if(Firstgame.stars <= 0)
+				{
 				flag =0
 
 				this.handleEndGame(client)
+				}
 			}
 
 
-			if(noOfStarsHoldingbyAdminforThisClient <= 0 && flag==1)
+			if(noOfStarsHoldingbyAdminforThisClient <= 0 && notFirstgame)
 			{
 			        //transfer other user star back to him	
 		
