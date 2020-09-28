@@ -681,6 +681,7 @@ async  afterInit(server: Server) {
 								}
                       else{
 						this.wss.to(this.users[client.id]).emit('game not played',"not a single game has been played to display the final result");
+						this.handleEndGame(client)
 					  }
 					  
 					 await gameINDB.deleteOne()
@@ -1078,7 +1079,7 @@ async  afterInit(server: Server) {
 								else{
 								
 									this.wss.to(this.users[client.id]).emit('game not played',"not a single game has been played to display the final result");
-								
+								    this.handleEndGame(client)
 								}
 				
 		
