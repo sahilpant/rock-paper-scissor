@@ -575,24 +575,24 @@ async function setToken(_amount , account , privateKey , deployedAddress){   ///
                 throw{message: "ERROR: cann't set token ammount"};
         }
 }
-async function signUP(player , account , privateKey , deployedAddress){ //// takes 4 argumets for signup , account of player  
-        try{
-			    try
-			    {																//// , account, private key to be used for transaction and game contract addresss
-				var data = await _interface.methods.signUp(player).encodeABI(); 
-				await runCode(data , account , privateKey , deployedAddress); 
-				return 1
-				}
-				catch(e)
-				{
-					return 0
-				}
-				
-        }
+	async function signUP(player , account , privateKey , deployedAddress){ //// takes 4 argumets for signup , account of player  
+	try{
+			try
+			{																//// , account, private key to be used for transaction and game contract addresss
+			var data = await _interface.methods.signUp(player).encodeABI(); 
+			await runCode(data , account , privateKey , deployedAddress); 
+			return 1
+			}
+			catch(e)
+			{
+				return 0
+			}
+			
+		}
         catch{
                 throw{message: "ERROR: cann't signup"};
         }
-}									
+	}									
 async function totalCards( _of ){ //// argument : address returns : total cards given account address is holding
         try{
                 var data = await _interface.methods.TotalCards(_of).call();
@@ -798,11 +798,13 @@ module.exports = {
 		burn:burn
 }
 
-sign_up("0x0e613E60f3965023121e23Ce8DDB521fB8F66cFb",gameContractAddress)
+// sign_up("0xd43caDEd5372730b4513e4ac4929Af3CE0791B4F",gameContractAddress)
 // details(392);
 // const rescard = aawait details(392);
 // console.log(rescard[0]+"   "+rescard[1])
 // ownerOf(392)
+
+// showStars('0xd43caDEd5372730b4513e4ac4929Af3CE0791B4F');
 
 // details(501);
 

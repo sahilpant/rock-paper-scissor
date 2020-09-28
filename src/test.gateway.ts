@@ -138,9 +138,9 @@ async  afterInit(server: Server) {
 			await user1.save();
 			this.emailOfConnectedUser = null;
 		
-		this.nameOfConnectedUser = null;
+			this.nameOfConnectedUser = null;
 		
-		this.roleOfConnectedUser = null;
+			this.roleOfConnectedUser = null;
 			this.handleJoin(client,game.gameid);
 
 		}
@@ -165,6 +165,11 @@ async  afterInit(server: Server) {
 
 
 			this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(this.emailOfConnectedUser)]);
+			this.emailOfConnectedUser = null;
+		
+			this.nameOfConnectedUser = null;
+			
+			this.roleOfConnectedUser = null;
 	
 
 		}
@@ -176,6 +181,11 @@ async  afterInit(server: Server) {
 			//  this.currConnected[client.id] = true;
 	
 			client.emit('joined', `welcome user ${client.id}`);
+			this.emailOfConnectedUser = null;
+		
+			this.nameOfConnectedUser = null;
+			
+			this.roleOfConnectedUser = null;
 		}
 		/*---------------------------------------------------*/
   }
@@ -322,9 +332,9 @@ async  afterInit(server: Server) {
 			  if((game.card1played && game.client1id === client.id)||
 			  (game.card2played && game.client2id === client.id))
 			  {
-				let returnedTokenId = await user.usedCards.pop()
+				let returnedTokenId = user.usedCards.pop()
 		
-				await user.notUsedCards.push(returnedTokenId);
+				user.notUsedCards.push(returnedTokenId);
 
 				await game.deleteOne();
 			  }
@@ -349,39 +359,44 @@ async  afterInit(server: Server) {
 	}
 
   @SubscribeMessage('chat')
-  handlechat(client: Socket, data: string):void {
-   
-	if(this.check[client.id]) {
-		const room = this.users[client.id];
-		this.wss.to(room).emit('chat', data);
-	}
-	else client.disconnect();
-  
- }
+  handlechat(client: Socket, data: string):void 
+  {
+	   if(this.check[client.id])
+	    {
+			const room = this.users[client.id];
+			this.wss.to(room).emit('chat', data);
+		}
+		else client.disconnect();
+  }
   
 
   
 
 
  
-		@SubscribeMessage('invite')
-		handleinvite(client: Socket,email:string){
 
-			const room = this.users[client.id];
-			const pos  =  this.games.findIndex((game) => game.gameRoom == room);
-			if(this.games[pos].players<2){
-				// this.room_invite_flag[room] = true;
-				this.room_invited_player_email[room] = email;
-				client.emit("Success",`Invitation sent to ${email}`);
-				this.NotificationService.send_room_code(email);
-			}
-			else{
-				client.emit('Error','Room full');
-			}
+  @SubscribeMessage('invite')
+  handleinvite(client: Socket,email:string)
+  {
+	  const room = this.users[client.id];
+	  const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 			
-			//this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
+	  if(this.games[pos].players<2)
+	   {
+			
+			this.room_invited_player_email[room] = email;
+			client.emit("Success",`Invitation sent to ${email}`);
+			this.NotificationService.send_room_code(email);
 			
 		}
+		else
+		{
+			client.emit('Error','Room full');
+			
+		}
+			
+		
+	}
 
 		
 		@SubscribeMessage('End_Game')
@@ -405,14 +420,14 @@ async  afterInit(server: Server) {
 				  /*---------------------------Card Returning Logic Starts Here-------------------------*/
 				  
 				if(game.card1 !== "empty"){
-					let returnedTokenId = await user_1.usedCards.pop()
+					let returnedTokenId = user_1.usedCards.pop()
 		
-						await user_1.notUsedCards.push(returnedTokenId)
+						user_1.notUsedCards.push(returnedTokenId)
 				}
 				else if(game.card2 !== "empty"){
-					let returnedTokenId = await user_2.usedCards.pop()
+					let returnedTokenId = user_2.usedCards.pop()
 		
-						await user_2.notUsedCards.push(returnedTokenId)
+						user_2.notUsedCards.push(returnedTokenId)
 				}
 
 				   /*-----------------------Card Returning Logic Ends Here-------------------------------*/
@@ -494,6 +509,11 @@ async  afterInit(server: Server) {
 				client.emit('Error',`Enter to a game`);
 			  }
 			  else{
+				delete this.user_timestamp[client.id];
+				delete this.games[pos]
+				delete this.room_invite_flag[_room];
+				this.currConnected[client.id] = false;
+				this.room_status[_room] = false;
 				  client.leave(_room);
 			  }
 		}
@@ -571,12 +591,14 @@ async  afterInit(server: Server) {
 			else{
 				let Firstgame =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
 				if(Firstgame.stars <= 0)
+				{
 				flag =0
 
 				this.handleEndGame(client)
+				}
 			}
 
-			if(noOfStarsHoldingbyAdminforThisClient <= 0)
+			if(noOfStarsHoldingbyAdminforThisClient <= 0 && notFirstgame) 
 			{
 			        //transfer other user star back to him	
 		
@@ -600,9 +622,9 @@ async  afterInit(server: Server) {
 		
 						let user2details =await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
 		
-						let returnedTokenId = await user2details.usedCards.pop()
+						let returnedTokenId = user2details.usedCards.pop()
 		
-						await user2details.notUsedCards.push(returnedTokenId)
+						user2details.notUsedCards.push(returnedTokenId)
 
 						//transfer user2 star from admin to user2 account
 
@@ -669,6 +691,7 @@ async  afterInit(server: Server) {
 								}
                       else{
 						this.wss.to(this.users[client.id]).emit('game not played',"not a single game has been played to display the final result");
+						this.handleEndGame(client)
 					  }
 					  
 					 await gameINDB.deleteOne()
@@ -822,7 +845,7 @@ async  afterInit(server: Server) {
 		  
 							console.log( nameinUSERDB.notUsedCards[indexofCard])
 	
-							await nameinUSERDB.usedCards.push(data);
+							nameinUSERDB.usedCards.push(data);
 		
 							nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
 
@@ -963,13 +986,15 @@ async  afterInit(server: Server) {
 			else{
 				let Firstgame =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
 				if(Firstgame.stars <= 0)
+				{
 				flag =0
 
 				this.handleEndGame(client)
+				}
 			}
 
 
-			if(noOfStarsHoldingbyAdminforThisClient <= 0 && flag==1)
+			if(noOfStarsHoldingbyAdminforThisClient <= 0 && notFirstgame)
 			{
 			        //transfer other user star back to him	
 		
@@ -993,9 +1018,9 @@ async  afterInit(server: Server) {
 		
 						let user1details =await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
 		
-						let returnedTokenId = await user1details.usedCards.pop()
+						let returnedTokenId = user1details.usedCards.pop()
 		
-						await user1details.notUsedCards.push(returnedTokenId)
+						user1details.notUsedCards.push(returnedTokenId)
 
 						//transfer user2 star from admin to user2 account
 
@@ -1064,7 +1089,7 @@ async  afterInit(server: Server) {
 								else{
 								
 									this.wss.to(this.users[client.id]).emit('game not played',"not a single game has been played to display the final result");
-								
+								    this.handleEndGame(client)
 								}
 				
 		
@@ -1215,7 +1240,7 @@ async  afterInit(server: Server) {
 		  
 							console.log( nameinUSERDB.notUsedCards[indexofCard])
 	
-							await nameinUSERDB.usedCards.push(data);
+							nameinUSERDB.usedCards.push(data);
 		
 							nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
 
@@ -1333,69 +1358,4 @@ async  afterInit(server: Server) {
 	}
 
 
-	// @SubscribeMessage('list')
-	// handlelist(client: Socket, data: string):void {
-
-	// 	if(this.check[client.id]) client.emit('list',this.general.users)
-
-	// 	else
-
-	// 	{
-
-	// 		client.emit('warning','unauthorised access')
-
-	// 	}
-
-	// }
-
-
-
-
-	// @SubscribeMessage('userconnected')
-	// currconnected(client: Socket, data: string):void {
-
-	// 	if(this.check[client.id]) client.emit('list',this.currConnected)
-
-	// 	else
-
-	// 	{
-
-	// 		client.emit('warning','unauthorised access')
-
-	// 	}
-
-	// }
-
-
-
-
-
-// @SubscribeMessage('showGame')
-  
-  // showGame(client:Socket){
-  
-  // if(this.check[client.id])
-  
-  //   {
-  
-  //    console.log(this.gameCollection)
-  
-  //    client.emit('gamecollection',this.gameCollection)
-  
-  //   }
-  
-  // }
-
-
-  
-  // @SubscribeMessage('joinGame')
-  // joinGame(client:Socket,data:string){
-  //    if(this.gameCollection[data] && this.check[client.id])
-  //    {
-  //      client.join(data)
-  //      this.users[client.id]=data
-  //      this.gameCollection[data].userarray.push(this.clientAndUser[client.id])
-  //      this.check[client.id]=true
-  //    }
-  // }
 
