@@ -7,6 +7,7 @@ import { NotificationService } from 'src/notification/notification.service';
 import { EmailVerify } from 'src/required/interfaces/EmailVerify.interface';
 import * as bcrypt from 'bcrypt'
 import { sign_up, show_stars, total_cards ,returnownedTokens } from '../../gameblock';
+import { CreateAccount } from '../../pampweb';
 import { reset } from 'src/required/dto/reset.dto';
 import { ConfigService } from '@nestjs/config';
 @Injectable()
@@ -320,11 +321,15 @@ export class RegisterService
 				}
 
 
-              async show(account:string){
+              	async show(account:string){
                 var obj: { stars: string; cards: string; };
                 const star = await show_stars(account);
                 const cards = await total_cards(account);
 				obj = {"stars": `${star}`,"cards": `${cards}`};
 				return obj;
               }
-            }
+			
+				async createWallet(){
+					return CreateAccount();
+				}
+		}

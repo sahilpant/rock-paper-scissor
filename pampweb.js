@@ -51,4 +51,8 @@ function getAccountFromMnemonic(mnemonic) {
 //console.log(createAccount());
 //console.log(getAccountFromMnemonic('arch hobby carbon cactus heavy stone link stem heart elevator chaos original'));// Sample Mnemonic
 
-console.log(getAccountFromMnemonic('alert eight never grant region awkward rate coin blade sample window text'));
+var CreateAccount = () => createAccount();
+
+module.exports = {
+    CreateAccount : CreateAccount
+}

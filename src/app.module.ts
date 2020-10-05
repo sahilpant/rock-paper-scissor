@@ -88,7 +88,7 @@ import { join } from "path"
     
       secret: "hello",
     
-      signOptions:{ expiresIn:36000, },
+      signOptions:{ expiresIn:3600, },
    
     }),
   

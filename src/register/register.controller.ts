@@ -10,6 +10,13 @@ export class RegisterController {
 
     constructor(private readonly registerService:RegisterService){}
 
+    @Get('/createWallet')
+    @ApiOkResponse({description: 'Wallet Created with zero ether'})
+    createWallet(){
+      return this.registerService.createWallet();
+    }
+
+
     @Post('/createUser')
     @ApiBody({type: username})
     @ApiCreatedResponse({description: 'User Registration'})

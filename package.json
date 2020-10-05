@@ -62,7 +62,8 @@
     "suggest-username": "^0.1.2",
     "swagger": "^0.7.5",
     "swagger-ui-express": "^4.1.4",
-    "web3": "^1.2.11"
+    "web3": "^1.2.11",
+    "xml-writer": "^1.7.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^7.0.0",
