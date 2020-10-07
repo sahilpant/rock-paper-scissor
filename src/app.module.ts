@@ -22,6 +22,7 @@ import {PassportModule} from '@nestjs/passport'
 import { jwtStrategy } from './jwt.strategy';
 import { NotificationService } from './notification/notification.service';
 import { join } from "path"
+import { History } from './schemas/History.model';
 
 @Module({
 
@@ -30,7 +31,7 @@ import { join } from "path"
 
     NotificationModule,
 
-    MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey}]),
+    MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey},{name:'History',schema: History}]),
 
     RedisModule.register
 

@@ -7,6 +7,7 @@ import { Model } from 'mongoose';
 import { user } from './required/interfaces/user.interface';
 import {CardStatus} from './required/cards.enum'
 import { passkey } from './required/interfaces/passkey.interface';
+import {History} from './required/interfaces/History.interface'
 import { PlayService } from './play/play.service';
 import {jwtStrategy} from './jwt.strategy'
 import * as jwt from 'jsonwebtoken'
@@ -28,7 +29,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
               
               @InjectModel('user')  private readonly user:Model<user>,
               
-              @InjectModel('passkey') private readonly passkey:Model<passkey>,
+			  @InjectModel('passkey') private readonly passkey:Model<passkey>,
+			  
+			  @InjectModel('History') private readonly History:Model<History>,
               
 			  private readonly playservice:PlayService,
 			  
@@ -252,11 +255,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 			})
 		
-			client.join(gameId)
+			client.join(gameId);
 
-			this.currConnected[client.id] = true
+			this.currConnected[client.id] = true;
 
-			this.users[client.id]=gameId
+			this.users[client.id]=gameId;
 
 			this.custom_id[client.id] = uuid();
 
@@ -533,13 +536,13 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		// handleStart(client:Socket,data:number){
 		// 	if(this.user_start == true){
 		// 		this.user_start = false;
-		// 		this.playgame(client,data);
+		// 		this.playgame_1(client,data);
 		// 	}
 		// 	else{
 		// 		this.user_start = true;
-		// 		this.playgame1(client,data);
+		// 		this.playgame_2(client,data);
 		// 	}
-		// 	setTimeout(() => {
+		// 	setInterval(() => {
 				
 		// 	}, 20000);
 		// }
@@ -573,6 +576,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 				first user is out of stars. So we are
 				returning the stars of the second user 
 			*/
+			console.log(noOfStarsHoldingbyAdminforThisClient);
 
 			if(noOfStarsHoldingbyAdminforThisClient <= 0 && notFirstgame) 
 			{
@@ -641,7 +645,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 									{
 		
-										console.log(gameINDB[player]+"#####")
+										console.log(gameINDB.playerWin[player]+"#####")
 		
 										if(gameINDB.playerWin[player] === user1name)
 		
@@ -672,9 +676,15 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 					  
 					 await gameINDB.deleteOne()
 					 
-					 await gameINDB.save()
+					 //await gameINDB.save()
 
-					 this.handleEndGame(client)
+					 const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
+
+					 newHistory.Status = "Aborted";
+ 
+					 await newHistory.save();
+
+					 this.handleEndGame(client);
 		
 			}
 			
@@ -682,7 +692,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			
 			//store id of given card
 
-			 let carddetail;
+			 let carddetail: string | string[];
 
 			 carddetail = await detailOfCard(data);  // detailofcard is the blockchain function to fetch the detail of a specific token id 
 			
@@ -793,13 +803,48 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 								if(noOfStarsHolding > 3){
 
 									nameinUSERDB.stars = noOfStarsHolding - 3;
-									this.adminBlockStars[client.id] = 3
+									this.adminBlockStars[client.id] = 3;
+									
+									/*accessing the history db for storing game history*/
+
+									const newHistory = new this.History({
+										Game_Id:this.users[client.id],
+										Start_Date:new Date(),
+										Status:"Active"
+									})
+									try {
+										
+										await newHistory.save();
+
+									} catch (error) {
+										
+										console.log(error);
+
+									}
+									/*-------------------------------------------------*/
 								
 								}
 								else if(noOfStarsHolding > 0 && noOfStarsHolding <= 3)
 								{
 									nameinUSERDB.stars = 0;
-									this.adminBlockStars[client.id] = noOfStarsHolding
+									this.adminBlockStars[client.id] = noOfStarsHolding;
+									
+									/*accessing the history db for storing game history*/
+
+									const newHistory = new this.History({
+										Game_Id:this.users[client.id],
+										Start_Date:new Date(),
+									})
+									try {
+										
+										await newHistory.save();
+
+									} catch (error) {
+										
+										console.log(error);
+
+									}
+									/*-------------------------------------------------*/
 								}
 								else{
 
@@ -854,24 +899,35 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 						}
 	
 						gameexist = await this.passkey.findOne().where('gameid').equals(gameid).exec();
+
+						console.log(gameexist);
 	
 						if(gameexist.card1 && gameexist.card2 && gameexist.card1 !== "empty" && gameexist.card2 !== "empty")
 		
 						{
+								let newHistory = await this.History.findOne().where('Game_Id').equals(gameid).exec();
 								
-								let gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec();
+								let gameINDB = await this.passkey.findOne().where('gameid').equals(gameid).exec();
 		
 								const user1name = gameINDB.user1
+
+								newHistory.Player_1 = user1name;
 		
 								const user2name = gameINDB.user2
+
+								newHistory.Player_2 = user2name;
 		
 								const user1card = gameINDB.card1
 		
 								const user2card = gameINDB.card2
 			  
+								await newHistory.save();
 								// const addressofplayer1 = gameINDB.player1address
 	
 								// const addressofplayer2 = gameINDB.player2address
+
+								let token1 = gameINDB.token1;
+								let token2 = gameINDB.token2;
 	
 								const gameResult = await  this.playservice.play(gameid);
 
@@ -897,18 +953,67 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 									this.wss.to(gameid).emit('result of round',gameResult+" WON ");
 		
-									this.wss.to(gameid).emit(`${user1name}+"cards"`,user1card);
+									this.wss.to(gameid).emit(`${user1name}`,user1card);
 		
-									this.wss.to(gameid).emit(`${user2name}+"cards"`,user2card);
+									this.wss.to(gameid).emit(`${user2name}`,user2card);
+
+									// const newHistory = new this.History({
+									// 	Game_ID:gameid,
+									// 	Total_Rounds:gameINDB.playerWin.length,
+									// 	Type_Of_Game:"Short-1/ long-5",
+									// 	Player_1:user1name,
+									// 	Player_2:user2name,
+									// 	Last_Updated: new Date(),
+									// })
 		
 		
 								}
 		
-								gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec()
+								gameINDB = await this.passkey.findOne().where('gameid').equals(gameid).exec()
+
+								/******************************************************************/
+								if(gameINDB.playerWin.length === 1){
+									newHistory.Result_1.Player_1.Card_Type = user1card;
+									newHistory.Result_1.Player_1.Card_No = token1;
+
+									newHistory.Result_1.Player_2.Card_Type = user2card;
+									newHistory.Result_1.Player_2.Card_No = token2;
+
+									newHistory.Total_Rounds = 1;
+									await newHistory.save();
+								}
+								if(gameINDB.playerWin.length === 2){
+									newHistory.Result_2.Player_1.Card_Type = user1card;
+									newHistory.Result_2.Player_2.Card_No = token2;
+									
+									newHistory.Result_2.Player_2.Card_Type = user2card;
+									newHistory.Result_2.Player_2.Card_No = token2;
+
+									newHistory.Total_Rounds = 2;
+									await newHistory.save();
+								}
+								/******************************************************************/
 		
 								if(gameINDB.playerWin.length === 3)
 		
 								{
+									newHistory.Result_3.Player_1.Card_Type = user1card;
+									newHistory.Result_3.Player_1.Card_No = token1;
+									
+									newHistory.Result_3.Player_2.Card_Type = user2card;
+									newHistory.Result_3.Player_2.Card_No = token2;
+									
+									newHistory.Total_Rounds = 3;
+									await newHistory.save();
+
+
+									newHistory.Result_3[user1name] = {
+										"Card_type":`${user1card}`
+									}
+									newHistory.Result_3[user2name] = {
+										"Card_type":`${user2card}`,
+									}
+									newHistory.save();
 		
 									let user1=0,user2=0,tie=0;
 		
@@ -918,7 +1023,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 									{
 		
-										console.log(gameINDB[player]+"#####")
+										console.log(gameINDB.playerWin[player]+"#####")
 		
 										if(gameINDB.playerWin[player] === user1name)
 		
@@ -942,11 +1047,20 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 									this.wss.to(gameid).emit('final',finalPlayerWon);
 	
 	
+									newHistory.Status = "Completed";
+									newHistory.End_Date = new Date();
+									newHistory.Last_Updated_Date = new Date();
 									//delete this gameid data from database too
 	
-									await gameINDB.deleteOne()
+									try {
+										await gameINDB.deleteOne();
+										await newHistory.save();
+									} catch (err) {
+										console.log('data deleted');
+										this.wss.to(this.users[client.id]).emit('GameOver','Game has ended he enry is deleted from passkeys');
+									}
 	
-									await gameINDB.save()
+									//await gameINDB.save()
 		
 		
 								
@@ -1012,7 +1126,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 						await currentGame.save()
 		
-						let user1details = await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec()
+						let user1details = await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec();
 		
 						let returnedTokenId = user1details.usedCards.pop()
 		
@@ -1049,7 +1163,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 					let user2name = gameINDB.user2;
 
-                    let user1=0,user2=0,tie=0;
+                    let user1 = 0,user2 = 0,tie = 0;
 		
 									console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
 		
@@ -1057,7 +1171,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 									{
 		
-										console.log(gameINDB[player]+"#####")
+										console.log(gameINDB.playerWin[player]+"#####")
 		
 										if(gameINDB.playerWin[player] === user1name)
 		
@@ -1089,13 +1203,23 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 								}
 				
 		
+									try {
+										await gameINDB.deleteOne()	
+									} catch (err) {
+										console.log('data deleted');
+										this.wss.to(this.users[client.id]).emit('GameOver','Game has ended he enry is deleted from passkeys');
+									}
 	
-									await gameINDB.deleteOne()
-	
-									await gameINDB.save()
+									//await gameINDB.save()
 								
 
 
+					const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
+
+					newHistory.Status = "Aborted";
+
+					await newHistory.save();
+						
 					this.handleEndGame(client)
 		
 			}
@@ -1130,7 +1254,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	
 					{
 					
-						let gameexist= await this.passkey.findOne().where('gameid').equals(gameid).exec();
+						let gameexist = await this.passkey.findOne().where('gameid').equals(gameid).exec();
 	
 						let nameinUSERDB =await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec()
 		
@@ -1207,12 +1331,48 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 				nameinUSERDB.stars = noOfStarsHolding-3;
 				this.adminBlockStars[client.id] = 3
+
+				/*accessing the history db for storing game history*/
+
+				const newHistory = new this.History({
+					Game_Id:this.users[client.id],
+					Start_Date:new Date(),
+					Status:"Active"
+				})
+				try {
+					
+					await newHistory.save();
+
+				} catch (error) {
+					
+					console.log(error);
+
+				}
+				/*-------------------------------------------------*/
 			
 			}
 			else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
 			{
 			nameinUSERDB.stars = 0;
 			this.adminBlockStars[client.id] = noOfStarsHolding
+
+			/*accessing the history db for storing game history*/
+
+				const newHistory = new this.History({
+					Game_Id:this.users[client.id],
+					Start_Date:new Date(),
+				})
+				try {
+					
+					await newHistory.save();
+
+				} catch (error) {
+					
+					console.log(error);
+
+				}
+			/*-------------------------------------------------*/	
+
 			}
 			else{
 				client.emit('no stars','you have zero stars')
@@ -1263,19 +1423,30 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 						{
 								let gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec();
 		
+								let newHistory = await this.History.findOne().where('Game_Id').equals(gameid).exec();
+
 								const user1name = gameINDB.user1
-		
+
+								newHistory.Player_1 = user1name;
+
 								const user2name = gameINDB.user2
 		
+								newHistory.Player_2 = user2name;
+
 								const user1card = gameINDB.card1
 		
 								const user2card = gameINDB.card2
 			  
+								await newHistory.save();
 								// const addressofplayer1 = gameINDB.player1address
 	
 								// const addressofplayer2 = gameINDB.player2address
+
+								let token1 = gameINDB.token1;
+
+								let token2 = gameINDB.token2;
 	
-								const gameResult=await  this.playservice.play(gameid);
+								const gameResult = await  this.playservice.play(gameid);
 
 								// const userno1= await this.user.find().where('username').equals(user1name).exec();
 
@@ -1293,7 +1464,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 								{
 		
-									this.wss.to(gameid).emit('result of round',gameResult+" WON ");
+									this.wss.to(gameid).emit('result of round',gameResult + " WON ");
 		
 									this.wss.to(gameid).emit(`${user1name}+"cards"`,user1card);
 		
@@ -1302,11 +1473,45 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 								}
 		
-								gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec()
+								gameINDB = await this.passkey.findOne().where('gameid').equals(gameid).exec()
 		
+								/******************************************************************/
+								if(gameINDB.playerWin.length === 1){
+									newHistory.Result_1.Player_1.Card_Type = user1card;
+									newHistory.Result_1.Player_1.Card_No = token1;
+
+									newHistory.Result_1.Player_2.Card_Type = user2card;
+									newHistory.Result_1.Player_2.Card_No = token2;
+									
+									newHistory.Total_Rounds = 1;
+									await newHistory.save();
+								}
+								if(gameINDB.playerWin.length === 2){
+									newHistory.Result_2.Player_1.Card_Type = user1card;
+									newHistory.Result_2.Player_1.Card_No = token1;
+									
+									newHistory.Result_2.Player_2.Card_Type = user2card;
+									newHistory.Result_2.Player_2.Card_No = token2;
+									
+									newHistory.Total_Rounds = 2;
+									await newHistory.save();
+								}
+								/******************************************************************/
+
 								if(gameINDB.playerWin.length === 3)
 		
 								{
+									
+									newHistory.Result_3.Player_1.Card_Type = user1card;
+									newHistory.Result_3.Player_1.Card_No = token1;
+
+									newHistory.Result_3.Player_2.Card_Type = user2card;
+									newHistory.Result_3.Player_2.Card_No = token2;
+									
+									
+									newHistory.Total_Rounds = 3;
+									await newHistory.save();
+									
 		
 									let user1=0,user2=0,tie=0;
 		
@@ -1316,7 +1521,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 									{
 		
-										console.log(gameINDB[player]+"#####")
+										console.log(gameINDB.playerWin[player]+"#####")
 		
 										if(gameINDB.playerWin[player] === user1name)
 		
@@ -1338,11 +1543,20 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
 		
 									this.wss.to(gameid).emit('final',finalPlayerWon);
-		
+
+									newHistory.Status = "Completed";
+									newHistory.End_Date = new Date();
+									newHistory.Last_Updated_Date = new Date();
 	
-									await gameINDB.deleteOne()
+									try {
+										await gameINDB.deleteOne();
+										await newHistory.save();
+									} catch (err) {
+										console.log('data deleted');
+										this.wss.to(this.users[client.id]).emit('GameOver','Game has ended he enry is deleted from passkeys');
+									}
 	
-									await gameINDB.save()
+									//await gameINDB.save()
 								
 								}
 			
@@ -1359,6 +1573,3 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 
 	}
-
-
-

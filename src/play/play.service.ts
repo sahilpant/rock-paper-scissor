@@ -28,6 +28,10 @@ export class PlayService {
 
           // const player2address = game[0].player2address
 
+          console.log('****************************')
+          console.log(game);
+          console.log('****************************')
+
           const card1=game[0].card1
 
           const card2=game[0].card2
