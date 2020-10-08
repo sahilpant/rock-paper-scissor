@@ -14,8 +14,6 @@ export class NotificationService {
         @InjectMailer() private readonly mailer: Mailer,
 
         @InjectModel('user')  private readonly user:Model<user>){}
-
-
  
 
     async sendEmail(name:string,key:number)
@@ -51,9 +49,9 @@ export class NotificationService {
             subject: 'Join game with this link',
 
             html: "<b>click on the link below to join the game ----><b>" + `<br><a href = "https://hoppscotch.io/">Link to tthe game</a>`
-            // template('template/index.hbs', { name: 'durward' })
         }).catch((e: any) => console.log(e));
         
        return email
     }
+
 }
