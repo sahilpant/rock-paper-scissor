@@ -16,7 +16,7 @@ export class NotificationService {
 
         @InjectModel('user')  private readonly user:Model<user>,
         
-     private gateway:EventsGateway){}
+     private Eventgateway:EventsGateway){}
  
 
     async sendEmail(email:string,key:number)
@@ -67,7 +67,7 @@ export class NotificationService {
     }
 
     async test(id:string){
-        await this.gateway.wss.to(null).emit('notification',"notification sent successfully")
+        await this.Eventgateway.wss.to(id).emit('notification',"notification sent successfully")
     }
 
 }
