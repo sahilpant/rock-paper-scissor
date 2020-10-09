@@ -40,7 +40,7 @@ export class AppService
   
               async signIn(signin : signin):Promise<string>{
   
-                const userinDB = await this.user.findOne({username: `${signin.name}`}).exec();
+                const userinDB = await this.user.findOne({email: `${signin.email}`}).exec();
   
                 console.log(userinDB)
   
@@ -59,7 +59,7 @@ export class AppService
                   console.log("user exists")
   
                   const result = await this.validatePassword(userinDB.password,signin.password,userinDB.salt);
-  
+                  
                   if(result)
   
                   {
@@ -78,8 +78,8 @@ export class AppService
   
                 }
 
-
               }
+
 
             }
     

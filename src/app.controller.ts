@@ -15,40 +15,16 @@ export class AppController {
                
               private  configser:configss) {}
     
-  
-              // @Get()
-              // getHello(): string {
-
-              //   const dbhost = this.configService.get<string>('database.port')
-  
-              //   console.log(dbhost)
-  
-              //   console.log(dotEnvOptions)
-    
-              //   return this.appService.getHello();
-  
-              // }
 
   
               @Post('/signin')
               @ApiCreatedResponse({description: `to signin the user`})
-              @ApiUnauthorizedResponse({description: "Incorrect username or password"})
+              @ApiUnauthorizedResponse({description: "Incorrect email or password"})
               signIn(@Body() signin : signin){
-    
-                console.log(signin.name+" "+signin.password)
-    
+
                 return this.appService.signIn(signin)
   
               }
 
 
-              // @Post('/test')
-              // @UseGuards(AuthGuard())
-              // test(@Req() req)
-  
-              // {
-  
-              //   console.log(req)
-  
-              // }
             }
