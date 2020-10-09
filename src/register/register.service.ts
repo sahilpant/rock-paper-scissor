@@ -1,4 +1,4 @@
-import { Injectable} from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { user } from 'src/required/interfaces/user.interface';
@@ -32,64 +32,76 @@ export class RegisterService
               async reset(reset:reset)
 
               {
+				//   console.log(reset)
+				const resetPassword = await this.EmailVerify.findOne({key:reset.key})
+                if (!resetPassword){ 
+					return new BadRequestException('Invalid reset password request')
+				}
+				
 
-                const legitkey=await this.EmailVerify.findOne().where('name').equals(reset.name).select('key');
+				const user = await this.EmailVerify.findOne({email:reset.email})
+				if (!user) {
+					return new BadRequestException('User does not exist')
+				}
+				
+				const legitkey=await this.EmailVerify.findOne().where('email').equals(reset.email).select('key');
 
                 if(legitkey.key==reset.key)
 
                 {
 
-                  const user= await this.user.findOne().where('username').equals(reset.name).exec();
+                  const user= await this.user.findOne().where('email').equals(reset.email).exec();
 
 
                   user.salt = await bcrypt.genSalt();
 
                   user.password = await this.hashPassword(reset.newPass,user.salt);
 
-                  user.save()
+                  await user.save()
 
                   console.log("password updated successfully")
 
-                  this.EmailVerify.deleteMany({name:reset.name}, function (err) {
+                  this.EmailVerify.deleteMany({email:reset.email}, function (err) {
 
                     
       
                     if(err) console.log(err);
       
-                    console.log("Successful deleted from passkey db also");})
+                    console.log("Successful deleted from emailverify db also");})
       
                     return "password updated successfully"
   
                   }
   
                   else
-  
+
                   {
   
-                    console.log("key not matched")
+                    console.log("Password not updated")
   
                     return "key not match"
   
                   }
 
-                }
+				
+              }
 
 
-                async resetPass(name:string)
+                async resetPass(email:string)
 
                 {
 
-                  this.EmailVerify.deleteMany({name:name}, function (err) 
+                  this.EmailVerify.deleteMany({email:email}, function (err) 
 
                   {
 
                     if(err) console.log(err);
 
-                    console.log("Successful deletion of previous records with same name before password reset");
+                    console.log("Successful deletion of previous records with same email before password reset");
 
                   })
 
-                  let existence = await this.user.collection.findOne({ username: name})
+                  let existence = await this.user.collection.findOne({ email: email})
 
 
                   if(existence){
@@ -98,23 +110,22 @@ export class RegisterService
 
                     const pass = new this.EmailVerify({
 
-                      name:name,
+                      email:email,
 
                       key:matchkey
 
                     })
 
-                    pass.save()
+                    await pass.save()
 
-                    this.notificationService.sendEmail(name,matchkey)
+                    this.notificationService.sendEmail(email,matchkey)
 
                   }
 
                   else
 
                   {
-
-                    console.log(`User with ${name} not exist`)
+					return new BadRequestException('No account with that email address')
 
                   }
 
@@ -177,12 +188,12 @@ export class RegisterService
 
 				const userinDBwithThisEmail =  await this.user.collection.findOne({ email: userNameDto.email}) 
 				if(userinDBwithThisEmail){
-				return "101";
+				return new ConflictException("user with same email already exist");
 				}
 
-				const userinDBwithThisPublicKey = await this.user.collection.findOne({ email: userNameDto.publickey}) 
+				const userinDBwithThisPublicKey = await this.user.collection.findOne({ publickey: userNameDto.publickey}) 
 				if(userinDBwithThisPublicKey){
-				return "102"
+				return new ConflictException("user with same publicKey already exist");
 				}
 
 				const userinDBwithThisName = await this.user.collection.findOne({ username: userNameDto.username})
@@ -217,12 +228,13 @@ export class RegisterService
 				}
 
 				}
-				return `user exists with provided name you can try from these three ${arr}`;
+				return new ConflictException( `user exists with provided name you can try from these three ${arr}`);
 
 				} 
 				}
-				catch(err){
-				console.log(err);
+				catch(error){
+					console.log(error.code)
+				console.log(error);
 				}
 
 				// else{
@@ -248,7 +260,7 @@ export class RegisterService
 					catch(err){
 					
 						flag=0;
-					
+					    return new BadRequestException("wrong public key")
 					}
 
 					console.log("flag is "+flag)
@@ -270,25 +282,23 @@ export class RegisterService
 
 						for(var i = 0 ; i < 9 ; i++)
 						user.notUsedCards.push(arrofCards[i])
-						
-						console.log(user.cards)
-						
-						user.stars = 10
 
+						user.stars = 10
 						user.publickey = userNameDto.publickey
 						user.userinBlockchain = true;
 
 						await user.save();
 
-						return "SignUp Successfull account successfully created starter benefits also credited";
-					
+						return{
+							 message:"SignUp Successfull account successfully created starter benefits also credited"
+						}
 					}
 					
 					else
 					
 					{
 					
-						return "not created"
+						return{message:"not created"}
 					
 					}
 
@@ -299,7 +309,7 @@ export class RegisterService
 
 					//console.error(Error);
 
-					return `User not created + ${Error}`;
+					return { message:`${Error.message}`};
 
 					}
 

@@ -40,7 +40,7 @@ export class AppService
   
               async signIn(signin : signin):Promise<string>{
   
-                const userinDB= await this.user.findOne({username: `${signin.name}`}).exec();
+                const userinDB= await this.user.findOne({username: `${signin.email}`}).exec();
   
                 console.log(userinDB)
   
