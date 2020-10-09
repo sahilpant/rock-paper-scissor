@@ -8,10 +8,10 @@ export class reset {
     key : string
     
     @IsNotEmpty()
-    @ApiProperty({type: String , description: "newPss"})
+    @ApiProperty({type: String , description: "newPass"})
     newPass : string
 
     @IsNotEmpty()
-    @ApiProperty({type: String, description: "name"})
-    name : string
+    @ApiProperty({type: String, description: "email"})
+    email : string
 }

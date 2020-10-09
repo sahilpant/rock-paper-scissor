@@ -4,7 +4,6 @@ import { username } from 'src/required/dto/username.dto';
 import { ApiBody, ApiCreatedResponse,  ApiNotFoundResponse,  ApiOkResponse, ApiParam } from '@nestjs/swagger';
 import { reset } from 'src/required/dto/reset.dto';
 import { detailOfCard} from '../../gameblock'
-import { defaultMaxListeners } from 'stream';
 @Controller('register')
 export class RegisterController {
 
@@ -27,11 +26,11 @@ export class RegisterController {
     }
 
     @Post('/:forgotUser')
-    @ApiCreatedResponse({description : 'username is staged for resetting the password'})
-    resetPass(@Param('forgotUser') name:string){
+    @ApiCreatedResponse({description : 'user email id is staged for resetting the password'})
+    resetPass(@Param('forgotUser') email:string){
     
-      console.log(name);
-      this.registerService.resetPass(name)
+      console.log(email);
+      return this.registerService.resetPass(email)
     
     }
 
@@ -46,7 +45,7 @@ export class RegisterController {
     @ApiBody({type:reset})
     reset(@Body() reset:reset){
       console.log(reset); 
-      this.registerService.reset(reset);
+      return this.registerService.reset(reset);
     
     }
 

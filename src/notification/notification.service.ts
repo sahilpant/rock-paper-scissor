@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import {InjectMailer,Mailer} from 'nestjs-mailer'
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { user } from 'src/required/interfaces/user.interface';
+import { EventsGateway } from 'src/models/user/user.gateway';
 
 
 
@@ -13,14 +14,15 @@ export class NotificationService {
 
         @InjectMailer() private readonly mailer: Mailer,
 
-        @InjectModel('user')  private readonly user:Model<user>){}
-
-
+        @InjectModel('user')  private readonly user:Model<user>,
+        
+     private Eventgateway:EventsGateway){}
  
 
-    async sendEmail(name:string,key:number)
+    async sendEmail(email:string,key:number)
     {
-        const email = await this.user.findOne().where('username').equals(name).select('email');
+        try{
+        const foundEmail = await this.user.findOne().where('email').equals(email).select('email');
 
         let link = key
 
@@ -41,8 +43,13 @@ export class NotificationService {
         
        return email
     }
+    catch(err){
+        throw new BadRequestException(err.message);
+    }
+    }
     async send_room_code(email:string)
     {
+        try{
         this.mailer.sendMail
         ({
 
@@ -51,9 +58,16 @@ export class NotificationService {
             subject: 'Join game with this link',
 
             html: "<b>click on the link below to join the game ----><b>" + `<br><a href = "https://hoppscotch.io/">Link to tthe game</a>`
-            // template('template/index.hbs', { name: 'durward' })
         }).catch((e: any) => console.log(e));
         
-       return email
+       return email}
+       catch(err){
+           throw new BadRequestException(err.message);
+       }
     }
+
+    async test(id:string){
+        await this.Eventgateway.wss.to(id).emit('notification',"notification sent successfully")
+    }
+
 }

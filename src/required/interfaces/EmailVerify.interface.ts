@@ -2,7 +2,7 @@ import * as mongoose from 'mongoose'
 
 export interface EmailVerify extends mongoose.Document{
 
-    name:string,
+    email:string,
 
     key:string
 }
