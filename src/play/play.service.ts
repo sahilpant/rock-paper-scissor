@@ -22,37 +22,32 @@ export class PlayService {
 {
           var winner = 0;  //0 if draw and 1 for user1 win and 2 for user2 win
 
-          let game=await this.passkey.find().where('gameid').equals(gameid).exec()
+          let game=await this.passkey.findOne().where('gameid').equals(gameid).exec()
 
           // const player1address = game[0].player1address
 
           // const player2address = game[0].player2address
+          const card1 = game.card1
 
-          console.log('****************************')
-          console.log(game);
-          console.log('****************************')
-
-          const card1=game[0].card1
-
-          const card2=game[0].card2
+          const card2 = game.card2
           
           console.log(gameid+" "+card1+"  "+card2)
           
-          const user1=game[0].user1
+          const user1 = game.user1
           
-          const user2=game[0].user2
+          const user2 = game.user2
 
-          const token1=game[0].token1
+          const token1 = game.token1
 
-          const token2=game[0].token2
+          const token2 = game.token2
   
           console.log(card1+" "+card2);
 
           let arrOfCards=`[${card1}:${token1},${card2}:${token2}]`
            
-          game[0].moves.push(arrOfCards)
+          game.moves.push(arrOfCards)
 
-          await game[0].save();
+          await game.save();
 
 
           if(card1 === card2)
@@ -73,11 +68,11 @@ export class PlayService {
            
           if(winner === 1){  //user2 defeated
             
-              const userno1= await this.user.find().where('username').equals(user1).exec();
+              const userno1 = await this.user.findOne().where('username').equals(user1).exec();
             
-              game=await this.passkey.find().where('gameid').equals(gameid).exec()
+              game=await this.passkey.findOne().where('gameid').equals(gameid).exec()
             
-              game[0].playerWin.push(game[0].user1)
+              game.playerWin.push(game.user1)
             
               console.log(user2+" is defeated ")
             
@@ -89,32 +84,32 @@ export class PlayService {
 
               // userno2[0].stars--
             
-              userno1[0].stars+= 2   //here stars are removed from admin account also
+              userno1.stars+= 2   //here stars are removed from admin account also
             
-              await userno1[0].save();
+              await userno1.save();
             
-              game[0].card1="empty"
+              game.card1="empty"
             
-              game[0].card2="empty"
+              game.card2="empty"
 
-              game[0].card1played = false
+              game.card1played = false
 
-              game[0].card2played = false
+              game.card2played = false
             
-              await game[0].save()
+              await game.save()
             
-              return game[0].user1
+              return game.user1
             
             }
             
             else if(winner === 2){  //user1 defeated
               
 
-              const userno2= await this.user.find().where('username').equals(user2).exec();
+              const userno2 = await this.user.findOne().where('username').equals(user2).exec();
             
-              game=await this.passkey.find().where('gameid').equals(gameid).exec()
+              game = await this.passkey.findOne().where('gameid').equals(gameid).exec()
             
-              game[0].playerWin.push(game[0].user2)
+              game.playerWin.push(game.user2)
             
               console.log(user1+" is defeated ")
 
@@ -124,51 +119,51 @@ export class PlayService {
 
               // await Transfer(player2address,2,this.obj_deployed_addresses.gameContractAddress)
             
-              userno2[0].stars+= 2  //here stars are removed from admin account also
+              userno2.stars+= 2  //here stars are removed from admin account also
             
               // userno1[0].stars--   //we can use star transfer function here
 
-              await userno2[0].save();
+              await userno2.save();
             
-              game[0].card1="empty"
+              game.card1="empty"
             
-              game[0].card2="empty"
+              game.card2="empty"
 
               
-             game[0].card1played = false
+             game.card1played = false
 
-             game[0].card2played = false
+             game.card2played = false
             
-              await game[0].save()
+              await game.save()
             
-              return game[0].user2
+              return game.user2
             
             }
-            const userno1= await this.user.find().where('username').equals(user1).exec();
+            const userno1 = await this.user.findOne().where('username').equals(user1).exec();
 
-            const userno2= await this.user.find().where('username').equals(user2).exec();
+            const userno2 = await this.user.findOne().where('username').equals(user2).exec();
 
-            userno1[0].stars++;
+            userno1.stars++;
 
-            userno2[0].stars++;
+            userno2.stars++;
 
-            await userno1[0].save();
+            await userno1.save();
 
-            await userno2[0].save();
+            await userno2.save();
 
-            game[0].playerWin.push("tie")
+            game.playerWin.push("tie")
 
-             await game[0].save();
+             await game.save();
             
-             game[0].card1="empty"    
+             game.card1="empty"    
          
-             game[0].card2="empty"
+             game.card2="empty"
 
-             game[0].card1played = false
+             game.card1played = false
 
-             game[0].card2played = false
+             game.card2played = false
             
-             await game[0].save()
+             await game.save()
             
              return "game is draw"
            

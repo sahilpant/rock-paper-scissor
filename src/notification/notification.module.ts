@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { NotificationController } from './notification.controller';
 import { NotificationService } from './notification.service';
-import {getMailerConnectionToken, MailerModule} from 'nestjs-mailer'
+import { MailerModule} from 'nestjs-mailer'
 import { MongooseModule } from '@nestjs/mongoose';
 import { user } from 'src/schemas/user.model';
-import { ConfigService } from '@nestjs/config';
 @Module({
   imports:[
     MongooseModule.forFeature([{ name: 'user', schema: user },],),
@@ -23,6 +22,7 @@ import { ConfigService } from '@nestjs/config';
            }
   }),],
   controllers: [NotificationController],
-  providers: [NotificationService]
+  providers: [NotificationService],
+  exports:[NotificationService]
 })
 export class NotificationModule {}

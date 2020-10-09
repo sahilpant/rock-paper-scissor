@@ -633,11 +633,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 				let user1 = 0,user2 = 0,tie = 0;
 
-				console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
-
 				for(const player in gameINDB.playerWin){
-
-					console.log(gameINDB.playerWin[player]+"#####")
 
 					if(gameINDB.playerWin[player] === user1name)
 
@@ -1561,6 +1557,13 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		
 				}
 		}
+
+
+
+		handleNotification(id:string){
+			this.wss.to(id).emit('Notification','What is Up?');
+		}
+
 
 
 }

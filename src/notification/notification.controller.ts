@@ -6,4 +6,5 @@ import { NotificationService } from './notification.service';
 export class NotificationController {
 
    constructor(private readonly notificationService:NotificationService){}
+
 }

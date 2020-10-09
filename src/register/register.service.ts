@@ -1,4 +1,4 @@
-import { Injectable} from '@nestjs/common';
+import { ConflictException, HttpCode, Injectable} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { user } from 'src/required/interfaces/user.interface';
@@ -176,13 +176,14 @@ export class RegisterService
 				console.log(user)
 
 				const userinDBwithThisEmail =  await this.user.collection.findOne({ email: userNameDto.email}) 
+
 				if(userinDBwithThisEmail){
-				return "101";
+					return new ConflictException('Email Already Exist');
 				}
 
-				const userinDBwithThisPublicKey = await this.user.collection.findOne({ email: userNameDto.publickey}) 
+				const userinDBwithThisPublicKey = await this.user.collection.findOne({ publickey: userNameDto.publickey}) 
 				if(userinDBwithThisPublicKey){
-				return "102"
+					return new ConflictException('Public Key Already in use');
 				}
 
 				const userinDBwithThisName = await this.user.collection.findOne({ username: userNameDto.username})
@@ -236,7 +237,6 @@ export class RegisterService
 						const secondFunction = async () => 
 						{
 						const result = await sign_up(userNameDto.publickey,this.obj_deployed_addresses.gameContractAddress)
-						console.log(result+" #@#@")
 						if(result === 1)
 						flag=1
 						
@@ -251,7 +251,6 @@ export class RegisterService
 					
 					}
 
-					console.log("flag is "+flag)
 					if(flag == 1)
 					
 					{
