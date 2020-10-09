@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import 'dotenv/config';
 import { ConfigService } from '@nestjs/config';
-import { RedisIoAdapter } from './redisIoadapter';
+// import { RedisIoAdapter } from './redisIoadapter';
 import { DocumentBuilder,SwaggerModule } from '@nestjs/swagger';
 
 declare const module: any;
@@ -19,7 +19,7 @@ async function bootstrap() {
   const  document = SwaggerModule.createDocument(app,options);
   SwaggerModule.setup('app',app,document);
  
-  app.useWebSocketAdapter(new RedisIoAdapter(app));
+  // app.useWebSocketAdapter(new RedisIoAdapter(app));
  
   console.log((process.env.NODE_ENV))
 

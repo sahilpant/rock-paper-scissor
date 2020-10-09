@@ -7,11 +7,11 @@ export class RedisIoAdapter extends IoAdapter {
   
     const server = super.createIOServer(port, options);
   
-    const redisAdapter = redisIoAdapter({ host: 'localhost', port: 6379 });
+    // const redisAdapter = redisIoAdapter({ host: 'localhost', port: 6379 });
 
-    server.adapter(redisAdapter);
+    // server.adapter(redisAdapter);
   
-    return server;
+    // return server;
   
   }
 

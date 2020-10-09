@@ -7,8 +7,8 @@ import { RegisterModule } from './register/register.module';
 import {ConfigModule,ConfigService} from '@nestjs/config'
 import {  configss } from './Config/configuration';
 import configuration from './Config/configuration';
-import { UserModule } from './models/user/user.module';
-import { SocketModule } from './models/socket/socket.module';
+import { UserModule } from './Models/user/user.module';
+import { SocketModule } from './Models/socket/socket.module';
 import { RequiredModule } from './required/required.module';
 import { PlayModule } from './play/play.module';
 import { AppGateway } from './app.gateway';
@@ -33,17 +33,17 @@ import { History } from './schemas/History.model';
 
     MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey},{name:'History',schema: History}]),
 
-    RedisModule.register
+    // RedisModule.register
 
-    ({
+    // ({
 
-      name:'test',
+    //   name:'test',
 
-      url: 'redis://localhost:6379',
+    //   url: 'redis://localhost:6379',
 
-      port:6379,
+    //   port:6379,
 
-    }),
+    // }),
 
     RegisterModule,
 
@@ -99,7 +99,7 @@ import { History } from './schemas/History.model';
   
   providers: [AppService,TestGateway,AppGateway,configss,PlayService,jwtStrategy,NotificationService],
   
-  exports:[jwtStrategy]
+  exports:[jwtStrategy,TestGateway]
 
 })
 
