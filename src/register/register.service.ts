@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Injectable, UnauthorizedException} from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Post, UnauthorizedException} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { user } from 'src/required/interfaces/user.interface';
@@ -10,6 +10,8 @@ import { sign_up, show_stars, total_cards ,returnownedTokens } from '../../gameb
 import { CreateAccount } from '../../pampweb';
 import { reset } from 'src/required/dto/reset.dto';
 import { ConfigService } from '@nestjs/config';
+import { exists } from 'fs';
+import { public_key_dto } from './register.interface';
 @Injectable()
 export class RegisterService
  {
@@ -149,35 +151,18 @@ export class RegisterService
 				async createUser(userNameDto:username)
 
 				{
-
-
-
 					const user=new this.user()
-
 					user.username=userNameDto.username,
-
 					user.email=userNameDto.email,
-
-
 					user.cards={ ROCK:[],PAPER:[],SCISSOR:[]},
-
 					user.usedCards=[],
-
 					user.notUsedCards=[],
-
 					user.stars=0,
-
 					user.userinBlockchain=false,
-
 					user.lastupdated=new Date(),
-
 					user.salt=await bcrypt.genSalt(),
-
 					user.password=await this.hashPassword(userNameDto.password,user.salt)
-
-					user.role = 'PLAYER';
-
-
+					user.role = 'PLAYER'
 
 				try
 
@@ -185,18 +170,13 @@ export class RegisterService
 
 
 				console.log(user)
-
-				
-				
-				
 				const userinDBwithThisEmail =  await this.user.collection.findOne({ email: userNameDto.email}) 
 				if(userinDBwithThisEmail){
-					return new UnauthorizedException('Email Already Exist');
+					return new BadRequestException('Email Already Exist');
 				}
-				
 				const userinDBwithThisPublicKey = await this.user.collection.findOne({ publickey: userNameDto.publickey}) 
 				if(userinDBwithThisPublicKey){
-					return new ConflictException('Public Key Already in use');
+					return new BadRequestException('Public key already in use');
 				}
 				
 				const userinDBwithThisName = await this.user.collection.findOne({ username: userNameDto.username})
@@ -205,7 +185,6 @@ export class RegisterService
 					const arr=[]
 
 					console.log("user with provided credentials already exist ");
-
 					var i=0
 
 					while(i<3)
@@ -231,7 +210,9 @@ export class RegisterService
 					}
 
 					}
-					return new ConflictException( `user exists with provided name you can try from these three ${arr}`);
+					return new BadRequestException(  {
+						"message":"This username is taken",
+						"available_username":arr});
 
 				} 
 				}
@@ -262,7 +243,7 @@ export class RegisterService
 					catch(err){
 					
 						flag=0;
-					    return new BadRequestException("wrong public key")
+					    return new BadRequestException("Account has been created successfuly but error occured in blockchain network due to invalid public key. Please login and update public key to get started.")
 					}
 
 					if(flag == 1)
@@ -291,31 +272,23 @@ export class RegisterService
 						await user.save();
 
 						return{
-							 message:"SignUp Successfull account successfully created starter benefits also credited"
+							 message:"Signup Successful"
 						}
 					}
 					
 					else
 					
 					{
-					
-						return{message:"not created"}
+						return{message: {"message":"Your account has been created but there was error while transfering starter pack. Please login and update your public key to get started. "}}
 					
 					}
-
-
 					}
 
 					catch(Error){
 
-					//console.error(Error);
-
 					return { message:`${Error.message}`};
 
 					}
-
-
-
 
 				} 
 
@@ -324,14 +297,9 @@ export class RegisterService
 
 
 				{
+				console.error(err)}
 
-
-				console.error(err)
-
-
-				}
-
-
+                
               	async show(account:string){
                 var obj: { stars: string; cards: string; };
                 const star = await show_stars(account);
@@ -343,4 +311,24 @@ export class RegisterService
 				async createWallet(){
 					return CreateAccount();
 				}
+
+
+
+				async getUserCardDetails(publickey){
+   
+					console.log(publickey.publickey)
+					var data =  publickey.publickey;
+		     var Public_key= await this.user.find({'publickey':data})
+
+				if(Public_key.length > 0){
+					return returnownedTokens(data)
+				}
+				else{
+					return "Public key not found"
+				}
+				}
+
 		}
+
+
+

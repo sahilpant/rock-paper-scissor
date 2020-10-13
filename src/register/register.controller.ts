@@ -1,13 +1,26 @@
 import { Controller, Post, ValidationPipe, Body ,Get, Param, Delete} from '@nestjs/common';
 import { RegisterService } from './register.service';
 import { username } from 'src/required/dto/username.dto';
-import { ApiBody, ApiCreatedResponse,  ApiNotFoundResponse,  ApiOkResponse, ApiParam } from '@nestjs/swagger';
+import {publickey} from '../required/dto/publickey.dto'
+import { ApiBody, ApiCreatedResponse,  ApiNotFoundResponse,ApiOkResponse, ApiParam } from '@nestjs/swagger';
 import { reset } from 'src/required/dto/reset.dto';
 import { detailOfCard} from '../../gameblock'
+import { string } from '@hapi/joi';
+// import {public_key_dto} from './register.interface'
 @Controller('register')
 export class RegisterController {
 
     constructor(private readonly registerService:RegisterService){}
+
+    @Post('/mycard')
+    @ApiOkResponse({description: 'Returns available card'})
+    @ApiBody({type:publickey})
+    mycard(@Body() publickey:publickey){
+      console.log("I was hit")
+      console.log(publickey)
+      return this.registerService.getUserCardDetails(publickey);
+    }
+
 
     @Get('/createWallet')
     @ApiOkResponse({description: 'Wallet Created with zero ether'})
@@ -15,10 +28,10 @@ export class RegisterController {
       return this.registerService.createWallet();
     }
 
-
+// Create user for 
     @Post('/createUser')
     @ApiBody({type: username})
-    @ApiCreatedResponse({description: 'User Registration'})
+    @ApiCreatedResponse({description: "An object with response with response in res key."})
     createUser(@Body() userNameDto:username){
       
       return this.registerService.createUser(userNameDto)
@@ -54,4 +67,17 @@ export class RegisterController {
          const data = await detailOfCard(392);
          console.log(data+"   "+data[0]+"   "+data[1]);
     }
+
+    
+  
+
+
+  // @Post('/cardetails')
+  // cardetails(@Body() publickey:publickey){
+  //  console.log(publickey)
+  //   return "adsss"
+  // }
+
+
   }
+

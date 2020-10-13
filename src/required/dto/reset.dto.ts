@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { IsNotEmpty, isNotEmpty } from "class-validator"
 
-export class reset {
+export class  reset {
 
     @IsNotEmpty()
     @ApiProperty({type: String, description: "key"})

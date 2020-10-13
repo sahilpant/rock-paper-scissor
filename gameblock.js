@@ -672,8 +672,7 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
         try{
                 var cardType;
                 cardType = await _interact.methods.tokenDetails(tokeId).call();
-                //It will return both type and value both respectively 
-                //transaction(trx);
+                //It will return both type and value both respectively
                 console.log(cardType);
                 return (cardType);
         }
