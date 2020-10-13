@@ -17,11 +17,8 @@ export class BiddingService {
 
     if(cardinBidDB)
     {
-      var key = biddername; 
-      var object = {}; 
-      object[key] = price; 
-      console.log(object);
-      
+  
+      var object = {biddername:biddername,bid:price}; 
       cardinBidDB.currentBids.push(object)
       await cardinBidDB.save()
     }
