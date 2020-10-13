@@ -23,6 +23,7 @@ import { jwtStrategy } from './jwt.strategy';
 import { NotificationService } from './notification/notification.service';
 import { join } from "path"
 import { History } from './schemas/History.model';
+import { BiddingModule } from './bidding/bidding.module';
 
 @Module({
 
@@ -92,6 +93,8 @@ import { History } from './schemas/History.model';
       signOptions:{ expiresIn:3600, },
    
     }),
+    
+    BiddingModule,
   
   ],
   
