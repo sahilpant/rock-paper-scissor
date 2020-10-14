@@ -673,7 +673,7 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
                 var cardType;
                 cardType = await _interact.methods.tokenDetails(tokeId).call();
                 //It will return both type and value both respectively
-                console.log(cardType);
+                //console.log(cardType);
                 return (cardType);
         }
         catch (e) {
@@ -684,7 +684,7 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
       async function returnOwnedToken(_address){ //// argument : address   returns : array of Ids given account address is holding
         try{
                 let tokenList = await _interact.methods.returnOwnedToken(_address).call();
-                console.log(tokenList);
+                //console.log(tokenList);
                 return tokenList;
         }
         catch(e){
@@ -756,25 +756,19 @@ async function getbalance(_address){ //// argument: address returns : total star
 }
 
 
-///////////////////////////////////////////////////////////////////////call functions here////////////////////////////////////////////////
-
-//setNftAddress(nftContractAddress , account1 , privateKey1 , gameContractAddress);
-//setERC20Contractaddress(starsContractAddress , account1 , privateKey1 , gameContractAddress);
-//setOwner(gameContractAddress , account1 , privateKey1 , gameContractAddress);
-//setStars(10 , account1 , privateKey1 , gameContractAddress);
-//setToken(3 , account1 , privateKey1 , gameContractAddress);
-//setValue(40 , account1 , privateKey1 , gameContractAddress);
-//signUP('0x5e281d6b288b57613F206bc94d036E7D16a732F9' , account1 , privateKey1 , gameContractAddress);
-//showStars(account1 , account1 , privateKey1  , gameContractAddress);
-//totalCards(account1 , account1 , privateKey1 , gameContractAddress);
-
-//returnOwnedToken('0xD242b543d61b707162D3A18Cc44160050f23318C' , account1 , privateKey1 , nftContractAddress);
-//cardDetails(account1 , 5  , account1 , privateKey1  , gameContractAddress);
-//details(5 , account1 , privateKey1 , nftContractAddress);
-//transfer(gameContractAddress, 5 , account1 , privateKey1 , nftContractAddress);
-//owner(5 , account1 , privateKey1 , nftContractAddress);
-//clearTokens(5  , 0 , false , account1 , privateKey1, gameContractAddress);
-
+async function getAllDetails(address){
+	const obj = {};
+	const x = await returnOwnedToken(address);
+	const y = x.toString().split(',');
+	for(let i = 0 ; i < y.length ; ++i)
+	{
+		const z =  await details(y[i]);
+		if(z[0] == '1') obj[y[i]] = 'rock';
+		else if (z[0] == '2') obj[y[i]] = 'paper';
+		else obj[y[i]] = 'scissor';
+	}
+	return obj;
+}
 
 
 var sign_up = async function(address,gameContractAddress) { return await signUP(address,account1,privateKey1,gameContractAddress); }
@@ -785,6 +779,7 @@ var detailOfCard = async function(tokenId) { return await details(tokenId)}
 var ownerof = async function(tokenId) { return await ownerOf(tokenId)}
 var Transfer =async function(_to,value,gameContractAddress) { await Transfer(_to,value,account1,privateKey1,gameContractAddress)}
 var burn = async function(tokenId,gameContractAddress) {  await burn(tokenId,account1,privateKey1,gameContractAddress)}
+var getalldetails = async function(address) { await getAllDetails(address) }
 
 module.exports = {
         sign_up:sign_up,
@@ -794,20 +789,6 @@ module.exports = {
 		detailOfCard:detailOfCard,
 		ownerof:ownerof,
 		Transfer:Transfer,
-		burn:burn
+		burn:burn,
+		getalldetails:getalldetails
 }
-
-// sign_up("0xd43caDEd5372730b4513e4ac4929Af3CE0791B4F",gameContractAddress)
-// details(392);
-// const rescard = aawait details(392);
-// console.log(rescard[0]+"   "+rescard[1])
-// ownerOf(392)
-
-// showStars('0xd43caDEd5372730b4513e4ac4929Af3CE0791B4F');
-
-// details(501);
-
-//burn(501,"0x3A6c34D81cc09e12fB7f62CA2E7cd7d2f08BcD92",privatekeymine,nftContractAddress)
-
-// Transfer("0x3A6c34D81cc09e12fB7f62CA2E7cd7d2f08BcD92",5,account1,privateKey1,starsContractAddress)
-// Transfer('0xfD21dd58A3842eC823830EbDb08293b963086506',3,account1,privateKey1,starsContractAddress);
