@@ -20,3 +20,24 @@ export class itemtoBeBidDTO{
     price:number
   
   }
+
+  export class bidDTO{
+ 
+    
+    @IsNotEmpty()
+    @ApiProperty({type: Number , description: "Id of card"})
+
+    cardid:number
+    
+    @IsNotEmpty()
+    @ApiProperty({type: Number , description: "bid price"})
+
+    price:number
+
+    
+    @IsNotEmpty()
+    @ApiProperty({type: String, description: "bidder name"})
+
+    biddername:string
+  
+  }

@@ -18,6 +18,6 @@ export interface cardBid extends mongoose.Document{
 
     setbidprice:number
 
-    currentBids:{}
+    currentBids:any
 
 }

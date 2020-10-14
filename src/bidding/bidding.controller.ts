@@ -1,7 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiBody, ApiCreatedResponse } from '@nestjs/swagger';
 import { BiddingService } from './bidding.service';
-import { itemtoBeBidDTO } from './itemToBebid.dto';
+import { bidDTO, itemtoBeBidDTO } from './itemToBebid.dto';
 
 @Controller('bidding')
 export class BiddingController {
@@ -11,9 +11,25 @@ export class BiddingController {
     @Post('/sellitem')
     @ApiBody({type: itemtoBeBidDTO})
     @ApiCreatedResponse({description: "An object with response with response in res key."})
-    createUser(@Body() bidDto:itemtoBeBidDTO){
+    sellitem(@Body() bidDto:itemtoBeBidDTO){
       
       return this.bidservice.sellItem(bidDto)
     
+    }
+
+    
+    @Post('/buyitem')
+    @ApiCreatedResponse({description: "An object with response with response in res key."})
+    buy(@Body() biddto:bidDTO){
+      
+      return this.bidservice.buyItem(biddto)
+    
+    }
+
+
+    @Get('/getallItems')
+    @ApiCreatedResponse({description: "Get all listed cards for bidding."})
+    getall(){
+        return this.bidservice.getall()
     }
 }

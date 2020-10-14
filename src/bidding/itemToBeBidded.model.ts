@@ -1,4 +1,4 @@
-import { boolean, date, number, string } from '@hapi/joi'
+import { boolean, date, number, object, string } from '@hapi/joi'
 import * as mongoose from 'mongoose'
 
 export const cardToBeBid = new mongoose.Schema({
@@ -18,7 +18,6 @@ export const cardToBeBid = new mongoose.Schema({
 
     setbidprice:{type:Number},
 
-    currentBids:{}        
-    
+    currentBids:{type:Array,default:[]}
 
 })

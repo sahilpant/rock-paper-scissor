@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { itemtoBeBidDTO } from './itemToBebid.dto';
+import { bidDTO, itemtoBeBidDTO } from './itemToBebid.dto';
 import { cardBid } from './itemtobebid.interface';
 import {detailOfCard} from '../../gameblock'
 @Injectable()
@@ -11,8 +11,21 @@ export class BiddingService {
                 @InjectModel('cardBid') private readonly cardBid:Model<cardBid> 
     ){}
 
-  async buyItem(){
+  async buyItem({biddername,cardid,price}:bidDTO){
+        
+    let cardinBidDB = await this.cardBid.findOne({cardid:cardid})
 
+    if(cardinBidDB)
+    {
+  
+      var object = {biddername:biddername,bid:price}; 
+      cardinBidDB.currentBids.push(object)
+      await cardinBidDB.save()
+    }
+  }
+
+  async getall(){
+    return this.cardBid.find({sold:false})
   }
   
   async sellItem(itemtoBid:itemtoBeBidDTO){
@@ -34,6 +47,7 @@ export class BiddingService {
           item.cardid = itemtoBid.cardid
           item.cardtype = givenCardType
           item.setbidprice = itemtoBid.price
+  
           await item.save();
           }
         }	
