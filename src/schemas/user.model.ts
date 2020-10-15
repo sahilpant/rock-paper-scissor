@@ -1,3 +1,4 @@
+import { array } from '@hapi/joi';
 import * as mongoose from 'mongoose';
 
 
@@ -59,7 +60,9 @@ export const user = new mongoose.Schema({
        },
 
     
-    role : { type: String }
+    role : { type: String },
+
+    cardForBid: {type:Array , default: []}
     
     });
 

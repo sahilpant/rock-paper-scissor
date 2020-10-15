@@ -604,64 +604,64 @@ async playGame(client:Socket,data:Number)
     
 	if(gameAlreadyExist)
 	{
-		  let client1existinGame = false,client2existinGame = false;
-		  //it means that either client1 or client 2 or both has played
-		  if(gameAlreadyExist.client1id)
-		  client1existinGame =true;
-		  else
-		  {
-			client1existinGame = false
-            let Firstgame =  await this.user.findOne({username:this.clientidwithName[client.id]})
-		    if( Firstgame && Firstgame.stars <= 0)
-		    {
-				gameisfurtherPlay = false
-				const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
-				newHistory.Status = "Aborted";
-				await newHistory.save();
-				this.handleEndGame(client)
-			}
-			else
-			{
-				this.giveStarstoAdminforPlay(client.id,Firstgame);
-			}
-		  }
+		let client1existinGame = false,client2existinGame = false;
+		//it means that either client1 or client 2 or both has played
+		if(gameAlreadyExist.client1id)
+		client1existinGame =true;
+		else
+		{
+		client1existinGame = false
+		let Firstgame =  await this.user.findOne({username:this.clientidwithName[client.id]})
+		if( Firstgame && Firstgame.stars <= 0)
+		{
+			gameisfurtherPlay = false
+			const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
+			newHistory.Status = "Aborted";
+			await newHistory.save();
+			this.handleEndGame(client)
+		}
+		else
+		{
+			this.giveStarstoAdminforPlay(client.id,Firstgame);
+		}
+		}
 
-		  if(gameAlreadyExist.client2id)
-		  client2existinGame = true;
-		  else
-		  {
-			client2existinGame = false
-			let Firstgame =  await this.user.findOne({username:this.clientidwithName[client.id]})
-		    if( Firstgame && Firstgame.stars <= 0)
-		    {
-				gameisfurtherPlay = false
-				const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
-				newHistory.Status = "Aborted";
-				await newHistory.save();
-				this.handleEndGame(client)
-			}
-			else
-			{
-				this.giveStarstoAdminforPlay(client.id,Firstgame);
-			}
-		  }
-		  
-		  if(client1existinGame && client2existinGame)
-		  {
-		  no_of_stars_holdByAdmin = this.adminBlockStars[client.id]
-		  if(no_of_stars_holdByAdmin <= 0)
-		  gameisfurtherPlay = false
+		if(gameAlreadyExist.client2id)
+		client2existinGame = true;
+		else
+		{
+		client2existinGame = false
+		let Firstgame =  await this.user.findOne({username:this.clientidwithName[client.id]})
+		if( Firstgame && Firstgame.stars <= 0)
+		{
+			gameisfurtherPlay = false
+			const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
+			newHistory.Status = "Aborted";
+			await newHistory.save();
+			this.handleEndGame(client)
+		}
+		else
+		{
+			this.giveStarstoAdminforPlay(client.id,Firstgame);
+		}
+		}
+		
+		if(client1existinGame && client2existinGame)
+		{
+			no_of_stars_holdByAdmin = this.adminBlockStars[client.id]
+			if(no_of_stars_holdByAdmin <= 0)
+			gameisfurtherPlay = false
 
-		  if(!gameisfurtherPlay)
-		  {
+		if(!gameisfurtherPlay)
+		{
 			const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
 			this.finalResult(this.users[client.id])
 			newHistory.Status = "Aborted";
 			await newHistory.save();
 			this.handleEndGame(client)
-		  }
 		}
 	}
+}
 	else
 	{    //it run only once when no game exist
 		  let Firstgame =  await this.user.findOne({username:this.clientidwithName[client.id]})

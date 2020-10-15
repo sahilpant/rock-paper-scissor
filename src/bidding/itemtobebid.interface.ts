@@ -10,7 +10,7 @@ export interface cardBid extends mongoose.Document{
    
     sold:boolean
    
-    user_details:string
+    user_email:string
 
     cardid:number
 

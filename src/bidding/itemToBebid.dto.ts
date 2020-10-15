@@ -6,7 +6,7 @@ export class itemtoBeBidDTO{
     
     @IsNotEmpty()
     @ApiProperty({type: String , description: "username"})
-    username:string
+    user_email:string
 
     
     @IsNotEmpty()

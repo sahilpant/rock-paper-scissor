@@ -10,7 +10,7 @@ export const cardToBeBid = new mongoose.Schema({
    
     sold:{type:Boolean,default:false},
    
-    user_details:{type:String},
+    user_email:{type:String},
 
     cardid:{type:Number},
 

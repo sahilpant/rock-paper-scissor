@@ -27,5 +27,6 @@ export interface user extends mongoose.Document{
 
     role: string
 
+    cardForBid: any
 
 }
