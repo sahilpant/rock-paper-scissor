@@ -178,17 +178,15 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 				// this.room_status[this.games[pos].gameRoom] = true;
 				// const game_pos = this.games.findIndex((game) => { return game.gameRoom == this.games[pos].gameRoom});
-		
+		        // this.user_check[client.id] = `true`;
 				// this.games[game_pos].users.push(client.id);
 		
 		
 				this.handleJoin( client, this.games[pos].gameRoom);
 		
 				this.games[pos].players++;
-
-				this.handleJoin( client, this.games[pos].gameRoom);
 		
-				// this.user_check[client.id] = `true`;
+				
 
 			}
 
@@ -543,1020 +541,318 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 
 /*-----------Game logic------------*/
-	@SubscribeMessage('play_1')
-	async playgame_1(client: Socket, data: Number)
+async giveStarstoAdminforPlay(Cl_id,nameinUSERDB)
+{
+	let noOfStarsHolding = nameinUSERDB.stars;
+		
+	if(noOfStarsHolding>3)
 	{
-		let flag_for_stars = 1;
+		nameinUSERDB.stars = noOfStarsHolding-3;
+		this.adminBlockStars[Cl_id] = 3
+	}
+	
+	else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
+	{
+	    nameinUSERDB.stars = 0;
+		this.adminBlockStars[Cl_id] = noOfStarsHolding;
+	}
+	await nameinUSERDB.save();
+	
+}
+
+async finalResult(gameid:string)
+{
+	let gameINDB = await this.passkey.findOne({gameid:gameid})
+	if(gameINDB.playerWin.length !== 0)
+	{
+		let newHistory = await this.History.findOne({Game_Id:gameid})					
+		let user1name  = gameINDB.user1;
+		let user2name  = gameINDB.user2;
+
+		let user1 = 0,user2 = 0,tie = 0;
 		
-		let notFirstgame =  await this.passkey.findOne().where('gameid').equals(this.users[client.id]).exec();
-
-		let noOfStarsHoldingbyAdminforThisClient: number;
-
-		if(notFirstgame){
-			noOfStarsHoldingbyAdminforThisClient = this.adminBlockStars[client.id]
-		}
-
-		else{
-			let Firstgame =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
-			if(Firstgame.stars <= 0){
-				
-				flag_for_stars = 0
-				this.handleEndGame(client)
-
-			}
-		}
-
-		/*
-			this condition is for when user 2 
-			has played the card first and now the 
-			first user is out of stars. So we are
-			returning the stars of the second user 
-		*/
-		console.log(noOfStarsHoldingbyAdminforThisClient);
-
-		if(noOfStarsHoldingbyAdminforThisClient <= 0 && notFirstgame) {
-			//transfer other user star back to him	
-
-			flag_for_stars = 0;
-	
-			let gameidOfUser = this.users[client.id]
-	
-			let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
-			
-			if(currentGame && currentGame.card2 !== "empty"){
-
-				//other user card is given back to him
-	
-				let publickeyofthatUser = currentGame.player2address  //public id of the second user is fetched
-
-				currentGame.card2 = "empty";
-
-				await currentGame.save();
-
-				let user2details = await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec(); //user details of the second user is fetched from from the user db
-
-				let returnedTokenId = user2details.usedCards.pop();
-
-				user2details.notUsedCards.push(returnedTokenId); //cards are added to the not used card array
-
-				//transfer user2 star from admin to user2 account
-
-				user2details.stars += this.adminBlockStars[currentGame.client2id] //stars added to the star count
-
-				this.adminBlockStars[currentGame.client2id] = 0;
-
-				await user2details.save();
-
-				let name2 = currentGame.user2
-
-				this.wss.to(gameidOfUser).emit('card not played',`${name2} your card is not used as other user have not minimum no. of stars required to play `)
-
-				client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
-
-			}
-
-			else{
-
-				client.emit('card not played',`your card is not used as you have zero stars`)
-
-				client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
-
-			}
-
-			let gameINDB = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
-
-			if(gameINDB.playerWin.length !== 0){
-
-				let user1name = gameINDB.user1;
-
-				let user2name = gameINDB.user2;
-
-				let user1 = 0,user2 = 0,tie = 0;
-
-				for(const player in gameINDB.playerWin){
-
-					if(gameINDB.playerWin[player] === user1name)
-
-					user1++;  
-
-					else if(gameINDB.playerWin[player] === user2name)
-
-					user2++;
-
-					else
-
-					tie++;
-
-
-				}
-
-				console.log(user1+"###"+user2+"###"+tie)
-
-				const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
-
-				this.wss.to(this.users[client.id]).emit(`final  after ${gameINDB.playerWin.length} round `,finalPlayerWon);							
-
-			}
-
-			else{
-			this.wss.to(this.users[client.id]).emit('game not played',"not a single game has been played to display the final result");
-			this.handleEndGame(client)
-			}
-			
-			await gameINDB.deleteOne()
-			
-			//await gameINDB.save()
-
-			const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
-
-			newHistory.Status = "Aborted";
-
-			await newHistory.save();
-
-			this.handleEndGame(client);
-	
-		}
-		
-	
-		
-		//store id of given card
-
-		let carddetail: string | string[];
-
-		carddetail = await detailOfCard(data);  // detailofcard is the blockchain function to fetch the detail of a specific token id 
-		
-		if(flag_for_stars == 1)
+		for(const player in gameINDB.playerWin)
 		{
-			console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
+			if(gameINDB.playerWin[player] === user1name)
+			user1++;  
 
-			let givenCardType: string
+			else if(gameINDB.playerWin[player] === user2name)
+			user2++;
 
-			(carddetail[0] === "1")?(givenCardType="ROCK"):(
+			else
+			tie++;
+		}
+
+		const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw");
+		this.wss.to(gameid).emit(`Final Result after Round${gameINDB.playerWin.length} `,finalPlayerWon);			
+		await gameINDB.deleteOne();						
+	}
+	else
+	{
+		this.wss.to(gameid).emit('game not played',"not a single game has been played to display the final result");
+		await gameINDB.deleteOne();
+	}
+					
+}
+
+@SubscribeMessage('play')
+async playGame(client:Socket,data:Number)
+{
+	let gameAlreadyExist =  await this.passkey.findOne({gameid:this.users[client.id]});
+	let gameisfurtherPlay = true;
+	let no_of_stars_holdByAdmin = 0;
+    
+	if(gameAlreadyExist)
+	{
+		  let client1existinGame = false,client2existinGame = false;
+		  //it means that either client1 or client 2 or both has played
+		  if(gameAlreadyExist.client1id)
+		  client1existinGame =true;
+		  else
+		  {
+			client1existinGame = false
+            let Firstgame =  await this.user.findOne({username:this.clientidwithName[client.id]})
+		    if( Firstgame && Firstgame.stars <= 0)
+		    {
+				gameisfurtherPlay = false
+				const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
+				newHistory.Status = "Aborted";
+				await newHistory.save();
+				this.handleEndGame(client)
+			}
+			else
+			{
+				this.giveStarstoAdminforPlay(client.id,Firstgame);
+			}
+		  }
+
+		  if(gameAlreadyExist.client2id)
+		  client2existinGame = true;
+		  else
+		  {
+			client2existinGame = false
+			let Firstgame =  await this.user.findOne({username:this.clientidwithName[client.id]})
+		    if( Firstgame && Firstgame.stars <= 0)
+		    {
+				gameisfurtherPlay = false
+				const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
+				newHistory.Status = "Aborted";
+				await newHistory.save();
+				this.handleEndGame(client)
+			}
+			else
+			{
+				this.giveStarstoAdminforPlay(client.id,Firstgame);
+			}
+		  }
+		  
+		  if(client1existinGame && client2existinGame)
+		  {
+		  no_of_stars_holdByAdmin = this.adminBlockStars[client.id]
+		  if(no_of_stars_holdByAdmin <= 0)
+		  gameisfurtherPlay = false
+
+		  if(!gameisfurtherPlay)
+		  {
+			const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
+			this.finalResult(this.users[client.id])
+			newHistory.Status = "Aborted";
+			await newHistory.save();
+			this.handleEndGame(client)
+		  }
+		}
+	}
+	else
+	{    //it run only once when no game exist
+		  let Firstgame =  await this.user.findOne({username:this.clientidwithName[client.id]})
+		  console.log(Firstgame);
+		  if(Firstgame.stars <= 0)
+		  {
+			gameisfurtherPlay = false
+			this.handleEndGame(client)
+		  }
+		  else
+		  {
+			this.giveStarstoAdminforPlay(client.id,Firstgame);
+		  }
+	}
+
+	if(gameisfurtherPlay)
+	{
+		console.log("Everything running fine")
+		let carddetail: string | string[];
+		carddetail = await detailOfCard(data); 
+	    console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
+
+	    let givenCardType: string
+        (carddetail[0] === "1")?(givenCardType="ROCK"):(
 									(carddetail[0] === "2")?(givenCardType="PAPER"):(
 																		(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
 																		
-			console.log(data)		
-	
-			let gameid = this.users[client.id]  
-
-			if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR){
-
-				if(this.check[client.id])
-
-				{
-				
-					let gameexist = await this.passkey.findOne().where('gameid').equals(gameid).exec();
-
-					let nameinUSERDB = await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec()
-	
-					//find index of given card
-			
-					let indexofCard = (nameinUSERDB.notUsedCards.indexOf(data))
-	
-					console.log(indexofCard)
-	
-					// console.log(nameinUSERDB.notUsedCards.findIndex(givencardid))
-
-					if(gameexist && indexofCard !== -1)
-	
-	
-					{
-						if(!gameexist.card1){
-							let noOfStarsHolding = nameinUSERDB.stars;
-		
-							if(noOfStarsHolding>3){
-				
-								nameinUSERDB.stars = noOfStarsHolding-3;
-								this.adminBlockStars[client.id] = 3
-							
-							}
-							else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
-							{
-							nameinUSERDB.stars = 0;
-							this.adminBlockStars[client.id] = noOfStarsHolding
-							}
-							else{
-								client.emit('no stars','you have zero stars')
-								this.handleEndGame(client);
-							}
-						}
-	
-							gameexist.card1 = givenCardType
-
-							gameexist.user1 = nameinUSERDB.username
-
-							gameexist.player1address = nameinUSERDB.publickey
-
-							gameexist.token1 = data
-
-							gameexist.card1played = true
-
-							gameexist.client1id = client.id,
-
-							nameinUSERDB.usedCards.push(data)
-
-							let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
-							let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
-							y.forEach((element) => x.push(element));
-							nameinUSERDB.notUsedCards = x;
-							/*	let pos = 0
-							let x = game.slice(0,pos)
-							let y = game.slice(pos+1)
-							y.forEach(element => {
-								x.push(element)
-							});
-							game = x
-							console.log(game) */
-
-							// nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000);
-
-							//nameinUSERDB.stars--
-	
-							await nameinUSERDB.save()
-	
-							await gameexist.save()
-	
-	
-						}
-		
-						else if(indexofCard !== -1)
-	
-						{
-
-								// transfer stars from user to admin account and keep track of it
-
-							let noOfStarsHolding = nameinUSERDB.stars;
-							
-							if(noOfStarsHolding > 3){
-
-								nameinUSERDB.stars = noOfStarsHolding - 3;
-								this.adminBlockStars[client.id] = 3;
-								
-								/*accessing the history db for storing game history*/
-
-								const newHistory = new this.History({
-									Game_Id:this.users[client.id],
-									Start_Date:new Date(),
-									Status:"Active"
-								})
-								try {
-									
-									await newHistory.save();
-
-								} catch (error) {
-									
-									console.log(error);
-
-								}
-								/*-------------------------------------------------*/
-							
-							}
-							else if(noOfStarsHolding > 0 && noOfStarsHolding <= 3)
-							{
-								nameinUSERDB.stars = 0;
-								this.adminBlockStars[client.id] = noOfStarsHolding;
-								
-								/*accessing the history db for storing game history*/
-
-								const newHistory = new this.History({
-									Game_Id:this.users[client.id],
-									Start_Date:new Date(),
-								})
-								try {
-									
-									await newHistory.save();
-
-								} catch (error) {
-									
-									console.log(error);
-
-								}
-								/*-------------------------------------------------*/
-							}
-							else{
-
-								client.emit('no stars','you have zero stars')
-
-								this.emailOfConnectedUser = null;
-					
-								this.nameOfConnectedUser = null;
-
-								this.roleOfConnectedUser = null;
-
-								this.handleEndGame(client);
-
-							}
-						
-								const cardDetail = new this.passkey({
-		
-								gameid:gameid,
-		
-								card1:givenCardType,
-		
-								user1:nameinUSERDB.username,
-
-								client1id:client.id,
-	
-								card1played:true,
-
-								card2played:false,
-
-								player1address:nameinUSERDB.publickey,
-	
-								token1:data
-							})
-		
-							console.log( nameinUSERDB.notUsedCards[indexofCard])
-	
-							nameinUSERDB.usedCards.push(data);
-		
-							let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
-							let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
-							y.forEach((element) => x.push(element));
-							nameinUSERDB.notUsedCards = x;
-
-							//nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
-
-							//nameinUSERDB.stars--
-							
-							await nameinUSERDB.save()
-		
-							await cardDetail.save()
-	
-					}
-
-					gameexist = await this.passkey.findOne().where('gameid').equals(gameid).exec();
-
-					console.log(gameexist);
-
-					if(gameexist.card1 && gameexist.card2 && gameexist.card1 !== "empty" && gameexist.card2 !== "empty")
-	
-					{
-							let newHistory = await this.History.findOne().where('Game_Id').equals(gameid).exec();
-							
-							let gameINDB = await this.passkey.findOne().where('gameid').equals(gameid).exec();
-	
-							const user1name = gameINDB.user1
-
-							newHistory.Player_1 = user1name;
-	
-							const user2name = gameINDB.user2
-
-							newHistory.Player_2 = user2name;
-	
-							const user1card = gameINDB.card1
-	
-							const user2card = gameINDB.card2
-			
-							await newHistory.save();
-							// const addressofplayer1 = gameINDB.player1address
-
-							// const addressofplayer2 = gameINDB.player2address
-
-							let token1 = gameINDB.token1;
-							let token2 = gameINDB.token2;
-
-							const gameResult = await  this.playservice.play(gameid);
-
-							const userno1 = await this.user.find().where('username').equals(user1name).exec();
-
-							const userno2 = await this.user.find().where('username').equals(user2name).exec();
-
-							this.adminBlockStars[gameINDB.client1id]--;
-
-							this.adminBlockStars[gameINDB.client2id]--;
-	
-							if(gameResult === "game is draw"){
-	
-							this.wss.to(gameid).emit('result',"game is draw")
-
-
-							}
-	
-							else
-	
-							{
-								
-	
-								this.wss.to(gameid).emit('result of round',gameResult+" WON ");
-	
-								this.wss.to(gameid).emit(`${user1name}`,user1card);
-	
-								this.wss.to(gameid).emit(`${user2name}`,user2card);
-
-								// const newHistory = new this.History({
-								// 	Game_ID:gameid,
-								// 	Total_Rounds:gameINDB.playerWin.length,
-								// 	Type_Of_Game:"Short-1/ long-5",
-								// 	Player_1:user1name,
-								// 	Player_2:user2name,
-								// 	Last_Updated: new Date(),
-								// })
-	
-	
-							}
-	
-							gameINDB = await this.passkey.findOne().where('gameid').equals(gameid).exec()
-
-							/******************************************************************/
-							if(gameINDB.playerWin.length === 1){
-								newHistory.Result_1.Player_1.Card_Type = user1card;
-								newHistory.Result_1.Player_1.Card_No = token1;
-
-								newHistory.Result_1.Player_2.Card_Type = user2card;
-								newHistory.Result_1.Player_2.Card_No = token2;
-
-								newHistory.Total_Rounds = 1;
-								await newHistory.save();
-							}
-							if(gameINDB.playerWin.length === 2){
-								newHistory.Result_2.Player_1.Card_Type = user1card;
-								newHistory.Result_2.Player_2.Card_No = token2;
-								
-								newHistory.Result_2.Player_2.Card_Type = user2card;
-								newHistory.Result_2.Player_2.Card_No = token2;
-
-								newHistory.Total_Rounds = 2;
-								await newHistory.save();
-							}
-							/******************************************************************/
-	
-							if(gameINDB.playerWin.length === 3)
-	
-							{
-								newHistory.Result_3.Player_1.Card_Type = user1card;
-								newHistory.Result_3.Player_1.Card_No = token1;
-								
-								newHistory.Result_3.Player_2.Card_Type = user2card;
-								newHistory.Result_3.Player_2.Card_No = token2;
-								
-								newHistory.Total_Rounds = 3;
-								await newHistory.save();
-
-
-								newHistory.Result_3[user1name] = {
-									"Card_type":`${user1card}`
-								}
-								newHistory.Result_3[user2name] = {
-									"Card_type":`${user2card}`,
-								}
-								newHistory.save();
-	
-								let user1=0,user2=0,tie=0;
-	
-								console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
-	
-								for(const player in gameINDB.playerWin)
-	
-								{
-	
-									console.log(gameINDB.playerWin[player]+"#####")
-	
-									if(gameINDB.playerWin[player] === user1name)
-	
-									user1++;  
-	
-									else if(gameINDB.playerWin[player] === user2name)
-	
-									user2++;
-	
-									else
-	
-									tie++;
-	
-	
-								}
-	
-								console.log(user1+"###"+user2+"###"+tie)
-	
-								const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
-	
-								this.wss.to(gameid).emit('final',finalPlayerWon);
-
-
-								newHistory.Status = "Completed";
-								newHistory.End_Date = new Date();
-								newHistory.Last_Updated_Date = new Date();
-								//delete this gameid data from database too
-
-								try {
-									await gameINDB.deleteOne();
-									await newHistory.save();
-								} catch (err) {
-									console.log('data deleted');
-									this.wss.to(this.users[client.id]).emit('GameOver','Game has ended he enry is deleted from passkeys');
-								}
-
-								//await gameINDB.save()
-	
-	
-							
-							}
-		
-						
-						}
-
-					}
-
-				}
-	
-	
-			}
-
-
-		}
-	
-		
-		@SubscribeMessage('play_2')
-		async playgame_2(client:Socket, data: Number)
+		let gameid = this.users[client.id]  
+        if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
 		{
-
-			let flag=1;
-			
-			let notFirstgame = await this.passkey.findOne().where('gameid').equals(this.users[client.id]).exec();
-
-			let noOfStarsHoldingbyAdminforThisClient: number
-			
-			if(notFirstgame){
-		      noOfStarsHoldingbyAdminforThisClient = this.adminBlockStars[client.id]
-			}
-			else{
-				let Firstgame =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
-				if(Firstgame.stars <= 0)
-				{
-					flag = 0;
-
-					this.handleEndGame(client)
-				}
-			}
-
-
-			if(noOfStarsHoldingbyAdminforThisClient <= 0 && notFirstgame)
-			{
-			        //transfer other user star back to him	
-		
-					flag = 0;
-			
-					let gameidOfUser = this.users[client.id]
-			
-					let currentGame = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
-				 
-					if(currentGame && currentGame.card1 !== "empty")
-			
-					{
-			
-						//other user card is given back to him
-			
-						let publickeyofthatUser = currentGame.player1address
-		
-						currentGame.card1 = "empty"
-		
-						await currentGame.save()
-		
-						let user1details = await this.user.findOne().where('publickey').equals(publickeyofthatUser).exec();
-		
-						let returnedTokenId = user1details.usedCards.pop()
-		
-						user1details.notUsedCards.push(returnedTokenId)
-
-						//transfer user2 star from admin to user2 account
-
-						user1details.stars += this.adminBlockStars[currentGame.client1id]
-
-						this.adminBlockStars[currentGame.client1id] = 0
-		
-						await user1details.save();
-		
-						let name1 = currentGame.user1
-		
-						this.wss.to(gameidOfUser).emit('card not played',`${name1} your card is not used as other user have not minimum no. of stars required to play `)
-		
-						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
-		
-					}
-					else{
-						client.emit('card not played',`your card is not used as you have zero stars`)
-		
-						client.emit('not valid no. of stars','your have zero stars you have minimum 1 star to play')
+			let gameexist = await this.passkey.findOne({gameid:gameid})
+            let nameinUSERDB = await this.user.findOne({username:this.clientidwithName[client.id]})
 	
-					}
+			//find index of given card
+			let indexofCard = (nameinUSERDB.notUsedCards.indexOf(data))
+	        console.log(indexofCard)
+	
+			if(gameexist && gameexist.client1id && gameexist.client2id && indexofCard !== -1)
+			{	
+				//1st round is completed successfully
+				if(!gameexist.card1played)
+			   {
+				    gameexist.card1 = givenCardType;
+				    gameexist.token1 = data;
+					gameexist.card1played = true;
+					await gameexist.save();
 
-					let gameINDB = await this.passkey.findOne().where('gameid').equals(gameidOfUser).exec();
-
-					if(gameINDB.playerWin.length !== 0)
-					{
-
-					let user1name = gameINDB.user1;
-
-					let user2name = gameINDB.user2;
-
-                    let user1 = 0,user2 = 0,tie = 0;
-		
-									console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
-		
-									for(const player in gameINDB.playerWin)
-		
-									{
-		
-										console.log(gameINDB.playerWin[player]+"#####")
-		
-										if(gameINDB.playerWin[player] === user1name)
-		
-										user1++;  
-		
-										else if(gameINDB.playerWin[player] === user2name)
-		
-										user2++;
-		
-										else
-		
-										tie++;
-		
-		
-									}
-		
-									console.log(user1+"###"+user2+"###"+tie)
-		
-									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
-		
-									this.wss.to(this.users[client.id]).emit(`final  after ${gameINDB.playerWin.length} round `,finalPlayerWon);
-								}
-									
-								
-								else{
-								
-									this.wss.to(this.users[client.id]).emit('game not played',"not a single game has been played to display the final result");
-								    this.handleEndGame(client)
-								}
+			   }
+			   else if(!gameexist.card2played)
+			   {
+					gameexist.card2 = givenCardType;
+					gameexist.token2 = data;
+					gameexist.card2played = true;
+					await gameexist.save();
+			   }
+			}
 				
-		
-									try {
-										await gameINDB.deleteOne()	
-									} catch (err) {
-										console.log('data deleted');
-										this.wss.to(this.users[client.id]).emit('GameOver','Game has ended he enry is deleted from passkeys');
-									}
-	
-									//await gameINDB.save()
-								
-
-
-					const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
-
-					newHistory.Status = "Aborted";
-
-					await newHistory.save();
-						
-					this.handleEndGame(client)
-		
-			}
-		
-		
-			
-			 //store id of given card
-			 let carddetail;
-		
-	         carddetail = await detailOfCard(data);
-			
-			if(flag == 1)
+			else if(gameexist && indexofCard !== -1)
 			{
-		
-				console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
-	
-				let givenCardType
-	
-				(carddetail[0] === "1")?(givenCardType="ROCK"):(
-										   (carddetail[0] === "2")?(givenCardType="PAPER"):(
-																				(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
-																				
-				console.log(data)		
-		
-				let gameid=this.users[client.id]  
-	
-				if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
-	
-				{
-	
-					if(this.check[client.id])
-	
-					{
-					
-						let gameexist = await this.passkey.findOne().where('gameid').equals(gameid).exec();
-	
-						let nameinUSERDB =await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec()
-		
-						//find index of given card
-				
-						let indexofCard =(nameinUSERDB.notUsedCards.indexOf(data))
-		
-						console.log(indexofCard)
-		
-						// console.log(nameinUSERDB.notUsedCards.findIndex(givencardid))
-	
-						if(gameexist && indexofCard !== -1)
-		
-		
-						{
-
-							if(!gameexist.card2){
-								let noOfStarsHolding = nameinUSERDB.stars;
-            
-								if(noOfStarsHolding>3){
-					
-									nameinUSERDB.stars = noOfStarsHolding-3;
-									this.adminBlockStars[client.id] = 3
-								
-								}
-								else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
-								{
-								nameinUSERDB.stars = 0;
-								this.adminBlockStars[client.id] = noOfStarsHolding
-								}
-								else{
-									client.emit('no stars','you have zero stars')
-									this.handleEndGame(client);
-								}
-							}
-		
-								gameexist.card2 = givenCardType
-	
-								gameexist.user2=nameinUSERDB.username
-	
-								gameexist.player2address=nameinUSERDB.publickey
-	
-								gameexist.token2 = data
-
-								gameexist.client2id = client.id
-
-								gameexist.card2played = true
-	
-								nameinUSERDB.usedCards.push(data)
-	
-								let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
-								let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
-								y.forEach((element) => x.push(element));
-								nameinUSERDB.notUsedCards = x;
-								// nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
-
-								//nameinUSERDB.stars--
-		
-								await nameinUSERDB.save()
-		
-								await gameexist.save()
-		
-		
-							}
-			
-							else if(indexofCard !== -1)
-		
-							{
-
-								
-			let noOfStarsHolding = nameinUSERDB.stars;
-            
-			if(noOfStarsHolding>3){
-
-				nameinUSERDB.stars = noOfStarsHolding-3;
-				this.adminBlockStars[client.id] = 3
-
-				/*accessing the history db for storing game history*/
-
+				gameexist.card2 = givenCardType
+				gameexist.user2 = nameinUSERDB.username
+				gameexist.player2address = nameinUSERDB.publickey
+				gameexist.token2 = data
+				gameexist.card2played = true
+				gameexist.client2id = client.id   
+				await gameexist.save();
+			}
+			else if(indexofCard !== -1)
+			{
 				const newHistory = new this.History({
-					Game_Id:this.users[client.id],
+					Game_Id:gameid,
 					Start_Date:new Date(),
 					Status:"Active"
 				})
-				try {
-					
+				try 
+				{
 					await newHistory.save();
-
-				} catch (error) {
-					
+				} 
+				catch (error)
+				{	
 					console.log(error);
-
 				}
-				/*-------------------------------------------------*/
-			
-			}
-			else if(noOfStarsHolding>0 && noOfStarsHolding<=3)
-			{
-			nameinUSERDB.stars = 0;
-			this.adminBlockStars[client.id] = noOfStarsHolding
-
-			/*accessing the history db for storing game history*/
-
-				const newHistory = new this.History({
-					Game_Id:this.users[client.id],
-					Start_Date:new Date(),
+				const cardDetail = new this.passkey({
+					gameid:gameid,
+					card1:givenCardType,
+					user1:nameinUSERDB.username,
+					client1id:client.id,
+					card1played:true,
+					card2played:false,
+					player1address:nameinUSERDB.publickey,
+					token1:data
 				})
-				try {
-					
-					await newHistory.save();
-
-				} catch (error) {
-					
-					console.log(error);
-
-				}
-			/*-------------------------------------------------*/	
-
+				await cardDetail.save()
 			}
-			else{
-				client.emit('no stars','you have zero stars')
-				this.handleEndGame(client);
-			}
-		
-								const cardDetail = new this.passkey({
-		
-								gameid:gameid,
-		
-								card2:givenCardType,
-		
-								user2:nameinUSERDB.username,
-
-								client2id:client.id,
-	
-								player2address:nameinUSERDB.publickey,
-								
-								card1played:false,
-
-								card2played:true,
-	
-								token2:data
-							})
-		  
-							console.log( nameinUSERDB.notUsedCards[indexofCard])
-	
-							nameinUSERDB.usedCards.push(data);
-		
-							let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
-							let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
-							y.forEach((element) => x.push(element));
-							nameinUSERDB.notUsedCards = x;
-							// nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000)
-
-							//nameinUSERDB.stars--
-		
-							await nameinUSERDB.save()
-		
-							await cardDetail.save()
-		
-						}
-	
-						gameexist = await this.passkey.findOne().where('gameid').equals(gameid).exec();
-	
-						if(gameexist.card1 && gameexist.card2 && gameexist.card1 !== "empty" && gameexist.card2 !== "empty")
-		
-						{
-								let gameINDB= await this.passkey.findOne().where('gameid').equals(gameid).exec();
-		
-								let newHistory = await this.History.findOne().where('Game_Id').equals(gameid).exec();
-
-								const user1name = gameINDB.user1
-
-								newHistory.Player_1 = user1name;
-
-								const user2name = gameINDB.user2
-		
-								newHistory.Player_2 = user2name;
-
-								const user1card = gameINDB.card1
-		
-								const user2card = gameINDB.card2
-			  
-								await newHistory.save();
-								// const addressofplayer1 = gameINDB.player1address
-	
-								// const addressofplayer2 = gameINDB.player2address
-
-								let token1 = gameINDB.token1;
-
-								let token2 = gameINDB.token2;
-	
-								const gameResult = await  this.playservice.play(gameid);
-
-								// const userno1= await this.user.find().where('username').equals(user1name).exec();
-
-								// const userno2= await this.user.find().where('username').equals(user2name).exec();
-
-								this.adminBlockStars[gameINDB.client1id]--;
-
-								this.adminBlockStars[gameINDB.client2id]--;
-		
-								if(gameResult === "game is draw")
-		
-								this.wss.to(gameid).emit('result',"game is draw")
-		
-								else
-		
-								{
-		
-									this.wss.to(gameid).emit('result of round',gameResult + " WON ");
-		
-									this.wss.to(gameid).emit(`${user1name}+"cards"`,user1card);
-		
-									this.wss.to(gameid).emit(`${user2name}+"cards"`,user2card);
-		
-		
-								}
-		
-								gameINDB = await this.passkey.findOne().where('gameid').equals(gameid).exec()
-		
-								/******************************************************************/
-								if(gameINDB.playerWin.length === 1){
-									newHistory.Result_1.Player_1.Card_Type = user1card;
-									newHistory.Result_1.Player_1.Card_No = token1;
-
-									newHistory.Result_1.Player_2.Card_Type = user2card;
-									newHistory.Result_1.Player_2.Card_No = token2;
-									
-									newHistory.Total_Rounds = 1;
-									await newHistory.save();
-								}
-								if(gameINDB.playerWin.length === 2){
-									newHistory.Result_2.Player_1.Card_Type = user1card;
-									newHistory.Result_2.Player_1.Card_No = token1;
-									
-									newHistory.Result_2.Player_2.Card_Type = user2card;
-									newHistory.Result_2.Player_2.Card_No = token2;
-									
-									newHistory.Total_Rounds = 2;
-									await newHistory.save();
-								}
-								/******************************************************************/
-
-								if(gameINDB.playerWin.length === 3)
-		
-								{
-									
-									newHistory.Result_3.Player_1.Card_Type = user1card;
-									newHistory.Result_3.Player_1.Card_No = token1;
-
-									newHistory.Result_3.Player_2.Card_Type = user2card;
-									newHistory.Result_3.Player_2.Card_No = token2;
-									
-									
-									newHistory.Total_Rounds = 3;
-									await newHistory.save();
-									
-		
-									let user1=0,user2=0,tie=0;
-		
-									console.log(gameINDB.playerWin+"             "+gameINDB.playerWin.length)
-		
-									for(const player in gameINDB.playerWin)
-		
-									{
-		
-										console.log(gameINDB.playerWin[player]+"#####")
-		
-										if(gameINDB.playerWin[player] === user1name)
-		
-										user1++;  
-		
-										else if(gameINDB.playerWin[player] === user2name)
-		
-										user2++;
-		
-										else
-		
-										tie++;
-		
-		
-									}
-		
-									console.log(user1+"###"+user2+"###"+tie)
-		
-									const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw")
-		
-									this.wss.to(gameid).emit('final',finalPlayerWon);
-
-									newHistory.Status = "Completed";
-									newHistory.End_Date = new Date();
-									newHistory.Last_Updated_Date = new Date();
-	
-									try {
-										await gameINDB.deleteOne();
-										await newHistory.save();
-									} catch (err) {
-										console.log('data deleted');
-										this.wss.to(this.users[client.id]).emit('GameOver','Game has ended he enry is deleted from passkeys');
-									}
-	
-									//await gameINDB.save()
-								
-								}
+			if(indexofCard !== -1)
+			{
+			    nameinUSERDB.usedCards.push(data)
+                let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
+			    let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
+			    y.forEach((element) => x.push(element));
+			    nameinUSERDB.notUsedCards = x;
 			
-							
-							}
-	
-						}
-	
-					}
-	  
-		
+			    await nameinUSERDB.save()
+			}
+			gameexist = await this.passkey.findOne({gameid:gameid});
+
+			if(gameexist && gameexist.card1played && gameexist.card2played)
+            {
+				
+				let newHistory = await this.History.findOne({Game_Id:gameid});
+				let gameINDB = await this.passkey.findOne({gameid:gameid});
+
+				const user1name = gameINDB.user1;
+				const user2name = gameINDB.user2;
+				const user1card = gameINDB.card1;
+				const user2card = gameINDB.card2;
+				let   token1    = gameINDB.token1;
+				let   token2    = gameINDB.token2;
+
+				newHistory.Player_1 = user1name;
+				newHistory.Player_2 = user2name;
+				await newHistory.save();
+			
+				let gameResult = await  this.playservice.play(gameid);
+
+				const userno1 = await this.user.find({username:user1name});
+				const userno2 = await this.user.find({username:user2name});
+
+				this.adminBlockStars[gameINDB.client1id]--;
+				this.adminBlockStars[gameINDB.client2id]--;
+
+				if(gameResult === "game is draw")
+				{
+					this.wss.to(gameid).emit('result',"game is draw")
 				}
+				else
+				{
+					this.wss.to(gameid).emit('result of round',gameResult+" WON ");
+				}	
+				this.wss.to(gameid).emit(`${user1name}`,user1card);
+				this.wss.to(gameid).emit(`${user2name}`,user2card);
+				
+
+				gameINDB = await this.passkey.findOne({gameid:gameid})
+
+				/******************************************************************/
+				if(gameINDB.playerWin.length === 1){
+					newHistory.Result_1.Player_1.Card_Type = user1card;
+					newHistory.Result_1.Player_1.Card_No = token1;
+
+					newHistory.Result_1.Player_2.Card_Type = user2card;
+					newHistory.Result_1.Player_2.Card_No = token2;
+
+					newHistory.Total_Rounds = 1;
+					await newHistory.save();
+				}
+				if(gameINDB.playerWin.length === 2){
+					newHistory.Result_2.Player_1.Card_Type = user1card;
+					newHistory.Result_2.Player_2.Card_No = token2;
+					
+					newHistory.Result_2.Player_2.Card_Type = user2card;
+					newHistory.Result_2.Player_2.Card_No = token2;
+
+					newHistory.Total_Rounds = 2;
+					await newHistory.save();
+				}
+				/******************************************************************/
+
+				if(gameINDB.playerWin.length === 3)
+
+				{
+					newHistory.Result_3.Player_1.Card_Type = user1card;
+					newHistory.Result_3.Player_1.Card_No = token1;
+					
+					newHistory.Result_3.Player_2.Card_Type = user2card;
+					newHistory.Result_3.Player_2.Card_No = token2;
+					
+					newHistory.Total_Rounds = 3;
+			
+					newHistory.Status = "Completed";
+					newHistory.End_Date = new Date();
+					newHistory.Last_Updated_Date = new Date();
+
+					await newHistory.save();
+					this.finalResult(gameid);
+				}
+			}
 		}
+	}
+}
+
 
 
 
