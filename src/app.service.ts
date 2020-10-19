@@ -48,7 +48,7 @@ export class AppService
   
                 {
   
-                  throw new UnauthorizedException('Invalid Credentials');
+                  throw new UnauthorizedException('invalid_email');
   
                 }
   
@@ -56,7 +56,7 @@ export class AppService
   
                 {
   
-                  console.log("user exists")
+          
   
                   const result = await this.validatePassword(userinDB.password,signin.password,userinDB.salt);
                   
@@ -68,13 +68,13 @@ export class AppService
   
                     this.accessToken= this.jwtService.sign(payload);
   
-                    return this.accessToken;
+                    return   this.accessToken;
   
                   }
   
                   else
   
-                  throw new UnauthorizedException('Invalid Credentials');
+                  throw new UnauthorizedException('invalid_password');
   
                 }
 

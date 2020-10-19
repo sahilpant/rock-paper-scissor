@@ -18,11 +18,18 @@ export class AppController {
 
   
               @Post('/signin')
-              @ApiCreatedResponse({description: `to signin the user`})
-              @ApiUnauthorizedResponse({description: "Incorrect email or password"})
+              @ApiCreatedResponse({description: `<ul>
+              <li>{token : "jwt_token"}</li>
+              </ul>`})
+              @ApiUnauthorizedResponse({description: `<ul>
+              <li>invalid_emailid -  If email Id is not registered.</li>
+              <li>invalid_password - If password is incorrect</li>
+              </ul>
+             `})
               signIn(@Body() signin : signin){
 
-                return this.appService.signIn(signin)
+                var res = this.appService.signIn(signin);
+                return res;
   
               }
 

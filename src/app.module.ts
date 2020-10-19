@@ -23,6 +23,7 @@ import { jwtStrategy } from './jwt.strategy';
 import { NotificationService } from './notification/notification.service';
 import { join } from "path"
 import { History } from './schemas/History.model';
+import {match} from './schemas/match'
 
 @Module({
 
@@ -31,7 +32,7 @@ import { History } from './schemas/History.model';
 
     NotificationModule,
 
-    MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey},{name:'History',schema: History}]),
+    MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey},{name:'History',schema: History},{name:'match', schema:match}]),
 
     // RedisModule.register
 

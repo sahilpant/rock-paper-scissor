@@ -1,6 +1,7 @@
+
 import { SubscribeMessage, OnGatewayConnection, OnGatewayInit, OnGatewayDisconnect, WebSocketServer, WebSocketGateway ,} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { HttpException, HttpStatus, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import {v4 as uuid} from 'uuid'
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -10,15 +11,21 @@ import { passkey } from './required/interfaces/passkey.interface';
 import {History} from './required/interfaces/History.interface'
 import { PlayService } from './play/play.service';
 import {jwtStrategy} from './jwt.strategy'
-import * as jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken';
 import {JwtPayLoad} from './required/interfaces/jwt-payload.interface'
-import { detailOfCard} from '.././gameblock'
+import { detailOfCard, show_stars, total_cards} from '.././gameblock'
 import { ConfigService } from '@nestjs/config';
 import { AppGateway } from './app.gateway'
 import { NotificationService } from './notification/notification.service';
 import { EmailVerify } from './schemas/EmailVerify.model';
+import { match } from './required/interfaces/match.interface';
+import * as matcha from './schemas/match';
+import { IsNumberString } from 'class-validator';
+// import { match } from './schemas/match';
+// import { match } from './schemas/match';
 
-@WebSocketGateway({namespace:'/game'})
+@WebSocketGateway(
+	{namespace:'/game'})
 export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatewayDisconnect{
   
  
@@ -32,6 +39,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			  @InjectModel('passkey') private readonly passkey:Model<passkey>,
 			  
 			  @InjectModel('History') private readonly History:Model<History>,
+
+			  @InjectModel('match') private readonly match:Model<match>,
               
 			  private readonly playservice:PlayService,
 			  
@@ -79,109 +88,68 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
     	this.logger.log(`initialised`);
   
-  	}
-
+	  }
+	  
+//  handle connection event
 
   async handleConnection(client:Socket) {
 	let emailOfConnectedUser=null,nameOfConnectedUser=null;
-  
-
-	client.emit('welcome',"welcome to the server")
-	  client.on('handler',async (data) => {
-  
+	console.log(client.handshake.query.token)
+	
+    if(client.handshake.query.token){
+		var data = client.handshake.query.token
 		try{
 			const ans = <JwtPayLoad>jwt.verify(data,this.configservice.get<string>('JWT_SECRET'))
 			let isuserValidatedwithPlayload = await this.jwtstrategy.validate(ans)
-			
 			if(isuserValidatedwithPlayload) {
+
+				client.id= isuserValidatedwithPlayload.username;
 				this.check[client.id] = true
-				emailOfConnectedUser = ans.email
-				nameOfConnectedUser = ans.username
-				client.emit('return',isuserValidatedwithPlayload) //in the browser console this output will be showm
+				client.emit('Connection',isuserValidatedwithPlayload) //in the browser console this output will be showm
 			}
 
 			else{
-				client.emit('return',"client not verified with this payload")
-				throw new UnauthorizedException("not valid payload");
+				console.log("invalid token")
+				client.emit('Connection',"invalid_token")
+				
 			}
 		}
 		catch(err){
-			const message = 'Token error- ' + err.message
-			client.emit('Error','User Not Verified');
-			throw new HttpException(message, HttpStatus.FORBIDDEN)
-		}   
-	
-	
-	
 
-		if(this.check[client.id]){
-	
-			this.clientidwithName[client.id] = nameOfConnectedUser
+		  	const message = 'Token error- ' + err.message
+			client.emit('Connection', message);
+			// throw new HttpException(message, HttpStatus.FORBIDDEN)
+		}
 		
+		if(this.check[client.id]){
+	        
+			this.clientidwithName[client.id] = client.id
 		}
 		else{
 
-			client.emit('ERROR','NO PAYLOAD TO VERIFY');
-			throw new NotFoundException("payload not found");
+			client.emit('Connection','token_not_found2');
 
 		}
-	
-		/*----------------------for long duration game when user leaves room for some time and rejoin it we have to see is there any pending game with that user inside it --------------------------*/
-	
-		if(await this.passkey.findOne().where('user1').equals(this.clientidwithName[client.id])){
 
-			const game = await this.passkey.findOne().where('user1').equals(this.clientidwithName[client.id]).exec();
-			const user1 = await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
-			game.client1id = client.id
-			await game.save();
-			await user1.save();
-			this.handleJoin(client,game.gameid);
-		}
-	
-		else if(await this.passkey.findOne().where('user2').equals(this.clientidwithName[client.id])){
-			const game = await this.passkey.findOne().where('user2').equals(this.clientidwithName[client.id]).exec();
-			const user2 = await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
-			game.client2id = client.id
-			await game.save();
-			await user2.save();
-			this.handleJoin(client,game.gameid);
-		}
-		
-		/*------------------------------------------------------*/
-		/*------logic for checking the invitation email------*/
+		client.emit('Connection',"Connected to the socket");
 
-		if( this.check[client.id] && Object.values(this.room_invited_player_email).indexOf(emailOfConnectedUser) != -1){
+	}
+  else{
 
-			this.handleJoinInvitation(client,Object.keys(this.room_invited_player_email)[Object.values(this.room_invited_player_email).indexOf(emailOfConnectedUser)]);
-
-		}
-		/*---------------------------------------------------*/
-
-		/*------logic for checking if user is regular not invited------*/
-		
-		else if(this.check[client.id]){
-			//  this.currConnected[client.id] = true;
-			client.emit('joined', `welcome user ${client.id}`);
-		}
-		/*---------------------------------------------------*/
-	})
+	client.emit('Connection', "missing_token")
+	client.disconnect()
+  }
   }
 
-  	@SubscribeMessage('Join_Alone')
+
+
+  	@SubscribeMessage('public')
 	handleJoin_Alone(client: Socket){
 		if(this.check[client.id]){
 
 			const pos = this.games.findIndex((game) => { return game.players == 1 || game.players == 0});
 
 			if(pos != -1 && (this.room_status[this.games[pos].gameRoom] != true) && this.room_invite_flag[this.games[pos].gameRoom] != true){
-
-
-				// this.room_status[this.games[pos].gameRoom] = true;
-				// const game_pos = this.games.findIndex((game) => { return game.gameRoom == this.games[pos].gameRoom});
-		
-				// this.games[game_pos].users.push(client.id);
-		
-		
 				this.handleJoin( client, this.games[pos].gameRoom);
 		
 				this.games[pos].players++;
@@ -193,18 +161,18 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			}
 
 			else {
-				client.emit('NOTICE','No room is free now wait for someone to join')
+				client.emit('NOTICE','Waiting for another player')
 				this.handlejoinFirstTime(client);
 			}
 		}
 
 		else {
-			client.emit('Error','Unverified payload');
+			client.emit('Error','invalid_token');
 			client.disconnect();
 		}
 	}
 
-	@SubscribeMessage('Join_With_Friend')
+	@SubscribeMessage('private')
 	handleJoin_with_Friend(client: Socket) {
 		if(this.check[client.id]){
 			this.handlejoinFirstTime(client);
@@ -212,7 +180,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			this.room_invite_flag[room] = true;
 		}
 		else{
-			client.emit("Error","Unverified payload");
+			client.emit("Error","invalid_token");
 			client.disconnect();
 		}
 	}
@@ -223,7 +191,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		const pos  =  this.games.findIndex((game) => game.gameRoom == room);
 		client.join(room);
 		client.emit('Joined',`Welcome to the room ${room}`);
-		client.to(room).broadcast.emit('user joined', `User ${client.id} has joined the room`);
+		client.to(room).broadcast.emit('player_joined', `User ${client.id} has joined the room`);
 
 		this.currConnected[client.id] = true;
 		this.users[client.id] = room;
@@ -559,7 +527,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		else{
 			let Firstgame =  await this.user.findOne().where('username').equals(this.clientidwithName[client.id]).exec();
 			if(Firstgame.stars <= 0){
-				
 				flag_for_stars = 0
 				this.handleEndGame(client)
 
@@ -754,23 +721,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 							gameexist.client1id = client.id,
 
 							nameinUSERDB.usedCards.push(data)
-
 							let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
 							let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
 							y.forEach((element) => x.push(element));
 							nameinUSERDB.notUsedCards = x;
-							/*	let pos = 0
-							let x = game.slice(0,pos)
-							let y = game.slice(pos+1)
-							y.forEach(element => {
-								x.push(element)
-							});
-							game = x
-							console.log(game) */
-
-							// nameinUSERDB.notUsedCards.splice(indexofCard,1,-1000);
-
-							//nameinUSERDB.stars--
 	
 							await nameinUSERDB.save()
 	
@@ -1560,10 +1514,123 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 
 
-		handleNotification(id:string){
-			this.wss.to(id).emit('Notification','What is Up?');
+		@SubscribeMessage('Message')
+		async messageclient(client:Socket, data:string){
+		   console.log(client.id)
+		   client.emit('listen', "this is the data");
+
 		}
 
 
+
+
+		// Join Public game starts here  -----  
+		  @SubscribeMessage('Public')
+		  async startpublicgame(client:Socket, data:Object){
+			var token = data.jwt_token;
+			try{
+				const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'))  
+				let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+				console.log(userdetails.publickey);
+				if(userdetails.publickey){
+					var stars = await show_stars(userdetails.publickey);
+					var card_details = await total_cards(userdetails.publickey);					
+				}
+				
+			   var existing_game = await  this.match.find({$and:[
+				   {'player1.username':{$ne:userdetails.username}},
+				    {'player2.username':null}
+			   ]})
+			   console.log(existing_game.length);
+
+			   if(existing_game.length > 0){
+				
+				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':stars,'player_joined':2,"status":"active"}}, function(err,data){
+					 if( err) console.log(err)
+				 })
+
+				 var response = await this.match.findOne().where('gameid').equals(existing_game[0].gameid).exec()
+
+				client.emit("new_match_response", response);
+			   }
+				else if( stars > 0 &&  card_details >0 ){
+					  const match = new this.match({
+						gameid:uuid(),
+						match_type:data.match_type,
+						stars_of_player1:stars,
+						stars_of_player2:0,
+						start_date: new Date(),
+						round:0,
+						player1:{
+							username: data.username,
+							publicaddress:data.publickey,
+						},
+						player2:{
+							username:null,
+							publicaddress:null
+						},
+						Rounds:[],
+						status:"waiting",
+						winner:""
+					 }
+					)
+
+					  await match.save(function(err,data){
+
+						if (err) return "Error while creating match";
+
+						else {
+							client.emit("new_match_response", data);
+						}
+					  });
+
+					}
+
+			}
+			catch{
+                
+				console.log("Invalid user") // Later pass this as event back to client
+				client.emit("new_match_response", "Invalid user");
+			}
+
+		  }
+		
+		// Joinn public game ends here
+		 
+		@SubscribeMessage('fetch_match_details')
+		async getmatchdetails(client:Socket, data:Object){
+			var token = data.jwt_token; 
+
+			try{
+			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'))  
+			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+			if(userdetails){
+
+			var response = await this.match.find({$or:[
+					{'player1.username':userdetails.username},
+					 {'player2.username':userdetails.username}
+				]})
+
+				client.emit('match_details',response)
+			}
+			  }  
+			catch{
+				data ={
+					response:401,
+					message:"Invalid User"
+				}
+                client.emit('match_details',response)
+			}      
+
+
+		}
+
+		// Join 
+
+		handleNotification(id:string){
+
+			this.wss.to(id).emit('Notification','What is Up?');
+
+		}
 
 }

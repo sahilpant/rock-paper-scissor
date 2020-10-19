@@ -11,11 +11,28 @@ export class AppComponent {
     private socket:Socket){
     this.webSocketservice.onConnection()
     this.socket.on('return',data=> console.log(data))
+    this.socket.on('listen', data => console.log(data))
+    this.socket.on('new_match_response', data => console.log(data))
+    this.socket.on('match_details', data => console.log(data))
   }
   
-    extra(){
+    extra(){  
+      console.log("hit")
       this.webSocketservice.handlereq();
     }
+
+    test(){
+      this.webSocketservice.testmessage();
+    }
+     public(){
+
+      this.webSocketservice.public();
+     }  
+
+     matchdetails(){
+
+       this.webSocketservice.matchdetails()
+     }
 
   title = 'ngapp';
 }

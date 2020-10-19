@@ -33,18 +33,15 @@ export class RegisterController {
     @ApiBody({type: username})
     @ApiCreatedResponse({description: "An object with response with response in res key."})
     createUser(@Body() userNameDto:username){
-      
       return this.registerService.createUser(userNameDto)
-    
+  
     }
 
     @Post('/:forgotUser')
     @ApiCreatedResponse({description : 'user email id is staged for resetting the password'})
     resetPass(@Param('forgotUser') email:string){
-    
       console.log(email);
       return this.registerService.resetPass(email)
-    
     }
 
     @Get('/:show')
@@ -67,16 +64,6 @@ export class RegisterController {
          const data = await detailOfCard(392);
          console.log(data+"   "+data[0]+"   "+data[1]);
     }
-
-    
-  
-
-
-  // @Post('/cardetails')
-  // cardetails(@Body() publickey:publickey){
-  //  console.log(publickey)
-  //   return "adsss"
-  // }
 
 
   }
