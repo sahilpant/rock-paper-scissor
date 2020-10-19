@@ -24,6 +24,7 @@ import { NotificationService } from './notification/notification.service';
 import { join } from "path"
 import { History } from './schemas/History.model';
 import {match} from './schemas/match'
+import { BiddingModule } from './bidding/bidding.module';
 
 @Module({
 
@@ -93,6 +94,8 @@ import {match} from './schemas/match'
       signOptions:{ expiresIn:3600, },
    
     }),
+    
+    BiddingModule,
   
   ],
   
