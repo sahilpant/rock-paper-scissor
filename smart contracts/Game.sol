@@ -410,6 +410,29 @@ contract Game{
         return nft.returnTokenCount(_of, 3 , false);
     }
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     
     function showStars(address _of) public view returns(uint256){
         return stars.balanceOf(_of); // call hritik function

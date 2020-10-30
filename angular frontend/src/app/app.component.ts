@@ -14,6 +14,8 @@ export class AppComponent {
     this.socket.on('listen', data => console.log(data))
     this.socket.on('new_match_response', data => console.log(data))
     this.socket.on('match_details', data => console.log(data))
+    this.socket.on('start_match_response', data => console.log(data))
+    
   }
   
     extra(){  
@@ -30,8 +32,11 @@ export class AppComponent {
      }  
 
      matchdetails(){
-
        this.webSocketservice.matchdetails()
+     }
+
+     startmatch(){
+      this.webSocketservice.startmatch()
      }
 
   title = 'ngapp';

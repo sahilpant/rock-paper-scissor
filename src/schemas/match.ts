@@ -11,6 +11,7 @@ import { type } from 'os';
     rounds_played:{type:Number},
     round:{type:Number },
     player_joined:{type:Number},
+    live:{type:Boolean},
     player1:{
         username: String,
         publicaddress:String

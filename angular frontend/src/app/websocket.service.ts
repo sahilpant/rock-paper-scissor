@@ -25,12 +25,12 @@ export class WebsocketService {
 
    public(){
     console.log(token);
-   var data = {
-      jwt_token: token,
-      match_type: "short",
-      publickey:"rrweeeeeeeeeeeeeeeeee",
-      username:localStorage.getItem('username')
-    }
+    var data = {
+        jwt_token: token,
+        match_type: "short",
+        publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
+        username:localStorage.getItem('username')
+      }
     this.socket.emit('Public', data )
    }
 
@@ -39,12 +39,26 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"rrweeeeeeeeeeeeeeeeee",
+      publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
       username:localStorage.getItem('username')
     }
-    this.socket.emit('fetch__match_details',data);
-    
+    console.log(data)
+    this.socket.emit('fetch_match_details',data);
 
+   }
+
+
+   startmatch(){
+    var data = {
+      jwt_token: token,
+      match_type: "short",
+      publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
+      username:localStorage.getItem('username'),
+      gameid:""
+    }
+    
+    console.log(data);
+    this.socket.emit('start_match',data);
    }
    
 

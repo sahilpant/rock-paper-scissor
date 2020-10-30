@@ -131,7 +131,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 
 		}
 
-		client.emit('Connection',"Connected to the socket");
 
 	}
   else{
@@ -910,7 +909,7 @@ async playGame(client:Socket,data:Number)
 		@SubscribeMessage('fetch_match_details')
 		async getmatchdetails(client:Socket, data:Object){
 			var token = data.jwt_token; 
-
+            console.log(data)
 			try{
 			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'))  
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
@@ -935,7 +934,32 @@ async playGame(client:Socket,data:Number)
 
 		}
 
-		// Join 
+		// Join the game play
+		@SubscribeMessage('start_match')
+ 		async start_match(client:Socket, data:Object){
+			var token = data.jwt_token; 
+			console.log(data);
+			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
+			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+			try{
+			if(userdetails){
+                   var room=data.gameid
+					client.join(room);
+					client.emit('start_match_response',`Joined ${userdetails.username}`);
+					client.to(room).broadcast.emit('start_match_response', `User ${client.id} has joined the room`);
+				}
+			}
+			catch{
+
+				data ={
+					response:401,
+					message:"Invalid User"
+				}
+                client.emit('start_match_response',data)
+
+			}
+
+		}
 
 		handleNotification(id:string){
 

@@ -781,6 +781,8 @@ var Transfer =async function(_to,value,gameContractAddress) { await Transfer(_to
 var burn = async function(tokenId,gameContractAddress) {  await burn(tokenId,account1,privateKey1,gameContractAddress)}
 var getalldetails = async function(address) { await getAllDetails(address) }
 
+
+console.log( show_stars("0x273c249b8be25a88ade9ec182655af6ae263c58a"));
 module.exports = {
         sign_up:sign_up,
         show_stars:show_stars,
