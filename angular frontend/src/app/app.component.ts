@@ -55,5 +55,8 @@ export class AppComponent {
        this.webSocketservice.getroomID();
      }
 
+     play(){
+       this.webSocketservice.play()
+     }
   title = 'ngapp';
 }

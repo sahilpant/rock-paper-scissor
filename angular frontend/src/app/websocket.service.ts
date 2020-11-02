@@ -28,7 +28,7 @@ export class WebsocketService {
     var data = {
         jwt_token: token,
         match_type: "short",
-        publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
+        publickey:"0x1A116902f5eEa93ef63055B6a0B630DE31d67F3A",
         username:localStorage.getItem('username')
       }
     this.socket.emit('Public', data )
@@ -39,7 +39,7 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
+      publickey:"0x71fa8E0f9C95850c2f0a5a436cA6A120a8f18DEC",
       username:localStorage.getItem('username')
     }
     console.log(data)
@@ -54,10 +54,14 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
+      publickey:"0x1A116902f5eEa93ef63055B6a0B630DE31d67F3A",
       username:localStorage.getItem('username'),
+<<<<<<< HEAD
       gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047",
       roomID: proom
+=======
+      gameid:"5e6a1022-e1b6-491a-8c78-5038fff80d20"
+>>>>>>> fef66d0d6503cdd1c91d5b58af17272fc5be2102
     }
     
     console.log(data);
@@ -84,6 +88,21 @@ export class WebsocketService {
       gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047"
     }
      this.socket.emit('getroomID', data);
+   }
+   
+
+   play(){
+    var data = {
+      jwt_token: token,
+      match_type: "short",
+      publickey:"0x1A116902f5eEa93ef63055B6a0B630DE31d67F3A",
+      username:localStorage.getItem('username'),
+      cardNO:1517,
+      gameid:"5e6a1022-e1b6-491a-8c78-5038fff80d20"
+    }
+    
+    console.log(data);
+    this.socket.emit('play',data);
    }
    
 

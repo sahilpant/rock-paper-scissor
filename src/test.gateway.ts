@@ -563,9 +563,11 @@ async finalResult(gameid:string)
 }
 
 @SubscribeMessage('play')
-async playGame(client:Socket,data:Number)
+async playGame(client:Socket,obj:Object)
 {
-	let gameAlreadyExist =  await this.passkey.findOne({gameid:this.users[client.id]});
+	var data = obj.cardNO;
+	console.log(data);
+	let gameAlreadyExist =  await this.passkey.findOne({gameid:obj.gameid});
 	let gameisfurtherPlay = true;
 	let no_of_stars_holdByAdmin = 0;
     
@@ -582,7 +584,7 @@ async playGame(client:Socket,data:Number)
 		if( Firstgame && Firstgame.stars <= 0)
 		{
 			gameisfurtherPlay = false
-			const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
+			const newHistory = await this.History.findOne({"Game_Id": obj.gameid});
 			newHistory.Status = "Aborted";
 			await newHistory.save();
 			this.handleEndGame(client)
@@ -621,7 +623,7 @@ async playGame(client:Socket,data:Number)
 
 		if(!gameisfurtherPlay)
 		{
-			const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
+			const newHistory = await this.History.findOne({"Game_Id": obj.gameid});
 			this.finalResult(this.users[client.id])
 			newHistory.Status = "Aborted";
 			await newHistory.save();
@@ -656,7 +658,7 @@ async playGame(client:Socket,data:Number)
 									(carddetail[0] === "2")?(givenCardType="PAPER"):(
 																		(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
 																		
-		let gameid = this.users[client.id]  
+		let gameid = obj.gameid;
         if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
 		{
 			let gameexist = await this.passkey.findOne({gameid:gameid})
