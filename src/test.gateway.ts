@@ -1025,4 +1025,25 @@ async playGame(client:Socket,obj:Object)
 
 			}
 		 }
+
+
+		 @SubscribeMessage('Disconnect')
+ 		async disconnect(client:Socket, data:Object){
+			var token = data.jwt_token; 
+			console.log(data);
+			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
+			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+			try{
+				client.connected = false;
+			}
+			catch{
+
+				data ={
+					response:401,
+					message:"Invalid User"
+				}
+                client.emit('Disconnect_response',data)
+
+			}
+		 }
 }
