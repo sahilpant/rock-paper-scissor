@@ -562,10 +562,10 @@ async finalResult(gameid:string)
 					
 }
 
-@SubscribeMessage('play')
+@SubscribeMessage('move')
 async playGame(client:Socket,obj:Object)
 {
-	var data = obj.cardNO;
+	var data = obj.card_number;
 	console.log(data);
 	let gameAlreadyExist =  await this.passkey.findOne({gameid:obj.gameid});
 	let gameisfurtherPlay = true;
@@ -764,11 +764,11 @@ async playGame(client:Socket,obj:Object)
 
 				if(gameResult === "game is draw")
 				{
-					this.wss.to(gameid).emit('result',"game is draw")
+					this.wss.to(gameid).emit('move_response',"DRAW")
 				}
 				else
 				{
-					this.wss.to(gameid).emit('result of round',gameResult+" WON ");
+					this.wss.to(gameid).emit('move_response',gameResult+" WON ");
 				}	
 				this.wss.to(gameid).emit(`${user1name}`,user1card);
 				this.wss.to(gameid).emit(`${user2name}`,user2card);

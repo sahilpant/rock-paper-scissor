@@ -56,12 +56,8 @@ export class WebsocketService {
       match_type: "short",
       publickey:"0x1A116902f5eEa93ef63055B6a0B630DE31d67F3A",
       username:localStorage.getItem('username'),
-<<<<<<< HEAD
       gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047",
       roomID: proom
-=======
-      gameid:"5e6a1022-e1b6-491a-8c78-5038fff80d20"
->>>>>>> fef66d0d6503cdd1c91d5b58af17272fc5be2102
     }
     
     console.log(data);
@@ -97,7 +93,7 @@ export class WebsocketService {
       match_type: "short",
       publickey:"0x1A116902f5eEa93ef63055B6a0B630DE31d67F3A",
       username:localStorage.getItem('username'),
-      cardNO:1517,
+      card_number:1517,
       gameid:"5e6a1022-e1b6-491a-8c78-5038fff80d20"
     }
     

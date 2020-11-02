@@ -7,6 +7,7 @@ import { WebsocketService} from './websocket.service'
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
+ mes:any;
   constructor(private webSocketservice:WebsocketService,
     private socket:Socket){
     this.webSocketservice.onConnection()
@@ -57,6 +58,10 @@ export class AppComponent {
 
      play(){
        this.webSocketservice.play()
+     }
+
+     display(){
+       console.log(this.mes)
      }
   title = 'ngapp';
 }

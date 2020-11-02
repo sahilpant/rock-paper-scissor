@@ -9,7 +9,7 @@ import { type } from 'os';
     stars_of_player2:{type:Number},
     start_date:{type:Date},
     rounds_played:{type:Number},
-    round:{type:Number },
+    round:{type:Number},
     player_joined:{type:Number},
     live:{type:Boolean},
     player1:{
