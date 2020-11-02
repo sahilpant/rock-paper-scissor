@@ -39,5 +39,8 @@ export class AppComponent {
       this.webSocketservice.startmatch()
      }
 
+     play(){
+       this.webSocketservice.play()
+     }
   title = 'ngapp';
 }
