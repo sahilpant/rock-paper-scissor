@@ -605,7 +605,7 @@ async playGame(client:Socket,data:Number)
 			const newHistory = await this.History.findOne({"Game_Id": this.users[client.id]});
 			newHistory.Status = "Aborted";
 			await newHistory.save();
-			this.handleEndGame(client)
+			this.handleEndGame(client);
 		}
 		else
 		{
@@ -731,7 +731,7 @@ async playGame(client:Socket,data:Number)
 			    y.forEach((element) => x.push(element));
 			    nameinUSERDB.notUsedCards = x;
 			
-			    await nameinUSERDB.save()
+			    await nameinUSERDB.save();
 			}
 			gameexist = await this.passkey.findOne({gameid:gameid});
 
@@ -943,10 +943,28 @@ async playGame(client:Socket,data:Number)
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
 			try{
 			if(userdetails){
-                   var room=data.gameid
-					client.join(room);
-					client.emit('start_match_response',`Joined ${userdetails.username}`);
-					client.to(room).broadcast.emit('start_match_response', `User ${client.id} has joined the room`);
+				   var room=data.gameid;
+				  
+		
+				   client.leave(data.roomID, async () =>{
+					//    console.log(Object.keys(data.roomID));
+					   console.log(`user left ${data.roomID}`);
+					client.join(room, await function(err){
+						if(err) throw err;
+						else {console.log("hi")
+						client.to(room).emit('start_match_response', `User ${client.id} has joined the room`);
+						client.to(room).emit('start_match_response', `User ${client.id} has joined the room`);
+					  
+					  }
+			 });
+				   })
+				   
+					console.log(Object.keys(client));
+					console.log(client.rooms);
+					
+					console.log("This was hit");
+					client.emit('start_match_response',`Joined ${userdetails.username} and gane room is ${room}`);
+                    
 				}
 			}
 			catch{
@@ -959,6 +977,25 @@ async playGame(client:Socket,data:Number)
 
 			}
 
+		}
+
+		@SubscribeMessage("activerooms")
+        async activerooms(client:Socket, data:Object){
+				
+				var roo = data.gameid;
+				console.log(roo);
+				console.log(client.rooms);
+				console.log("Above are the rooms");
+				// console.log(client.clients())
+				client.to("c29b47d8-e7c9-4636-8a06-9baac2d97047").emit('activerooms_response', "THhis is the message");
+		}
+		@SubscribeMessage("getroomID")
+        async getroomID(client:Socket, data:Object){
+				
+				console.log(client.rooms);
+				var room = client.rooms;
+				console.log("Above are the rooms");
+				client.emit('getroomID_response', room)
 		}
 
 		handleNotification(id:string){

@@ -15,6 +15,15 @@ export class AppComponent {
     this.socket.on('new_match_response', data => console.log(data))
     this.socket.on('match_details', data => console.log(data))
     this.socket.on('start_match_response', data => console.log(data))
+    this.socket.on('activerooms_response', (data) => {
+      console.log("sdfghj")
+      console.log(data)});
+      this.socket.on('getroomID_response', (data) => {
+        console.log(data);
+        var rid = Object.keys(data)[0];
+        localStorage.setItem('roomID',rid);
+      
+      });
     
   }
   
@@ -37,6 +46,13 @@ export class AppComponent {
 
      startmatch(){
       this.webSocketservice.startmatch()
+     }
+
+     activerroms(){
+      this.webSocketservice.activerooms()
+     }
+     getroomID(){
+       this.webSocketservice.getroomID();
      }
 
   title = 'ngapp';

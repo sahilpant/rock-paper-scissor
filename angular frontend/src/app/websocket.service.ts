@@ -49,16 +49,41 @@ export class WebsocketService {
 
 
    startmatch(){
+     var proom =localStorage.getItem('roomID');
+     console.log(proom);
     var data = {
       jwt_token: token,
       match_type: "short",
       publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
       username:localStorage.getItem('username'),
-      gameid:""
+      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047",
+      roomID: proom
     }
     
     console.log(data);
     this.socket.emit('start_match',data);
+   }
+
+   activerooms(){
+    var data = {
+      jwt_token: token,
+      match_type: "short",
+      publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
+      username:localStorage.getItem('username'),
+      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047"
+    }
+     this.socket.emit('activerooms', data);
+   }
+
+   getroomID(){
+    var data = {
+      jwt_token: token,
+      match_type: "short",
+      publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
+      username:localStorage.getItem('username'),
+      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047"
+    }
+     this.socket.emit('getroomID', data);
    }
    
 
