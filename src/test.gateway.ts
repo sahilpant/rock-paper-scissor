@@ -948,9 +948,9 @@ async playGame(client:Socket,obj:Object)
 				   var room=data.gameid;
 				  
 		
-				   client.leave(data.roomID, async () =>{
+				//    client.leave(data.roomID, async () =>{
 					//    console.log(Object.keys(data.roomID));
-					   console.log(`user left ${data.roomID}`);
+					//    console.log(`user left ${data.roomID}`);
 					client.join(room, await function(err){
 						if(err) throw err;
 						else {console.log("hi")
@@ -959,7 +959,7 @@ async playGame(client:Socket,obj:Object)
 					  
 					  }
 			 });
-				   })
+				//    })
 				   
 					console.log(Object.keys(client));
 					console.log(client.rooms);
@@ -987,8 +987,7 @@ async playGame(client:Socket,obj:Object)
 				var roo = data.gameid;
 				console.log(roo);
 				console.log(client.rooms);
-				console.log("Above are the rooms");
-				// console.log(client.clients())
+
 				client.to("c29b47d8-e7c9-4636-8a06-9baac2d97047").emit('activerooms_response', "THhis is the message");
 		}
 		@SubscribeMessage("getroomID")
@@ -1005,5 +1004,25 @@ async playGame(client:Socket,obj:Object)
 			this.wss.to(id).emit('Notification','What is Up?');
 
 		}
+		@SubscribeMessage('leave_match')
+ 		async leave_match(client:Socket, data:Object){
+			var token = data.jwt_token; 
+			console.log(data);
+			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
+			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+			try{
+				client.leave(data.roomID, async () =>{
+					client.emit('leave_match_response', `${data.username} left room ${data.roomID}`)
+				})
+			}
+			catch{
 
+				data ={
+					response:401,
+					message:"Invalid User"
+				}
+                client.emit('leave_match_response',data)
+
+			}
+		 }
 }
