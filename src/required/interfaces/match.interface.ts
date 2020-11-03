@@ -4,12 +4,12 @@ export interface match extends mongoose.Document{
 	findMany(): any;
 	findOne(): any;
     
-    gameid:{type:String},
+    gameid:String,
     match_type:{type:String},
-    stars_of_player1:{type:Number},
-    stars_of_player2:{type:Number | number},
-    start_date:{type:Date},
-    round:{type:Number},
+    stars_of_player1:number,
+    stars_of_player2:number,
+    start_date:Date,
+    round:number,
     player_joined:number,
     player1:{
         username: String,
@@ -34,5 +34,5 @@ export interface match extends mongoose.Document{
     }
     ],
     status:string,
-    winner:{type:String},
+    winner:String,
  }

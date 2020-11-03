@@ -3,6 +3,7 @@ import { Model } from 'mongoose';
 import { user } from 'src/required/interfaces/user.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { passkey } from 'src/required/interfaces/passkey.interface';
+import { match } from 'src/required/interfaces/match.interface';
 // import {Transfer,burn} from '../../gameblock'
 @Injectable()
 export class PlayService {
@@ -10,7 +11,9 @@ export class PlayService {
      constructor(
                  @InjectModel('user') private readonly user:Model<user>,
       
-                 @InjectModel('passkey') private readonly passkey:Model<passkey>,){}
+                 @InjectModel('passkey') private readonly passkey:Model<passkey>,
+                 
+                 @InjectModel('match') private readonly match:Model<match>){}
 
     async play(gameid:string,)
 {
@@ -38,6 +41,31 @@ export class PlayService {
     let arrOfCards=`[${card1}:${token1},${card2}:${token2}]`
      
     game.moves.push(arrOfCards)
+
+    let existing_game =  await this.match.find({gameid:gameid});
+ 
+    var currRound = existing_game[0].round + 1;
+
+    var obj = {player1:{
+      card_type:<String>card1,
+      card_number:token1,
+      timestamp:new Date
+     },
+      player2:{
+      card_type:<String>card2,
+      card_number:token2,
+      timestamp:new Date
+     }     
+    }
+
+let arr = existing_game[0].Rounds;
+arr.push(obj);
+    await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{
+       'round':currRound,
+       'Rounds':arr
+    }, function(err: any,data: any){
+      if( err) console.log(err);
+    }})
 
     await game.save();
 
@@ -69,6 +97,12 @@ export class PlayService {
         console.log(user2+" is defeated ")
       
         userno1.stars+= 2   //here stars are removed from admin account also
+
+        let existing_game =  await this.match.find({gameid:gameid})
+
+				existing_game[0].stars_of_player1+=2;
+            
+        await existing_game[0].save();
       
         await userno1.save();
       
@@ -99,6 +133,12 @@ export class PlayService {
       
         userno2.stars+= 2  //here stars are removed from admin account also
 
+        let existing_game =  await this.match.find({gameid:gameid})
+
+				existing_game[0].stars_of_player2+=2;
+            
+        await existing_game[0].save();
+
         await userno2.save();
       
         game.card1="empty"
@@ -115,6 +155,11 @@ export class PlayService {
         return game.user2
       
       }
+
+      existing_game[0].stars_of_player1+=1;
+
+      existing_game[0].stars_of_player1+=1;
+
       const userno1= await this.user.findOne().where('username').equals(user1).exec();
 
       const userno2= await this.user.findOne().where('username').equals(user2).exec();
@@ -126,6 +171,8 @@ export class PlayService {
       await userno1.save();
 
       await userno2.save();
+
+      await existing_game[0].save();
 
       game.playerWin.push("tie")
 
