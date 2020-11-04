@@ -527,6 +527,11 @@ async giveStarstoAdminforPlay(Cl_id,nameinUSERDB)
 
 async finalResult(gameid:string)
 {
+
+	
+	var existing_game = await this.match.find({gameid:gameid})
+					
+
 	let gameINDB = await this.passkey.findOne({gameid:gameid})
 	if(gameINDB.playerWin.length !== 0)
 	{
@@ -549,8 +554,11 @@ async finalResult(gameid:string)
 		}
 
 		const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw");
+		existing_game[0].winner = finalPlayerWon;
+		
 		this.wss.to(gameid).emit(`Final Result after Round${gameINDB.playerWin.length} `,finalPlayerWon);			
-		await gameINDB.deleteOne();						
+		await gameINDB.deleteOne();		
+		await existing_game[0].save()				
 	}
 	else
 	{
@@ -853,6 +861,10 @@ async playGame(client:Socket,obj:Object)
 			   console.log(existing_game.length);
 
 			   if(existing_game.length > 0){
+
+				if(stars>=3){
+					stars = stars-3;
+				}
 				
 				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':stars,'player_joined':2,"status":"active"}}, function(err,data){
 					 if( err) console.log(err)
@@ -863,6 +875,10 @@ async playGame(client:Socket,obj:Object)
 				client.emit("new_match_response", response);
 			   }
 				else if( stars > 0 &&  card_details >0 ){
+
+					if(stars>=3){
+						stars = stars-3;
+					}
 					  const match = new this.match({
 						gameid:uuid(),
 						match_type:data.match_type,
