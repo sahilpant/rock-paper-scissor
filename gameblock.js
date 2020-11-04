@@ -468,6 +468,7 @@ const account1  = '0x273C249b8bE25a88aDe9ec182655Af6ae263C58a'
 const account2  = '0xF7C17c02428CcC44a35725DfDe473cCA2c4393ff'
 const account3  = '0xf158F22ec9ef60A64F83Cf2BD59F6b5554E9caC4'
 const account4 = '0x63580a35A6B6Da5c13c1Bf9c62C51FbCe64c806F';
+const transferacc = '0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4';
 
 
 
@@ -707,6 +708,7 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
       
       async function transfer(_address,tokeId , account , privateKey , deployedAddress){/////trasnfer token from self to other account
         try{
+		
                 let transfer = await _interact.methods.transfer(_address,tokeId).encodeABI();
                 runCode(transfer , account , privateKey , deployedAddress);
         }
@@ -728,6 +730,8 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
 
 async function Transfer(_to,value, account , privateKey , deployedAddress){ ///transfer stars from self to other
 	try{
+
+		console.log("this is address" + _to +"amount" + value + "account"+ account)
                 var data = await star.methods.transfer(_to,value).encodeABI();
                 runCode(data , account , privateKey , deployedAddress);
         }catch(err){
@@ -737,7 +741,7 @@ async function Transfer(_to,value, account , privateKey , deployedAddress){ ///t
 
 async function TransferFrom(_from,_to,value , account , privateKey , deployedAddress){////transfer stars from other to someone else account ///approval needed 
         try{
-                 var Transferred = await star.methods.transferFrom(_from,_to,value).encodeABI();
+                 var Transferred = await star.methods.transferFrom(account1,"0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4",70).encodeABI();
                 runCode(Transferred , account , privateKey , deployedAddress);
         }
         catch(err){
@@ -777,12 +781,25 @@ var total_cards = async function (address) { return await totalCards(address); }
 var returnownedTokens = async function(playerAddress) { return await returnOwnedToken(playerAddress) }
 var detailOfCard = async function(tokenId) { return await details(tokenId)}
 var ownerof = async function(tokenId) { return await ownerOf(tokenId)}
-var Transfer =async function(_to,value,gameContractAddress) { await Transfer(_to,value,account1,privateKey1,gameContractAddress)}
+var transferstar =async function(_to,value,gameContractadd) { await Transfer(_to,value,account1,privateKey1,gameContractadd)}
+var transferfrom = async function(_from,_to,value, gameContractadd) {await TransferFrom(_from,_to,value , account2 , privateKey2 , gameContractadd)}
 var burn = async function(tokenId,gameContractAddress) {  await burn(tokenId,account1,privateKey1,gameContractAddress)}
 var getalldetails = async function(address) { await getAllDetails(address) }
 
 
-console.log( show_stars("0x273c249b8be25a88ade9ec182655af6ae263c58a"));
+// transferstar(transferacc,1,account1,privateKey1,"0x0A27A7370D14281152f7393Ed6bE963C2019F5fe").then((data)=>{
+// 	console.log(data);
+// });
+
+// transferfrom("0x984C21390376b2CB0cE40fA80CCa2cFBd86C14B7",transferacc, 1,"0x0A27A7370D14281152f7393Ed6bE963C2019F5fe").then((data)=>{
+// 	console.log(data);
+// },
+// (err)=>{
+// 	console.log("error")
+// });
+
+
+console.log( show_stars("0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4"));
 module.exports = {
         sign_up:sign_up,
         show_stars:show_stars,

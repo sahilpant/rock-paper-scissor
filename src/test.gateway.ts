@@ -327,9 +327,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 	@SubscribeMessage('End_Game')
 	async handleEndGame(client:Socket) {
 		const _room = this.users[client.id];
-		const pos  =  this.games.findIndex((game) => game.gameRoom == _room);
-		
-
+		const pos  =  this.games.findIndex((game) => game.gameRoom == _room); 
 
 		//DB access
 
@@ -1034,7 +1032,10 @@ async playGame(client:Socket,obj:Object)
 			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
 			try{
+
 				client.connected = false;
+				this.logger.log(`${client.id} disconnected`);
+				client.disconnect();
 			}
 			catch{
 
