@@ -521,6 +521,7 @@ async giveStarstoAdminforPlay(Cl_id,nameinUSERDB)
 	    nameinUSERDB.stars = 0;
 		this.adminBlockStars[Cl_id] = noOfStarsHolding;
 	}
+	//transfer(admin_Account,this.adminBlockStars[Cl_id]);
 	await nameinUSERDB.save();
 	
 }
@@ -533,6 +534,10 @@ async finalResult(gameid:string)
 					
 
 	let gameINDB = await this.passkey.findOne({gameid:gameid})
+
+	let db_user1 = await this.user.findOne({username:gameINDB.user1});
+	let db_user2 = await this.user.findOne({username:gameINDB.user2});
+
 	if(gameINDB.playerWin.length !== 0)
 	{
 		let newHistory = await this.History.findOne({Game_Id:gameid})					
@@ -555,7 +560,15 @@ async finalResult(gameid:string)
 
 		const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw");
 		existing_game[0].winner = finalPlayerWon;
+		existing_game[0].stars_of_player1 += this.adminBlockStars[gameINDB.client1id];
+		existing_game[0].stars_of_player2 += this.adminBlockStars[gameINDB.client2id];
 		
+		db_user1.stars += this.adminBlockStars[gameINDB.client1id];
+		db_user2.stars += this.adminBlockStars[gameINDB.client2id];
+
+		await db_user1.save();
+		await db_user2.save();
+
 		this.wss.to(gameid).emit(`Final Result after Round${gameINDB.playerWin.length} `,finalPlayerWon);			
 		await gameINDB.deleteOne();		
 		await existing_game[0].save()				
@@ -677,7 +690,7 @@ async playGame(client:Socket,obj:Object)
 			if(gameexist && gameexist.client1id && gameexist.client2id && indexofCard !== -1)
 			{	
 				//1st round is completed successfully
-				if(!gameexist.card1played)
+				if(!gameexist.card1played && client.id === gameexist.client1id)
 			   {
 				    gameexist.card1 = givenCardType;
 				    gameexist.token1 = data;
@@ -685,7 +698,7 @@ async playGame(client:Socket,obj:Object)
 					await gameexist.save();
 
 			   }
-			   else if(!gameexist.card2played)
+			   else if(!gameexist.card2played && client.id === gameexist.client2id)
 			   {
 					gameexist.card2 = givenCardType;
 					gameexist.token2 = data;
@@ -765,9 +778,15 @@ async playGame(client:Socket,obj:Object)
 				const userno1 = await this.user.find({username:user1name});
 				const userno2 = await this.user.find({username:user2name});
 
-				this.adminBlockStars[gameINDB.client1id]--;
-				this.adminBlockStars[gameINDB.client2id]--;
-
+				if(gameResult === user1name){
+					this.adminBlockStars[gameINDB.client1id]++;
+				    this.adminBlockStars[gameINDB.client2id]--;
+				}
+				else if(gameResult === user2name){
+					this.adminBlockStars[gameINDB.client1id]--;
+				    this.adminBlockStars[gameINDB.client2id]++;
+				}
+				
 				if(gameResult === "game is draw")
 				{
 					this.wss.to(gameid).emit('move_response',"DRAW")

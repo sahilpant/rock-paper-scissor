@@ -96,14 +96,6 @@ arr.push(obj);
       
         console.log(user2+" is defeated ")
       
-        userno1.stars+= 2   //here stars are removed from admin account also
-
-        let existing_game =  await this.match.find({gameid:gameid})
-
-				existing_game[0].stars_of_player1+=2;
-            
-        await existing_game[0].save();
-      
         await userno1.save();
       
         game.card1="empty"
@@ -130,14 +122,6 @@ arr.push(obj);
         game.playerWin.push(game.user2)
       
         console.log(user1+" is defeated ")
-      
-        userno2.stars+= 2  //here stars are removed from admin account also
-
-        let existing_game =  await this.match.find({gameid:gameid})
-
-				existing_game[0].stars_of_player2+=2;
-            
-        await existing_game[0].save();
 
         await userno2.save();
       
@@ -156,17 +140,10 @@ arr.push(obj);
       
       }
 
-      existing_game[0].stars_of_player1+=1;
-
-      existing_game[0].stars_of_player1+=1;
 
       const userno1= await this.user.findOne().where('username').equals(user1).exec();
 
       const userno2= await this.user.findOne().where('username').equals(user2).exec();
-
-      userno1.stars++;
-
-      userno2.stars++;
 
       await userno1.save();
 
