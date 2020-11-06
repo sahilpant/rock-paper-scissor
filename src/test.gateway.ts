@@ -979,7 +979,7 @@ async playGame(client:Socket,obj:Object)
 					console.log(client.rooms);
 					
 					console.log("This was hit");
-					client.emit('start_match_response',`Joined ${userdetails.username} and gane room is ${room}`);
+					client.emit('start_match_response',`Joined ${userdetails.username} and ga room is ${room}`);
                     
 				}
 			}
@@ -1041,7 +1041,7 @@ async playGame(client:Socket,obj:Object)
 		 }
 
 
-		 @SubscribeMessage('Disconnect')
+		 @SubscribeMessage('logoff')
  		async disconnect(client:Socket, data:Object){
 			var token = data.jwt_token; 
 			console.log(data);

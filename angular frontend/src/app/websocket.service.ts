@@ -93,12 +93,12 @@ export class WebsocketService {
       match_type: "short",
       publickey:"0x1A116902f5eEa93ef63055B6a0B630DE31d67F3A",
       username:localStorage.getItem('username'),
-      card_number:1517,
-      gameid:"5e6a1022-e1b6-491a-8c78-5038fff80d20"
+      card_number:localStorage.getItem('cardno'),
+      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047"
     }
     
     console.log(data);
-    this.socket.emit('play',data);
+    this.socket.emit('move',data);
    }
    
 
