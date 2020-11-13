@@ -95,11 +95,10 @@ export class WebsocketService {
       username:localStorage.getItem('username'),
       card_number:localStorage.getItem('cardno'),
       gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047"
-    }
+    } 
     
     console.log(data);
     this.socket.emit('move',data);
    }
-   
-
+    
 }

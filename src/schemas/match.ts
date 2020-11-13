@@ -5,10 +5,12 @@ import { type } from 'os';
     
     gameid:{type:String},
     match_type:{type:String},
+    TotalRounds:{type:Number},
+    GameLength:{type:Number},
     stars_of_player1:{type:Number},
     stars_of_player2:{type:Number},
     start_date:{type:Date},
-    round:{type:Number },
+    round:{type:Number},
     player_joined:{type:Number},
     live:{type:Boolean},
     player1:{
