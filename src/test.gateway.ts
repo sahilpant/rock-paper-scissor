@@ -33,7 +33,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   
  
   constructor(
-               private  general:AppGateway,
+              private  general:AppGateway,
               
               private jwtstrategy:jwtStrategy,
               
@@ -143,7 +143,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
   }
   }
 
-
+/*--------------------------------------------------------------------------*/
 
   	@SubscribeMessage('public')
 	handleJoin_Alone(client: Socket){
@@ -184,7 +184,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 			client.disconnect();
 		}
 	}
-
+/*------------------------------------------*/
 
   	handleJoinInvitation(client: Socket,room: string) {
 
@@ -672,14 +672,22 @@ async playGame(client:Socket,obj:Object)
 	{
 		console.log("Everything running fine")
 		let carddetail: string | string[];
-		carddetail = await detailOfCard(data); 
-	    console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
 
-	    let givenCardType: string
+		let givenCardType: string;
+		if(data == "NONE"){
+		carddetail = "NONE";
+		givenCardType = "NONE"
+		}
+		else
+		{
+		 carddetail = await detailOfCard(data); 
+	     console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
         (carddetail[0] === "1")?(givenCardType="ROCK"):(
 									(carddetail[0] === "2")?(givenCardType="PAPER"):(
 																		(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
-																		
+				
+		}
+																
 		let gameid = obj.gameid;
         if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
 		{
@@ -757,9 +765,129 @@ async playGame(client:Socket,obj:Object)
 			
 			    await nameinUSERDB.save();
 			}
-			gameexist = await this.passkey.findOne({gameid:gameid});
 
-			if(gameexist && gameexist.card1played && gameexist.card2played)
+		}
+			let gameexist = await this.passkey.findOne({gameid:gameid});
+
+			if(carddetail === "NONE"){
+				let winner:string;
+				if(gameexist && !gameexist.card1played && gameexist.card2played){
+                      winner = gameexist.user2;
+				}
+				else if(gameexist && !gameexist.card2played && gameexist.card1played){
+					  winner = gameexist.user1;
+				}
+				else if(!gameexist || (!gameexist.card1played && !gameexist.card2played)){
+					   winner = "NONE";
+				}
+				
+				
+
+					let newHistory = await this.History.findOne({Game_Id:gameid});
+				    let gameINDB = await this.passkey.findOne({gameid:gameid});
+
+				    const user1name = gameINDB.user1;
+				    const user2name = gameINDB.user2;
+				    const user1card = gameINDB.card1;
+				    const user2card = gameINDB.card2;
+				    let   token1    = gameINDB.token1;
+				    let   token2    = gameINDB.token2;
+
+				    newHistory.Player_1 = user1name;
+				    newHistory.Player_2 = user2name;
+				    await newHistory.save();
+			
+				    let gameResult = winner;
+
+
+				if(gameResult === user1name){
+					this.adminBlockStars[gameINDB.client1id]++;
+					this.adminBlockStars[gameINDB.client2id]--;
+					
+					const nameinUSERDB = await this.user.findOne({username:user1name});
+					let indexofCard = (nameinUSERDB.notUsedCards.indexOf(data))
+					nameinUSERDB.usedCards.push(data)
+                    let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
+			        let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
+			        y.forEach((element) => x.push(element));
+			        nameinUSERDB.notUsedCards = x;
+			        await nameinUSERDB.save();
+				}
+				else if(gameResult === user2name){
+					this.adminBlockStars[gameINDB.client1id]--;
+					this.adminBlockStars[gameINDB.client2id]++;
+					
+					const nameinUSERDB = await this.user.findOne({username:user2name});
+					let indexofCard = (nameinUSERDB.notUsedCards.indexOf(data))
+					nameinUSERDB.usedCards.push(data)
+                    let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
+			        let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
+			        y.forEach((element) => x.push(element));
+			        nameinUSERDB.notUsedCards = x;
+			        await nameinUSERDB.save();
+				}
+				
+				
+				if(gameResult === "NONE")
+				{
+					this.wss.to(gameid).emit('move_response',"None Of The Player play a move")
+				}
+				else
+				{
+					this.wss.to(gameid).emit('move_response',gameResult+" WON ");
+					this.wss.to(gameid).emit(`${user1name}`,user1card);
+				    this.wss.to(gameid).emit(`${user2name}`,user2card);
+				}	
+				
+				
+
+				gameINDB = await this.passkey.findOne({gameid:gameid})
+
+				/******************************************************************/
+				if(gameINDB.playerWin.length === 1){
+					newHistory.Result_1.Player_1.Card_Type = user1card;
+					newHistory.Result_1.Player_1.Card_No = token1;
+
+					newHistory.Result_1.Player_2.Card_Type = user2card;
+					newHistory.Result_1.Player_2.Card_No = token2;
+
+					newHistory.Total_Rounds = 1;
+					await newHistory.save();
+				}
+				if(gameINDB.playerWin.length === 2){
+					newHistory.Result_2.Player_1.Card_Type = user1card;
+					newHistory.Result_2.Player_2.Card_No = token2;
+					
+					newHistory.Result_2.Player_2.Card_Type = user2card;
+					newHistory.Result_2.Player_2.Card_No = token2;
+
+					newHistory.Total_Rounds = 2;
+					await newHistory.save();
+				}
+				/******************************************************************/
+
+				if(gameINDB.playerWin.length === 3)
+
+				{
+					newHistory.Result_3.Player_1.Card_Type = user1card;
+					newHistory.Result_3.Player_1.Card_No = token1;
+					
+					newHistory.Result_3.Player_2.Card_Type = user2card;
+					newHistory.Result_3.Player_2.Card_No = token2;
+					
+					newHistory.Total_Rounds = 3;
+			
+					newHistory.Status = "Completed";
+					newHistory.End_Date = new Date();
+					newHistory.Last_Updated_Date = new Date();
+
+					await newHistory.save();
+					this.finalResult(gameid);
+				}
+				
+			}
+
+			else if(gameexist && gameexist.card1played && gameexist.card2played)
             {
 				
 				let newHistory = await this.History.findOne({Game_Id:gameid});
@@ -846,7 +974,8 @@ async playGame(client:Socket,obj:Object)
 					this.finalResult(gameid);
 				}
 			}
-		}
+		
+		
 	}
 }
 

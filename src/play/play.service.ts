@@ -98,9 +98,13 @@ arr.push(obj);
       
         await userno1.save();
       
-        game.card1="empty"
+        game.card1="empty";
       
-        game.card2="empty"
+        game.card2="empty";
+
+        game.token1 = null;
+
+        game.token2 = null;
 
         game.card1played = false
 
@@ -129,10 +133,13 @@ arr.push(obj);
       
         game.card2="empty"
 
-        
-       game.card1played = false
+        game.token1 = null;
 
-       game.card2played = false
+        game.token2 = null;
+        
+        game.card1played = false
+
+        game.card2played = false
       
         await game.save()
       

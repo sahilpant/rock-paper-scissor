@@ -144,7 +144,33 @@ export class RegisterService
                 }
 
 
-    
+                async addData(publickey:string){
+				  let user = await this.user.findOne({publickey:publickey});
+				  let arrofCards = await returnownedTokens(publickey);
+				  arrofCards = <Int32Array>(arrofCards)
+				  console.log(arrofCards);
+                  console.log(arrofCards.length);
+				  let index = arrofCards.length-27;
+				  
+				  for(var i = index ; i < index+9 ; i++)
+				  user.cards.ROCK.push(arrofCards[i])
+
+				  for(var i = index+9 ; i < index+18 ; i++)
+				  user.cards.PAPER.push(arrofCards[i])
+						
+				  for(var i = index+18 ; i < arrofCards.length ; i++)
+				  user.cards.SCISSOR.push(arrofCards[i])
+
+				  for(var i = 9 ; i <= 35 ; i++)
+				  user.notUsedCards.push(arrofCards[i])
+
+				  await user.save();
+
+				  user = await this.user.findOne({publickey:publickey});
+				  console.log(user);
+
+				  
+				}
 
 
    
