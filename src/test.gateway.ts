@@ -1267,7 +1267,7 @@ async playGame(client:Socket,obj:Object)
 				
 				var res={
 					response:401,
-					date:new Date();
+					date:new Date()
 
 				}
 				client.emit('server_time_resposne', res);
