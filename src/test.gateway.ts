@@ -1271,7 +1271,7 @@ async playGame(client:Socket,obj:Object)
 
 
 				}
-				client.emit('server_time_resposne', res);
+				client.emit('server_time_response', res);
 			}
 			else{
 				var err={
@@ -1279,7 +1279,7 @@ async playGame(client:Socket,obj:Object)
 					date:""
 
 				}
-				client.emit('server_time_resposne', err);
+				client.emit('server_time_response', err);
 			}
 
 		 }
