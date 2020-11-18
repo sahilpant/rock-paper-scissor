@@ -1266,14 +1266,20 @@ async playGame(client:Socket,obj:Object)
 			if(userdetails){
 				
 				var res={
-					response:401,
-					date:new Date()
+					response:201,
+					date:new Date(),
+
 
 				}
 				client.emit('server_time_resposne', res);
 			}
 			else{
-				client.emit
+				var err={
+					response:401,
+					date:""
+
+				}
+				client.emit('server_time_resposne', err);
 			}
 
 		 }
