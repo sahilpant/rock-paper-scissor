@@ -1056,14 +1056,20 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			if(userdetails){
 				
 				var res={
-					response:401,
-					date:new Date()
+					response:201,
+					date:new Date(),
+
 
 				}
-				client.emit('server_time_resposne', res);
+				client.emit('server_time_response', res);
 			}
 			else{
-				client.emit
+				var err={
+					response:401,
+					date:""
+
+				}
+				client.emit('server_time_response', err);
 			}
 
 		 }
