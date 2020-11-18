@@ -56,7 +56,7 @@ export class WebsocketService {
       match_type: "short",
       publickey:"0x1A116902f5eEa93ef63055B6a0B630DE31d67F3A",
       username:localStorage.getItem('username'),
-      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047",
+      gameid: proom,
       roomID: proom
     }
     
