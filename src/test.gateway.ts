@@ -172,18 +172,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection , OnGatew
 		}
 	}
 
-	@SubscribeMessage('private')
-	handleJoin_with_Friend(client: Socket) {
-		if(this.check[client.id]){
-			this.handlejoinFirstTime(client);
-			const room = this.users[client.id];
-			this.room_invite_flag[room] = true;
-		}
-		else{
-			client.emit("Error","invalid_token");
-			client.disconnect();
-		}
-	}
+
+
+
+	 
 /*------------------------------------------*/
 
   	handleJoinInvitation(client: Socket,room: string) {
@@ -1284,6 +1276,23 @@ async playGame(client:Socket,obj:Object)
 
 		 }
 
+		 @SubscribeMessage('private')
+		 async Joinprivate(client: Socket, data:Object) {
+
+			var token = data.jwt_token; 
+			console.log(data);
+			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
+			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+			 if(this.check[client.id]){
+				 this.handlejoinFirstTime(client);
+				 const room = this.users[client.id];
+				 this.room_invite_flag[room] = true;
+			 }
+			 else{
+				 client.emit("Error","invalid_token");
+				 client.disconnect();
+			 }
+		 }
 
 		 @SubscribeMessage('logoff')
  		async disconnect(client:Socket, data:Object){
