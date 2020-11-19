@@ -22,7 +22,6 @@ import {PassportModule} from '@nestjs/passport'
 import { jwtStrategy } from './jwt.strategy';
 import { NotificationService } from './notification/notification.service';
 import { join } from "path"
-import { History } from './schemas/History.model';
 import {match} from './schemas/match'
 import { BiddingModule } from './bidding/bidding.module';
 
@@ -33,7 +32,7 @@ import { BiddingModule } from './bidding/bidding.module';
 
     NotificationModule,
 
-    MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey},{name:'History',schema: History},{name:'match', schema:match}]),
+    MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey},{name:'match', schema:match}]),
 
     // RedisModule.register
 

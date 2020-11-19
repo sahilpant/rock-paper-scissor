@@ -24,14 +24,46 @@ export class WebsocketService {
    }
 
    public(){
-    console.log(token);
     var data = {
         jwt_token: token,
         match_type: "short",
-        publickey:"0x1A116902f5eEa93ef63055B6a0B630DE31d67F3A",
+        publickey:localStorage.getItem('publickey'),
         username:localStorage.getItem('username')
       }
     this.socket.emit('Public', data )
+   }
+
+   private(){
+    var data = {
+        jwt_token: token,
+        match_type: "short",
+        publickey:localStorage.getItem('publickey'),
+        username:localStorage.getItem('username')
+      }
+    this.socket.emit('private', data )
+   }
+
+   invite(){
+    var data = {
+        jwt_token: token,
+        match_type: "short",
+        publickey:localStorage.getItem('publickey'),
+        username:localStorage.getItem('username'),
+        email:localStorage.getItem('email')
+      }
+    this.socket.emit('invite', data )
+   }
+
+   joingamebyInvite(){
+    var data = {
+        jwt_token: token,
+        publickey:localStorage.getItem('publickey'),
+        username:localStorage.getItem('username'),
+        email:localStorage.getItem('email'),
+        gameid:localStorage.getItem('roomID')
+
+      }
+    this.socket.emit('joinGameByInvite', data )
    }
 
 
@@ -39,7 +71,7 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0x71fa8E0f9C95850c2f0a5a436cA6A120a8f18DEC",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username')
     }
     console.log(data)
@@ -49,15 +81,13 @@ export class WebsocketService {
 
 
    startmatch(){
-     var proom =localStorage.getItem('roomID');
-     console.log(proom);
+
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0x1A116902f5eEa93ef63055B6a0B630DE31d67F3A",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047",
-      roomID: proom
+      gameid: localStorage.getItem('roomID'),
     }
     
     console.log(data);
@@ -68,9 +98,9 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047"
+      gameid: localStorage.getItem('roomID'),
     }
      this.socket.emit('activerooms', data);
    }
@@ -79,9 +109,9 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0xd824eE6FD2A1C151020A0355a7aD8256AE623345",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047"
+      gameid: localStorage.getItem('roomID'),
     }
      this.socket.emit('getroomID', data);
    }
@@ -91,14 +121,26 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0x1A116902f5eEa93ef63055B6a0B630DE31d67F3A",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
+      gameid: localStorage.getItem('roomID'),
       card_number:localStorage.getItem('cardno'),
-      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047"
     } 
     
     console.log(data);
     this.socket.emit('move',data);
+   }
+
+   endGame(){
+    var data = {
+      jwt_token: token,
+      publickey:localStorage.getItem('publickey'),
+      username:localStorage.getItem('username'),
+      gameid: localStorage.getItem('roomID'),
+    } 
+    
+    console.log(data);
+    this.socket.emit('End_Game',data);
    }
     
 }
