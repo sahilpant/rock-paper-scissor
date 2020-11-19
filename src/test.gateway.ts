@@ -1,14 +1,13 @@
 
-import { SubscribeMessage, OnGatewayConnection, OnGatewayInit, OnGatewayDisconnect, WebSocketServer, WebSocketGateway ,} from '@nestjs/websockets';
+import { SubscribeMessage, OnGatewayConnection, OnGatewayInit, WebSocketServer, WebSocketGateway ,} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
-import { HttpException, HttpStatus, Inject, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import {v4 as uuid} from 'uuid'
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { user } from './required/interfaces/user.interface';
 import {CardStatus} from './required/cards.enum'
 import { passkey } from './required/interfaces/passkey.interface';
-import {History} from './required/interfaces/History.interface'
 import { PlayService } from './play/play.service';
 import {jwtStrategy} from './jwt.strategy'
 import * as jwt from 'jsonwebtoken';
@@ -17,15 +16,7 @@ import { detailOfCard, show_stars, total_cards} from '.././gameblock'
 import { ConfigService } from '@nestjs/config';
 import { AppGateway } from './app.gateway'
 import { NotificationService } from './notification/notification.service';
-import { EmailVerify } from './schemas/EmailVerify.model';
 import { match } from './required/interfaces/match.interface';
-import * as matcha from './schemas/match';
-import { IsNumberString } from 'class-validator';
-import { date } from '@hapi/joi';
-import { username } from './required/dto/username.dto';
-// import { user } from './schemas/user.model';
-// import { match } from './schemas/match';
-// import { match } from './schemas/match';
 
 @WebSocketGateway(
 	{namespace:'/game'})
