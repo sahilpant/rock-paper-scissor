@@ -46,23 +46,11 @@ export class PlayService {
  
     var currRound = existing_game[0].round + 1;
 
-    var obj = {player1:{
-      card_type:<String>card1,
-      card_number:token1,
-      timestamp:new Date
-     },
-      player2:{
-      card_type:<String>card2,
-      card_number:token2,
-      timestamp:new Date
-     }     
-    }
+    
 
-let arr = existing_game[0].Rounds;
-arr.push(obj);
+
     await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{
        'round':currRound,
-       'Rounds':arr
     }, function(err: any,data: any){
       if( err) console.log(err);
     }})

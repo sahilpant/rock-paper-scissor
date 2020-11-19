@@ -63,5 +63,10 @@ export class AppComponent {
      display(){
        console.log(this.mes)
      }
+     EndGame(){
+       this.webSocketservice.endGame()
+     }
+
+
   title = 'ngapp';
 }

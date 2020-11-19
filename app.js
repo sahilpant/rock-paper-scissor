@@ -1,29 +1,6 @@
-const x = [
-    {player1:{
-        card_type:String,
-        card_number:Number,
-        timestamp:Date
-    },
-    player2:{
-        card_type:String,
-        card_number:Number,
-        timestamp:Date
-    }     
-}
-]
-let obj = {
-    player1:{
-        card_type:"123",
-        card_number:1,
-        timestamp:new Date
-    },
-    player2:{
-        card_type:"123",
-        card_number:1,
-        timestamp:new Date
-    }  
-}
-x.push(obj);
-x.push(obj);
+var custom_idOfUser = {};
+var generated_gameid = 123;
+            
+custom_idOfUser[`${generated_gameid}`]={player1:456};
 
-console.log(x);
+console.log(custom_idOfUser[123]);
