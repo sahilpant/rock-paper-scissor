@@ -24,14 +24,46 @@ export class WebsocketService {
    }
 
    public(){
-    console.log(token);
     var data = {
         jwt_token: token,
         match_type: "short",
-        publickey:"0x71fa8E0f9C95850c2f0a5a436cA6A120a8f18DEC",
+        publickey:localStorage.getItem('publickey'),
         username:localStorage.getItem('username')
       }
     this.socket.emit('Public', data )
+   }
+
+   private(){
+    var data = {
+        jwt_token: token,
+        match_type: "short",
+        publickey:localStorage.getItem('publickey'),
+        username:localStorage.getItem('username')
+      }
+    this.socket.emit('private', data )
+   }
+
+   invite(){
+    var data = {
+        jwt_token: token,
+        match_type: "short",
+        publickey:localStorage.getItem('publickey'),
+        username:localStorage.getItem('username'),
+        email:localStorage.getItem('email')
+      }
+    this.socket.emit('invite', data )
+   }
+
+   joingamebyInvite(){
+    var data = {
+        jwt_token: token,
+        publickey:localStorage.getItem('publickey'),
+        username:localStorage.getItem('username'),
+        email:localStorage.getItem('email'),
+        gameid:localStorage.getItem('roomID')
+
+      }
+    this.socket.emit('joinGameByInvite', data )
    }
 
 
@@ -39,7 +71,7 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0x71fa8E0f9C95850c2f0a5a436cA6A120a8f18DEC",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username')
     }
     console.log(data)
@@ -49,15 +81,13 @@ export class WebsocketService {
 
 
    startmatch(){
-     var proom =localStorage.getItem('roomID');
-     console.log(proom);
+
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0x71fa8E0f9C95850c2f0a5a436cA6A120a8f18DEC",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid: proom,
-      roomID: proom
+      gameid: localStorage.getItem('roomID'),
     }
     
     console.log(data);
@@ -68,9 +98,9 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0x71fa8E0f9C95850c2f0a5a436cA6A120a8f18DEC",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047"
+      gameid: localStorage.getItem('roomID'),
     }
      this.socket.emit('activerooms', data);
    }
@@ -79,23 +109,22 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0x71fa8E0f9C95850c2f0a5a436cA6A120a8f18DEC",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid:"c29b47d8-e7c9-4636-8a06-9baac2d97047"
+      gameid: localStorage.getItem('roomID'),
     }
      this.socket.emit('getroomID', data);
    }
    
 
    play(){
-    var proom =localStorage.getItem('roomID');
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:"0x71fa8E0f9C95850c2f0a5a436cA6A120a8f18DEC",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
+      gameid: localStorage.getItem('roomID'),
       card_number:localStorage.getItem('cardno'),
-      gameid:proom
     } 
     
     console.log(data);
@@ -105,9 +134,9 @@ export class WebsocketService {
    endGame(){
     var data = {
       jwt_token: token,
-      publickey:"0x71fa8E0f9C95850c2f0a5a436cA6A120a8f18DEC",
+      publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid:localStorage.getItem('roomID')
+      gameid: localStorage.getItem('roomID'),
     } 
     
     console.log(data);

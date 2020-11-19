@@ -188,17 +188,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 
 
 
-	@SubscribeMessage('leaveRoom')
-	async handleLeaveRoom(client:Socket,room:string){
-
-	
-
-
-		client.to(room).broadcast.emit('Left',`${client.id} has left the room`);
-		client.leave(room);
-	}
-
-
 	@SubscribeMessage('show')
 	handleshow(): void {
 		console.log(`--------------------------------------------`)
@@ -628,7 +617,7 @@ if(carddetail === "NONE"){
 		sendInvite(client: Socket,obj:Object){
 			const room = obj.roomID;
 			client.emit("Success",`Invitation sent to ${obj.email}`);
-			this.NotificationService.send_room_code(obj.email);
+			//this.NotificationService.send_room_code(obj.email);
 	
 		}
 	
@@ -651,14 +640,9 @@ if(carddetail === "NONE"){
 						
 			}
 						
-			var existing_game = await  this.match.find({$and:[
-	
-				{'player1.username':{$ne:userdetails.username}},
-				{'player2.username':null}
-					
-			]})
+			var existing_game = await  this.match.find({gameid:data.gameid});
 									
-			if(existing_game.length > 0){
+			if(existing_game.length > 0  && this.room_invite_flag[`${data.gameid}`]){
 	
 			
 				if(stars>=3){
@@ -692,7 +676,7 @@ if(carddetail === "NONE"){
 			console.log("Invalid user") // Later pass this as event back to client
 			client.emit("new_match_response", "Invalid user");
 		}
-		delete this.room_invited_player_email[`${data.room}`];
+		
 	}
 	
 
@@ -707,6 +691,7 @@ if(carddetail === "NONE"){
 	async handleJoin_with_Friend(client: Socket, data:Object) {
 
 			let game_id = await this.startpublicgame(client,data);
+			console.log(game_id);
 			this.room_invite_flag[`${game_id}`] = true;
 		
 	}

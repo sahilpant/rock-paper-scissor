@@ -40,6 +40,19 @@ export class AppComponent {
 
       this.webSocketservice.public();
      }  
+     private(){
+
+      this.webSocketservice.private();
+     }  
+
+     invite(){
+
+      this.webSocketservice.invite();
+     }
+
+     joingameByInvite(){
+       this.webSocketservice.joingamebyInvite();
+     }
 
      matchdetails(){
        this.webSocketservice.matchdetails()
