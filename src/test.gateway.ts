@@ -169,7 +169,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 
 		else{
 		delete this.room_invite_flag[`${_room}`];
-		client.leave(_room);
+		this.leave_match(client,obj);
 		}
 	}
 
