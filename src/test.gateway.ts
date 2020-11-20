@@ -204,7 +204,7 @@ async finalResult(gameid:string)
 		let user1name  = gameINDB.user1;
 		let user2name  = gameINDB.user2;
 
-		let user1 = 0,user2 = 0,tie = 0;
+		let user1 = 0,user2 = 0, draw = 0;
 		
 		for(const player in gameINDB.playerWin)
 		{
@@ -215,10 +215,10 @@ async finalResult(gameid:string)
 			user2++;
 
 			else
-			tie++;
+			draw++;
 		}
 
-		const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw");
+		const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"DRAW");
 		existing_game[0].winner = finalPlayerWon;
 		existing_game[0].status = "Completed";
 		
@@ -232,7 +232,7 @@ async finalResult(gameid:string)
 		await gameINDB.deleteOne();		
 		await existing_game[0].save()				
 	}
-	else
+	else if(gameINDB)
 	{
 		this.wss.to(gameid).emit('game not played',"not a single game has been played to display the final result");
 		await gameINDB.deleteOne();
