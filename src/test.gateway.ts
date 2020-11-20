@@ -165,7 +165,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 			
 				
 			await game.deleteOne();
-
+			
+			await this.finalResult(obj.gameid);
 
 		
 			
@@ -233,6 +234,7 @@ async finalResult(gameid:string)
 
 		const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw");
 		existing_game[0].winner = finalPlayerWon;
+		existing_game[0].status = "Completed";
 		
 		db_user1.stars += match_details.stars_of_player1;
 		db_user2.stars += match_details.stars_of_player2;
@@ -263,26 +265,11 @@ async playGame(client:Socket,obj:Object)
     
 	if(gameAlreadyExist)
 	{
-		let client1existinGame = false,client2existinGame = false;
+		let client1existinGame = true,client2existinGame = false;
 		
 		if(gameAlreadyExist.client2id)
 		client2existinGame = true;
-		else
-		{
-		//This is client2's first game
-		
-		client2existinGame = false;
-		let Firstgame =  await this.user.findOne({username:client.id})
-		if( Firstgame && Firstgame.stars <= 0)
-		{
-			gameisfurtherPlay = false;
-			const _match = await this.match.findOne({gameid:obj.gameid});
-			_match.status = "Aborted";
-			await _match.save();
-			this.handleEndGame(client,obj.gameid);
-		}
 	
-		}
 		
 		if(client1existinGame && client2existinGame)
 		{
@@ -300,16 +287,7 @@ async playGame(client:Socket,obj:Object)
 		}
 	}
 }
-	else
-	{    //it run only once when no game exist
-		  let Firstgame =  await this.user.findOne({username:client.id})
-		  console.log(Firstgame);
-		  if(Firstgame.stars <= 0)
-		  {
-			gameisfurtherPlay = false;
-			this.handleEndGame(client,obj.gameid);
-		  }
-	}
+	
 
 	if(gameisfurtherPlay)
 	{
@@ -746,6 +724,11 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 					if( err) console.log(err)
 				})
 			}
+			else
+			{
+					//This is client2's first game
+		            client.disconnect();
+			}
 					
 			
 
@@ -884,12 +867,24 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			console.log(data);
 			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+		
 			try{
 			if(userdetails){
+				let matchinDB =  await this.match.findOne({gameid:data.gameid});
+				let userinDB  =  await this.user.findOne({username:client.id}); 
 				   var room=data.gameid;
-					client.join(room, await function(err){
+					client.join(room, async function(err){
 						if(err) throw err;
 						else {
+						  
+							if(matchinDB.player1.username === client.id){
+								userinDB.stars -= matchinDB.stars_of_player1;
+							}
+							else if(matchinDB.player2.username === client.id){
+								userinDB.stars -= matchinDB.stars_of_player2;
+							}
+							await userinDB.save();
+							
 							var  matchresponse={
 								"username":client.id,
 								"timestamp": new Date(),
