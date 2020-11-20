@@ -297,7 +297,7 @@ async playGame(client:Socket,obj:Object)
 		let givenCardType: string;
 		if(data == "NONE"){
 		carddetail = "NONE";
-		givenCardType = "NONE"
+		givenCardType = "NONE";
 		}
 		else
 		{
@@ -312,8 +312,8 @@ async playGame(client:Socket,obj:Object)
 		let gameid = obj.gameid;
         if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
 		{
-			let gameexist = await this.passkey.findOne({gameid:gameid})
-            let nameinUSERDB = await this.user.findOne({username:client.id})
+			let gameexist = await this.passkey.findOne({gameid:gameid});
+            let nameinUSERDB = await this.user.findOne({username:obj.username});
 			 
 			
 			//find index of given card
@@ -342,9 +342,9 @@ async playGame(client:Socket,obj:Object)
 				
 			else if(gameexist && indexofCard !== -1)
 			{
-				gameexist.card2 = givenCardType
-				gameexist.user2 = nameinUSERDB.username
-				gameexist.player2address = nameinUSERDB.publickey
+				gameexist.card2 = givenCardType;
+				gameexist.user2 = nameinUSERDB.username;
+				gameexist.player2address = nameinUSERDB.publickey;
 				gameexist.token2 = data
 				gameexist.card2played = true
 				gameexist.client2id = client.id   
@@ -712,13 +712,13 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 		if(existing_game.length > 0 && !this.room_invite_flag[`${existing_game[0].gameid}`]){
 
 		
-			if(stars>=3){
+			if(stars>=3 && card_details>0){
 			
 				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':3,'player_joined':2,"status":"active"}}, function(err,data){
 					if( err) console.log(err)
 				})
 			}
-			else if(stars<3 && stars>0){
+			else if(stars<3 && stars>0 && card_details>0){
 			
 				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':stars,'player_joined':2,"status":"active"}}, function(err,data){
 					if( err) console.log(err)
@@ -871,16 +871,16 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			try{
 			if(userdetails){
 				let matchinDB =  await this.match.findOne({gameid:data.gameid});
-				let userinDB  =  await this.user.findOne({username:client.id}); 
+				let userinDB  =  await this.user.findOne({username:data.username}); 
 				   var room=data.gameid;
 					client.join(room, async function(err){
 						if(err) throw err;
 						else {
 						  
-							if(matchinDB.player1.username === client.id){
+							if(matchinDB.player1.username === userinDB.username){
 								userinDB.stars -= matchinDB.stars_of_player1;
 							}
-							else if(matchinDB.player2.username === client.id){
+							else if(matchinDB.player2.username === userinDB.username){
 								userinDB.stars -= matchinDB.stars_of_player2;
 							}
 							await userinDB.save();

@@ -36,7 +36,7 @@ export class WebsocketService {
    private(){
     var data = {
         jwt_token: token,
-        match_type: "short",
+        match_type: "long",
         publickey:localStorage.getItem('publickey'),
         username:localStorage.getItem('username')
       }
@@ -60,7 +60,7 @@ export class WebsocketService {
         publickey:localStorage.getItem('publickey'),
         username:localStorage.getItem('username'),
         email:localStorage.getItem('email'),
-        gameid:localStorage.getItem('roomID')
+        gameid:localStorage.getItem('gameID')
 
       }
     this.socket.emit('joinGameByInvite', data )
@@ -87,7 +87,7 @@ export class WebsocketService {
       match_type: "short",
       publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid: localStorage.getItem('roomID'),
+      gameid: localStorage.getItem('gameID'),
     }
     
     console.log(data);
@@ -100,18 +100,18 @@ export class WebsocketService {
       match_type: "short",
       publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid: localStorage.getItem('roomID'),
+      gameid: localStorage.getItem('gameID'),
     }
      this.socket.emit('activerooms', data);
    }
 
-   getroomID(){
+   getgameID(){
     var data = {
       jwt_token: token,
       match_type: "short",
       publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid: localStorage.getItem('roomID'),
+      gameid: localStorage.getItem('gameID'),
     }
      this.socket.emit('getroomID', data);
    }
@@ -123,7 +123,7 @@ export class WebsocketService {
       match_type: "short",
       publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid: localStorage.getItem('roomID'),
+      gameid: localStorage.getItem('gameID'),
       card_number:localStorage.getItem('cardno'),
     } 
     
@@ -136,7 +136,7 @@ export class WebsocketService {
       jwt_token: token,
       publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid: localStorage.getItem('roomID'),
+      gameid: localStorage.getItem('gameID'),
     } 
     
     console.log(data);
