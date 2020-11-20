@@ -8,7 +8,7 @@ export class NotificationController {
    constructor(private readonly notificationService:NotificationService){}
 
    @Post('/test')
-   async test(@Body('id') id:string){
-    await this.notificationService.test(id);
+   async test(){
+    await this.notificationService.send_room_code("namit.cs.rdjps@gmail.com","4777388");
    }
 }

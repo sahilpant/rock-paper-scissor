@@ -35,9 +35,9 @@ export class NotificationService {
             
             subject: 'Testing Nest Mailermodule for Roshambo ✔',
             
-            text: String(Math.floor(100000 + Math. random() * 900000)),
+            text: "Enter this key to verify you are legit",
             
-            html: "Enter this key to verify you are legit"+link
+            html: `<b><i> ${link} <i><b>`
             // template('template/index.hbs', { name: 'durward' })
         }).catch(e => console.log(e));
         
@@ -47,7 +47,7 @@ export class NotificationService {
         throw new BadRequestException(err.message);
     }
     }
-    async send_room_code(email:string)
+    async send_room_code(email:string,room_id:string)
     {
         try{
         this.mailer.sendMail
@@ -55,9 +55,9 @@ export class NotificationService {
 
             to: email, //Receivers email address
 
-            subject: 'Join game with this link',
+            subject: 'Join game with this code',
 
-            html: "<b>click on the link below to join the game ----><b>" + `<br><a href = "https://hoppscotch.io/">Link to tthe game</a>`
+            html: `<h1>${room_id}</h1>`
         }).catch((e: any) => console.log(e));
         
        return email}

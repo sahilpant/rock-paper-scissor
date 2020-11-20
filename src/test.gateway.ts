@@ -97,20 +97,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
   }
   }
 
-	
-
-
-
-
-
-	@SubscribeMessage('chat')
-	handlechat(client: Socket, data: string):void 
-	{
-
-				const room = data.roomID;
-				this.wss.to(room).emit('chat', data);
-	}
-  
 
 		
 	@SubscribeMessage('End_Game')
@@ -576,28 +562,33 @@ if(carddetail === "NONE"){
 }
 
 
+        
+
+	@SubscribeMessage('chat')
+	handlechat(client: Socket, data: string):void 
+	{
+
+				const room = data.roomID;
+				this.wss.to(room).emit('chat', data);
+	}
+  
 
 
-		@SubscribeMessage('Message')
-		async messageclient(client:Socket, data:string){
-		   console.log(client.id)
-		   client.emit('listen', "this is the data");
+	@SubscribeMessage('Message')
+	async messageclient(client:Socket, data:string){
+		   
+		console.log(client.id)
+		client.emit('listen', "this is the data");
 
-		}
-
-
-
+	}
 
 
-
-
-		@SubscribeMessage('invite')
-		sendInvite(client: Socket,obj:Object){
-			const room = obj.roomID;
-			client.emit("Success",`Invitation sent to ${obj.email}`);
-			//this.NotificationService.send_room_code(obj.email);
-	
-		}
+    @SubscribeMessage('invite')
+	sendInvite(client: Socket,obj:Object){
+		const room = obj.roomID;
+		client.emit("Success",`Invitation sent to ${obj.email}`);
+		this.NotificationService.send_room_code(obj.email,room);
+	}
 	
 		
 		
@@ -876,6 +867,10 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 					client.join(room, async function(err){
 						if(err) throw err;
 						else {
+
+							if(this.room_invite_flag[`${room}`] && data.username === matchinDB.player2.username){
+								this.room_invite_flag[`${room}`] = false;
+							}
 						  
 							if(matchinDB.player1.username === userinDB.username){
 								userinDB.stars -= matchinDB.stars_of_player1;
