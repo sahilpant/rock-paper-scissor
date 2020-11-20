@@ -154,11 +154,15 @@ export class PlayService {
    
        game.card2= null;
 
-       game.card1played = false
+       game.card1played = false;
 
-       game.card2played = false
+       game.card2played = false;
+
+       game.token1 = null;
+
+       game.token2 = null;
       
-       await game.save()
+       await game.save();
       
        return "game is draw"
      
