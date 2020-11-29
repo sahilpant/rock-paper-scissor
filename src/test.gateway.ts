@@ -851,7 +851,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 
 		}
 
-		// Join the game play
+		// Join the game play starts here
 		@SubscribeMessage('start_match')
  		async start_match(client:Socket, data:Object){
 			var token = data.jwt_token; 
