@@ -786,7 +786,7 @@ async function getAllDetails(address){
 
 
 var sign_up = async function(address,gameContractAddress) { return await signUP(address,account1,privateKey1,gameContractAddress); }
-var  show_stars = async function(address) { return await showStars(address);}
+var show_stars = async function(address) { return await showStars(address);}
 var total_cards = async function (address) { return await totalCards(address); }
 var returnownedTokens = async function(playerAddress) { return await returnOwnedToken(playerAddress) }
 var detailOfCard = async function(tokenId) { return await details(tokenId)}

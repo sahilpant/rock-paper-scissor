@@ -44,7 +44,6 @@ export const user = new mongoose.Schema({
     
     
     publickey:{type:String},
-
     
     lastupdated:{type:Date},
 
@@ -62,7 +61,9 @@ export const user = new mongoose.Schema({
     
     role : { type: String },
 
-    cardForBid: {type:Array , default: []}
+    cardForBid: {type:Array , default: [
+        
+    ]}
     
     });
 

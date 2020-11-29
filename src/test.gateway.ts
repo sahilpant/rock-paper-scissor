@@ -125,7 +125,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 		const game = await this.passkey.findOne().where('gameid').equals(_room).exec();
         const match_details = await this.match.findOne({gameid:_room});
 
-		if(game && (game.player1address || game.player2address)){
+ 		if(game && (game.player1address || game.player2address)){
 
 			const user_1 =  await this.user.findOne({publickey:game.player1address});
 
@@ -162,24 +162,19 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 			}
 
 			
-				
+			await this.finalResult(_room);				
 			/*-----------------------Stars Returning Logic ends Here-------------------------------*/
 			
 				
 			await game.deleteOne();
-
-
-		
 			
 			delete this.room_invite_flag[`${_room}`];
 
 			//Blockchain part for star transefer from admin
 
-			client.to(_room).broadcast.emit('End_Game', `${client.id} has ended the Game`);
+			client.to(_room).broadcast.emit('End_Game_Response', `${client.id} has ended the Game`);
 			client.leave(_room);
-		
 
-		
 		}
 
 		else{
@@ -235,6 +230,7 @@ async finalResult(gameid:string)
 
 		const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw");
 		existing_game[0].winner = finalPlayerWon;
+		existing_game[0].status ="Completed";
 		
 		db_user1.stars += match_details.stars_of_player1;
 		db_user2.stars += match_details.stars_of_player2;
