@@ -136,17 +136,7 @@ export class PlayService {
       }
 
 
-      const userno1= await this.user.findOne().where('username').equals(user1).exec();
-
-      const userno2= await this.user.findOne().where('username').equals(user2).exec();
-
-      await userno1.save();
-
-      await userno2.save();
-
-      await existing_game[0].save();
-
-      game.playerWin.push("tie")
+       game.playerWin.push("draw")
 
        await game.save();
       
@@ -154,11 +144,13 @@ export class PlayService {
    
        game.card2= null;
 
-       game.card1played = false
+       game.card1played = false;
 
-       game.card2played = false
-      
-       await game.save()
+       game.card2played = false;
+
+       game.token1 = null;
+
+       game.token2 = null;
       
        return "game is draw"
      

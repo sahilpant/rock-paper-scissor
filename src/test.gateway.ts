@@ -99,20 +99,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
   }
   }
 
-	
-
-
-
-
-
-	@SubscribeMessage('chat')
-	handlechat(client: Socket, data: string):void 
-	{
-
-				const room = data.roomID;
-				this.wss.to(room).emit('chat', data);
-	}
-  
 
 		
 	@SubscribeMessage('End_Game')
@@ -168,6 +154,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 				
 			await game.deleteOne();
 			
+			await this.finalResult(obj.gameid);
+
+		
+			
 			delete this.room_invite_flag[`${_room}`];
 
 			//Blockchain part for star transefer from admin
@@ -179,7 +169,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 
 		else{
 		delete this.room_invite_flag[`${_room}`];
-		client.leave(_room);
+		this.leave_match(client,obj);
 		}
 	}
 
@@ -214,7 +204,7 @@ async finalResult(gameid:string)
 		let user1name  = gameINDB.user1;
 		let user2name  = gameINDB.user2;
 
-		let user1 = 0,user2 = 0,tie = 0;
+		let user1 = 0,user2 = 0, draw = 0;
 		
 		for(const player in gameINDB.playerWin)
 		{
@@ -225,12 +215,12 @@ async finalResult(gameid:string)
 			user2++;
 
 			else
-			tie++;
+			draw++;
 		}
 
-		const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"game is draw");
+		const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"DRAW");
 		existing_game[0].winner = finalPlayerWon;
-		existing_game[0].status ="Completed";
+		existing_game[0].status = "Completed";
 		
 		db_user1.stars += match_details.stars_of_player1;
 		db_user2.stars += match_details.stars_of_player2;
@@ -242,7 +232,7 @@ async finalResult(gameid:string)
 		await gameINDB.deleteOne();		
 		await existing_game[0].save()				
 	}
-	else
+	else if(gameINDB)
 	{
 		this.wss.to(gameid).emit('game not played',"not a single game has been played to display the final result");
 		await gameINDB.deleteOne();
@@ -261,26 +251,11 @@ async playGame(client:Socket,obj:Object)
     
 	if(gameAlreadyExist)
 	{
-		let client1existinGame = false,client2existinGame = false;
+		let client1existinGame = true,client2existinGame = false;
 		
 		if(gameAlreadyExist.client2id)
 		client2existinGame = true;
-		else
-		{
-		//This is client2's first game
-		
-		client2existinGame = false;
-		let Firstgame =  await this.user.findOne({username:client.id})
-		if( Firstgame && Firstgame.stars <= 0)
-		{
-			gameisfurtherPlay = false;
-			const _match = await this.match.findOne({gameid:obj.gameid});
-			_match.status = "Aborted";
-			await _match.save();
-			this.handleEndGame(client,obj.gameid);
-		}
 	
-		}
 		
 		if(client1existinGame && client2existinGame)
 		{
@@ -298,16 +273,7 @@ async playGame(client:Socket,obj:Object)
 		}
 	}
 }
-	else
-	{    //it run only once when no game exist
-		  let Firstgame =  await this.user.findOne({username:client.id})
-		  console.log(Firstgame);
-		  if(Firstgame.stars <= 0)
-		  {
-			gameisfurtherPlay = false;
-			this.handleEndGame(client,obj.gameid);
-		  }
-	}
+	
 
 	if(gameisfurtherPlay)
 	{
@@ -317,7 +283,7 @@ async playGame(client:Socket,obj:Object)
 		let givenCardType: string;
 		if(data == "NONE"){
 		carddetail = "NONE";
-		givenCardType = "NONE"
+		givenCardType = "NONE";
 		}
 		else
 		{
@@ -332,8 +298,8 @@ async playGame(client:Socket,obj:Object)
 		let gameid = obj.gameid;
         if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
 		{
-			let gameexist = await this.passkey.findOne({gameid:gameid})
-            let nameinUSERDB = await this.user.findOne({username:client.id})
+			let gameexist = await this.passkey.findOne({gameid:gameid});
+            let nameinUSERDB = await this.user.findOne({username:obj.username});
 			 
 			
 			//find index of given card
@@ -362,9 +328,9 @@ async playGame(client:Socket,obj:Object)
 				
 			else if(gameexist && indexofCard !== -1)
 			{
-				gameexist.card2 = givenCardType
-				gameexist.user2 = nameinUSERDB.username
-				gameexist.player2address = nameinUSERDB.publickey
+				gameexist.card2 = givenCardType;
+				gameexist.user2 = nameinUSERDB.username;
+				gameexist.player2address = nameinUSERDB.publickey;
 				gameexist.token2 = data
 				gameexist.card2played = true
 				gameexist.client2id = client.id   
@@ -596,28 +562,33 @@ if(carddetail === "NONE"){
 }
 
 
+        
+
+	@SubscribeMessage('chat')
+	handlechat(client: Socket, data: string):void 
+	{
+
+				const room = data.roomID;
+				this.wss.to(room).emit('chat', data);
+	}
+  
 
 
-		@SubscribeMessage('Message')
-		async messageclient(client:Socket, data:string){
-		   console.log(client.id)
-		   client.emit('listen', "this is the data");
+	@SubscribeMessage('Message')
+	async messageclient(client:Socket, data:string){
+		   
+		console.log(client.id)
+		client.emit('listen', "this is the data");
 
-		}
-
-
-
+	}
 
 
-
-
-		@SubscribeMessage('invite')
-		sendInvite(client: Socket,obj:Object){
-			const room = obj.roomID;
-			client.emit("Success",`Invitation sent to ${obj.email}`);
-			//this.NotificationService.send_room_code(obj.email);
-	
-		}
+    @SubscribeMessage('invite')
+	sendInvite(client: Socket,obj:Object){
+		const room = obj.roomID;
+		client.emit("Success",`Invitation sent to ${obj.email}`);
+		this.NotificationService.send_room_code(obj.email,room);
+	}
 	
 		
 		
@@ -732,17 +703,22 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 		if(existing_game.length > 0 && !this.room_invite_flag[`${existing_game[0].gameid}`]){
 
 		
-			if(stars>=3){
+			if(stars>=3 && card_details>0){
 			
 				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':3,'player_joined':2,"status":"active"}}, function(err,data){
 					if( err) console.log(err)
 				})
 			}
-			else if(stars<3 && stars>0){
+			else if(stars<3 && stars>0 && card_details>0){
 			
 				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':stars,'player_joined':2,"status":"active"}}, function(err,data){
 					if( err) console.log(err)
 				})
+			}
+			else
+			{
+					//This is client2's first game
+		            client.disconnect();
 			}
 					
 			
@@ -882,12 +858,28 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			console.log(data);
 			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+		
 			try{
 			if(userdetails){
+				let matchinDB =  await this.match.findOne({gameid:data.gameid});
+				let userinDB  =  await this.user.findOne({username:data.username}); 
 				   var room=data.gameid;
-					client.join(room, await function(err){
+					client.join(room, async function(err){
 						if(err) throw err;
 						else {
+
+							if(this.room_invite_flag[`${room}`] && data.username === matchinDB.player2.username){
+								this.room_invite_flag[`${room}`] = false;
+							}
+						  
+							if(matchinDB.player1.username === userinDB.username){
+								userinDB.stars -= matchinDB.stars_of_player1;
+							}
+							else if(matchinDB.player2.username === userinDB.username){
+								userinDB.stars -= matchinDB.stars_of_player2;
+							}
+							await userinDB.save();
+							
 							var  matchresponse={
 								"username":client.id,
 								"timestamp": new Date(),
