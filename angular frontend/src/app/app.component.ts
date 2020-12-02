@@ -66,7 +66,7 @@ export class AppComponent {
       this.webSocketservice.activerooms()
      }
      getroomID(){
-       this.webSocketservice.getroomID();
+       this.webSocketservice.getgameID();
      }
 
      play(){

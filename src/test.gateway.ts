@@ -950,8 +950,8 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
 			try{
-				client.leave(data.roomID, async () =>{
-					client.emit('leave_match_response', `${data.username} left room ${data.roomID}`)
+				client.leave(data.gameid, async () =>{
+					client.emit('leave_match_response', `${data.username} left room ${data.gameid}`)
 				})
 			}
 			catch{
