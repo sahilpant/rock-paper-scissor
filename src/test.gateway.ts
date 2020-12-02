@@ -191,8 +191,8 @@ async finalResult(gameid:string)
 
 	
 	var existing_game = await this.match.find({gameid:gameid})
+	
 					
-
 	let gameINDB = await this.passkey.findOne({gameid:gameid})
 
 	let db_user1 = await this.user.findOne({username:gameINDB.user1});
@@ -949,9 +949,15 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			console.log(data);
 			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+			var existing_game = await this.match.find({gameid:data.gameid})
+			if(existing_game){
+				existing_game[0].status = "Aborted";
+				existing_game[0].save();
+			}
+	       
 			try{
 				client.leave(data.gameid, async () =>{
-					client.emit('leave_match_response', `${data.username} left room ${data.gameid}`)
+					client.emit('leave_match_response', `${userdetails.username} left room ${data.gameid}`)
 				})
 			}
 			catch{
