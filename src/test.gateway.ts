@@ -109,7 +109,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 		//DB access
 
 		const game = await this.passkey.findOne().where('gameid').equals(_room).exec();
-        const match_details = await this.match.findOne({gameid:_room});
+        let match_details = await this.match.findOne({gameid:_room});
 
  		if(game && (game.player1address || game.player2address)){
 
@@ -118,22 +118,58 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 			const user_2 =  await this.user.findOne({publickey:game.player2address});
 
 			/*---------------------------Card Returning Logic Starts Here-------------------------*/
+
+
+			if(game.client1id === client.id){
+                //user is client1 and if client2 has played his card then it got returned
+				if(game.card2 && game.card2 !== null){
+					let returnedTokenId = user_2.usedCards.pop()
+	
+					user_2.notUsedCards.push(returnedTokenId)
+
+					await user_2.save();
+				}
+				else{
+					//if user1 has not played his card then he will have to forfeit his one card
+					if(game.card1 && game.card1 === null){
+						user_1.notUsedCards.pop();
+						await user_1.save();
+					}
+				}
+
+			}
+			else if(game.client2id === client.id){
+				//user is client2 and if client1 has played his card then it got returned
+				if(game.card1 && game.card1 !== null){
+					let returnedTokenId = user_1.usedCards.pop()
+	
+					user_1.notUsedCards.push(returnedTokenId)
+
+					await user_1.save();
+				}
+				else{
+					//if user1 has not played his card then he will have to forfeit his one card
+					if(game.card2 && game.card2 === null){
+						user_2.notUsedCards.pop();
+						await user_2.save();
+					}
+				}
+			}
 				
-			if(game.card1 && game.card1 !== null){
-				let returnedTokenId = user_1.usedCards.pop()
-
-				user_1.notUsedCards.push(returnedTokenId)
-			}
-
-			else if(game.card2 && game.card2 !== null){
-				let returnedTokenId = user_2.usedCards.pop()
-
-				user_2.notUsedCards.push(returnedTokenId)
-			}
 
 			/*-----------------------Card Returning Logic Ends Here-------------------------------*/
 					
 			/*-----------------------Stars Returning Logic Starts Here-------------------------------*/
+
+			
+			/*-----------------------Forfeit One Star of user who call endgame-------------------*/
+			if(client.id === game.client1id){
+				match_details.stars_of_player1--;
+			}
+			else if(client.id === game.client2id){
+				match_details.stars_of_player2--;
+			}
+			/*-----------------------------------------------------------------------------------*/
 				
 			if(user_1){
 		
@@ -154,7 +190,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 				
 			await game.deleteOne();
 			
-			await this.finalResult(obj.gameid);
+			
 
 		
 			
@@ -758,6 +794,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 							})
 
 			generated_gameid = match.gameid;
+			this.room_invite_flag[`${generated_gameid}`] = false;
 			console.log("748848595885");
 			await match.save();
 		
@@ -788,6 +825,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 							)
 
 							generated_gameid = match.gameid;
+							this.room_invite_flag[`${generated_gameid}`] = false;
 				
 							await match.save(async function(err,data){
 
