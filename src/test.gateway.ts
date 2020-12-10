@@ -132,7 +132,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 				else{
 					//if user1 has not played his card then he will have to forfeit his one card
 					if(game.card1 && game.card1 === null){
-						user_1.notUsedCards.pop();
+						let returnedTokenId =user_1.notUsedCards.pop();
+						user_1.usedCards.push(returnedTokenId);
 						await user_1.save();
 					}
 				}
@@ -150,7 +151,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 				else{
 					//if user1 has not played his card then he will have to forfeit his one card
 					if(game.card2 && game.card2 === null){
-						user_2.notUsedCards.pop();
+						let returnedTokenId = user_2.notUsedCards.pop();
+						user_2.usedCards.push(returnedTokenId);
 						await user_2.save();
 					}
 				}
@@ -165,35 +167,33 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 			/*-----------------------Forfeit One Star of user who call endgame-------------------*/
 			if(client.id === game.client1id){
 				match_details.stars_of_player1--;
+	            await match_details.save();
 			}
 			else if(client.id === game.client2id){
 				match_details.stars_of_player2--;
+				await match_details.save();
 			}
 			/*-----------------------------------------------------------------------------------*/
 				
 			if(user_1){
 		
 				user_1.stars += match_details.stars_of_player1;
+				match_details.stars_of_player1 = 0;
 				await user_1.save();
 			}
 			
 			if(user_2){
 				
 				user_2.stars += match_details.stars_of_player2;
+				match_details.stars_of_player2 =0
 				await user_2.save();
 			}
 
-			
+			await match_details.save();
 			await this.finalResult(_room);				
 			/*-----------------------Stars Returning Logic ends Here-------------------------------*/
-			
-				
-			await game.deleteOne();
-			
-			
-
-		
-			
+	
+					
 			delete this.room_invite_flag[`${_room}`];
 
 			//Blockchain part for star transefer from admin
@@ -234,7 +234,7 @@ async finalResult(gameid:string)
 	let db_user1 = await this.user.findOne({username:gameINDB.user1});
 	let db_user2 = await this.user.findOne({username:gameINDB.user2});
 
-	if(gameINDB.playerWin.length !== 0)
+	if(gameINDB && gameINDB.playerWin.length !== 0)
 	{
 		let match_details = await this.match.findOne({gameid:gameid});					
 		let user1name  = gameINDB.user1;
@@ -302,7 +302,6 @@ async playGame(client:Socket,obj:Object)
 			if(!gameisfurtherPlay)
 			{
 			const _match = await this.match.findOne({gameid: obj.gameid});
-			this.finalResult(obj.gameid)
 			_match.status = "Aborted";
 			await _match.save();
 			this.handleEndGame(client,obj.gameid);
@@ -453,17 +452,6 @@ if(carddetail === "NONE"){
 			}					
 		})
 
-
-
-					
-	const nameinUSERDB = await this.user.findOne({username:user1name});
-	let indexofCard = (nameinUSERDB.notUsedCards.indexOf(data))
-	nameinUSERDB.usedCards.push(data)
-    let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
-	let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
-	y.forEach((element) => x.push(element));
-	nameinUSERDB.notUsedCards = x;
-	await nameinUSERDB.save();
 	await matchinstance.save();
 	await gameINDB.save();
 				
@@ -494,14 +482,7 @@ if(carddetail === "NONE"){
 
 
 
-	const nameinUSERDB = await this.user.findOne({username:user2name});
-	let indexofCard = (nameinUSERDB.notUsedCards.indexOf(data))
-	nameinUSERDB.usedCards.push(data)
-    let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
-	let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
-	y.forEach((element) => x.push(element));
-	nameinUSERDB.notUsedCards = x;
-	await nameinUSERDB.save();
+
 	await matchinstance.save();
 	await gameINDB.save();
 				
@@ -1038,26 +1019,6 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 
 		 }
 
-		 @SubscribeMessage('private')
-		 async Joinprivate(client: Socket, data:Object) {
-
-			var token = data.jwt_token; 
-			console.log(data);
-			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
-			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
-			 if(this.check[client.id]){
-				 this.handlejoinFirstTime(client);
-				 const room = this.users[client.id];
-				 this.room_invite_flag[room] = true;
-			 }
-			 else{
-				 client.emit("Error","invalid_token");
-				 client.disconnect();
-			 }
-		 }
-	handlejoinFirstTime(client: Socket) {
-		throw new Error('Method not implemented.');
-	}
 
 		 @SubscribeMessage('logoff')
  		async disconnect(client:Socket, data:Object){
