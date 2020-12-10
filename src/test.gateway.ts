@@ -717,7 +717,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 		
 		console.log(stars+"  "+card_details+"  "+existing_game.length);					
 		
-		if(existing_game.length > 0 && !this.room_invite_flag[`${existing_game[0].gameid}`]){
+		if(data.match_type === 'short' && existing_game.length > 0 && !this.room_invite_flag[`${existing_game[0].gameid}`]){
 
 		
 			if(stars>=3 && card_details>0){
