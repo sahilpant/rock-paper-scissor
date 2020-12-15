@@ -176,7 +176,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 			/*-----------------------------------------------------------------------------------*/
 				
 			if(user_1){
-		
+				
 				user_1.stars += match_details.stars_of_player1;
 				match_details.stars_of_player1 = 0;
 				await user_1.save();
@@ -190,6 +190,12 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 			}
 
 			await match_details.save();
+			let _name;
+			if(client.id === game.client1id)
+			_name = game.user1;
+			else if(client.id === game.client2id)
+			_name = game.user2;
+			client.to(_room).broadcast.emit('End_Game_Response', `${_name} has ended the Game`);
 			await this.finalResult(_room);				
 			/*-----------------------Stars Returning Logic ends Here-------------------------------*/
 	
@@ -198,12 +204,45 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 
 			//Blockchain part for star transefer from admin
 
-			client.to(_room).broadcast.emit('End_Game_Response', `${client.id} has ended the Game`);
+			
 			client.leave(_room);
 
 		}
 
 		else{
+		const dbuser =  await this.user.findOne({username:obj.username});
+
+		if(dbuser && match_details){
+
+			let card = dbuser.notUsedCards.pop();
+			dbuser.usedCards.push(card);
+			dbuser.save();
+
+			if(obj.username === match_details.player1.username){
+				match_details.stars_of_player1--;
+	            await match_details.save();
+			}
+			else if(obj.username === match_details.player2.username){
+				match_details.stars_of_player2--;
+				await match_details.save();
+			}
+
+			if(match_details.player1.username){
+				const dbuser1 =  await this.user.findOne({username:match_details.player1.username as string});
+					dbuser.stars += match_details.stars_of_player1;
+					match_details.stars_of_player1 = 0;
+					await dbuser.save();
+					await match_details.save();
+			}
+			if(match_details.player2.username){
+				const dbuser2 =  await this.user.findOne({username:match_details.player2.username as string});
+				dbuser.stars += match_details.stars_of_player2;
+				match_details.stars_of_player2 = 0;
+				await dbuser.save();
+				await match_details.save();
+			}
+
+			}
 		delete this.room_invite_flag[`${_room}`];
 		this.leave_match(client,obj);
 		}
@@ -257,12 +296,16 @@ async finalResult(gameid:string)
 		const finalPlayerWon = (user1>user2)?user1name:((user2>user1)?user2name:"DRAW");
 		existing_game[0].winner = finalPlayerWon;
 		existing_game[0].status = "Completed";
-		
+
 		db_user1.stars += match_details.stars_of_player1;
 		db_user2.stars += match_details.stars_of_player2;
 
+		match_details.stars_of_player1 =0;
+		match_details.stars_of_player2 =0;
+
 		await db_user1.save();
 		await db_user2.save();
+		await match_details.save();
 
 		this.wss.to(gameid).emit(`Final Result after Round${gameINDB.playerWin.length} `,finalPlayerWon);			
 		await gameINDB.deleteOne();		
@@ -687,7 +730,7 @@ if(carddetail === "NONE"){
 // Join Public game starts here  -----  
 @SubscribeMessage('Public')
 async startpublicgame(client:Socket, data:Object):Promise<any>{
-				
+
 	var token = data.jwt_token;
 	console.log(token);
 	console.log(data);
@@ -815,14 +858,14 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 								else {
 									console.log("888888888888888"+client.id);
 
-									await this.user.updateOne({"username":client.id}, {$set:{stars:0}}, function(err,res){
-										if(err){
-											console.log(err)
-										}
-										else{
+									// await this.user.updateOne({"username":client.id}, {$set:{stars:0}}, function(err,res){
+									// 	if(err){
+									// 		console.log(err)
+									// 	}
+									// 	else{
 											
-										}
-									})
+									// 	}
+									// })
 									client.emit("new_match_response", data);
 								}
 							});
@@ -874,6 +917,8 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 		@SubscribeMessage('start_match')
  		async start_match(client:Socket, data:Object){
 			var token = data.jwt_token; 
+			let  matchresponse;
+			console.log('/----------------------hello there------------------------------/')
 			console.log(data);
 			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
@@ -886,10 +931,8 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 					client.join(room, async function(err){
 						if(err) throw err;
 						else {
+							
 
-							if(this.room_invite_flag[`${room}`] && data.username === matchinDB.player2.username){
-								this.room_invite_flag[`${room}`] = false;
-							}
 						  
 							if(matchinDB.player1.username === userinDB.username){
 								userinDB.stars -= matchinDB.stars_of_player1;
@@ -908,21 +951,15 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 							}
 						client.to(room).emit('start_match_response', matchresponse);
 						
-					  
-					  }
+					
+					 }
 			 });
 				   
 					console.log(Object.keys(client));
 					console.log(client.rooms);
-					var  matchresponse={
-						"username":client.id,
-						"timestamp": new Date(),
-						"gameid":data.gameid,
-						"response":200
-
-					}
-	
-					client.emit('start_match_response',matchresponse);
+			
+	                //this.wss.to(matchresponse.gameid).emit('start_match_response',matchresponse);
+					client.emit('client_match_response',matchresponse);
                     
 				}
 			}
@@ -1029,7 +1066,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			try{
 
 				client.connected = false;
-				this.logger.log(`${client.id} disconnected`);
+				this.logger.log(`${userdetails.username} disconnected`);
 				client.disconnect();
 			}
 			catch{

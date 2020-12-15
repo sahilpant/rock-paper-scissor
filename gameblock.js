@@ -809,7 +809,7 @@ var getalldetails = async function(address) { await getAllDetails(address) }
 // });
 
 
-console.log( show_stars("0x95B01B8c39D2431519361cf0Ec81B89096D8c6F7"));
+//console.log( show_stars("0x95B01B8c39D2431519361cf0Ec81B89096D8c6F7"));
 module.exports = {
         sign_up:sign_up,
         show_stars:show_stars,
@@ -826,4 +826,4 @@ module.exports = {
 //  {
 //var d = createNewToken("0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4",3,40,account1,privateKey1,nftContractAddress);
 //   }
-returnOwnedToken("0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4");
+//returnOwnedToken("0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4");
