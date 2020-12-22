@@ -5,10 +5,10 @@ import { MailerModule} from 'nestjs-mailer'
 import { MongooseModule } from '@nestjs/mongoose';
 import { user } from 'src/schemas/user.model';
 import { ConfigService } from '@nestjs/config';
-import { SocketModule } from 'src/models/socket/socket.module';
-import { EventsGateway } from 'src/models/user/user.gateway';
+import { SocketModule } from 'src/Models/socket/socket.module';
+import { EventsGateway } from 'src/Models/user/user.gateway';
 import { AuthGuard } from 'src/Models/user/user.guards';
-import { UserModule } from 'src/models/user/user.module';
+import { UserModule } from 'src/Models/user/user.module';
 @Module({
   imports:[
     MongooseModule.forFeature([{ name: 'user', schema: user },],),
@@ -20,7 +20,7 @@ import { UserModule } from 'src/models/user/user.module';
             host:'smtp.gmail.com',
             service:'gmail',
             port: 587,
-            secure: false, // true for 465, false for other ports jjjj
+            secure: false, // true for 465, false for other ports
             auth: {
                   user: `projectt039@gmail.com`, // generated ethereal user
                   pass: `nj@880088`, // generated ethereal password

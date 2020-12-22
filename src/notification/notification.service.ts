@@ -3,7 +3,7 @@ import {InjectMailer,Mailer} from 'nestjs-mailer'
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { user } from 'src/required/interfaces/user.interface';
-import { EventsGateway } from 'src/models/user/user.gateway';
+import { EventsGateway } from 'src/Models/user/user.gateway';
 
 
 
