@@ -20,7 +20,7 @@ import { UserModule } from 'src/models/user/user.module';
             host:'smtp.gmail.com',
             service:'gmail',
             port: 587,
-            secure: false, // true for 465, false for other ports
+            secure: false, // true for 465, false for other ports jjjj
             auth: {
                   user: `projectt039@gmail.com`, // generated ethereal user
                   pass: `nj@880088`, // generated ethereal password
