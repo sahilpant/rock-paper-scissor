@@ -398,7 +398,7 @@ switch (gamedetails[0].card1)
 	
 }
 
-this.wss.to(obj.gameid).emit("move_response",{"gameid":obj.gameid,"card_position":obj.card_position})
+this.wss.to(obj.gameid).emit("move_response",{"gameid":obj.gameid,"card_position":obj.card_position, "username":obj.username});
 
 }
 
