@@ -11,7 +11,7 @@ var nftContractAddress = '0x94E3AcDeed5780B002c1C141926f6605704c5ef8'
 var starsContractAddress = '0x0A27A7370D14281152f7393Ed6bE963C2019F5fe'
 
 //Game interface
-const interface =[{
+const interfac =[{
 		"constant": true,
 		"inputs": [],
 		"name": "stars",
@@ -449,7 +449,7 @@ const interface =[{
 		"type": "constructor"
 	}
 ]
-var _interface = new web3.eth.Contract((interface) , gameContractAddress); //deployed address 
+var _interface = new web3.eth.Contract((interfac) , gameContractAddress); //deployed address 
 
 
 //NFT interface
