@@ -17,7 +17,6 @@ export class AppComponent {
     this.socket.on('match_details', data => console.log(data))
     this.socket.on('start_match_response', data => console.log(data))
     this.socket.on('activerooms_response', (data) => {
-      console.log("sdfghj")
       console.log(data)});
       this.socket.on('getroomID_response', (data) => {
         console.log(data);
@@ -25,11 +24,16 @@ export class AppComponent {
         localStorage.setItem('roomID',rid);
       
       });
+
+      this.socket.on('room_check_response', data => console.log(data));
+      this.socket.on('roomj', data => console.log(data));
+      this.socket.on('chat_response', data => console.log(data));
+      this.socket.on('move_response', data => console.log(data));
     
   }
   
     extra(){  
-      console.log("hit")
+  
       this.webSocketservice.handlereq();
     }
 
@@ -78,6 +82,19 @@ export class AppComponent {
      }
      EndGame(){
        this.webSocketservice.endGame()
+     }
+
+     checkmsg(){
+       this.webSocketservice.checkmsg();
+     }
+
+     joinroom(){
+       console.log("rerre");
+       this.webSocketservice.joinroom();
+     }
+
+     chat(){
+      this.webSocketservice.chat();
      }
 
 

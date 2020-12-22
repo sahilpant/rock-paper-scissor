@@ -683,7 +683,8 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
                 var cardType;
                 cardType = await _interact.methods.tokenDetails(tokeId).call();
                 //It will return both type and value both respectively
-                //console.log(cardType);
+				//console.log(cardType);
+				// console.log("this is card type" + cardType)
                 return (cardType);
         }
         catch (e) {
@@ -791,7 +792,7 @@ var total_cards = async function (address) { return await totalCards(address); }
 var returnownedTokens = async function(playerAddress) { return await returnOwnedToken(playerAddress) }
 var detailOfCard = async function(tokenId) { return await details(tokenId)}
 var ownerof = async function(tokenId) { return await ownerOf(tokenId)}
-var transferstar =async function(_to,value,gameContractadd) { await Transfer(_to,value,account1,privateKey1,gameContractadd)}
+var transferstar =async function(_to,value,gameContractAddress) { await Transfer(_to,value,account1,privateKey1,gameContractAddress)}
 var transferfrom = async function(_from,_to,value, gameContractadd) {await TransferFrom(_from,_to,value , account2 , privateKey2 , gameContractadd)}
 var burn = async function(tokenId,gameContractAddress) {  await burn(tokenId,account1,privateKey1,gameContractAddress)}
 var getalldetails = async function(address) { await getAllDetails(address) }
@@ -807,9 +808,16 @@ var getalldetails = async function(address) { await getAllDetails(address) }
 // (err)=>{
 // 	console.log("error")
 // });
+// console.log("rrererr")
+// detailOfCard('1460');
+// detailOfCard(1620).then((data)=>{
+// 	console.log(data)
+// });
 
-
-console.log( show_stars("0x95B01B8c39D2431519361cf0Ec81B89096D8c6F7"));
+transferstar("0x00552dd9014394aE4cb97efDdf688bbfC6B7cd2C",80000,'0x00552dd9014394aE4cb97efDdf688bbfC6B7cd2C').then((data)=>{
+	console.log(data);
+});
+// console.log( show_stars("0x95B01B8c39D2431519361cf0Ec81B89096D8c6F7"));
 module.exports = {
         sign_up:sign_up,
         show_stars:show_stars,
@@ -819,7 +827,8 @@ module.exports = {
 		ownerof:ownerof,
 		Transfer:Transfer,
 		burn:burn,
-		getalldetails:getalldetails
+		getalldetails:getalldetails,
+		transferstar:transferstar
 }
 
 //  for(var i=1;i<5;i++)

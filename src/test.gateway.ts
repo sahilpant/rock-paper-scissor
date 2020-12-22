@@ -1,5 +1,5 @@
 
-import { SubscribeMessage, OnGatewayConnection, OnGatewayInit, WebSocketServer, WebSocketGateway ,} from '@nestjs/websockets';
+import { SubscribeMessage, OnGatewayConnection, OnGatewayInit, WebSocketServer, WebSocketGateway ,WsResponse} from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import {v4 as uuid} from 'uuid'
@@ -12,21 +12,24 @@ import { PlayService } from './play/play.service';
 import {jwtStrategy} from './jwt.strategy'
 import * as jwt from 'jsonwebtoken';
 import {JwtPayLoad} from './required/interfaces/jwt-payload.interface'
-import { detailOfCard, show_stars, total_cards} from '.././gameblock'
+import { detailOfCard, show_stars, total_cards, transferstar} from '.././gameblock'
 import { ConfigService } from '@nestjs/config';
 import { AppGateway } from './app.gateway'
 import { NotificationService } from './notification/notification.service';
 import { match } from './required/interfaces/match.interface';
+import { object } from '@hapi/joi';
+import { networkInterfaces } from 'os';
 
-@WebSocketGateway(
-	{namespace:'/game'})
+@WebSocketGateway({namespace:'/game'})
 export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 	check: any;
 	users: any;
+
+	Clients =[];
+	NotificationService: any;
   
  
   constructor(
-              private  general:AppGateway,
               
               private jwtstrategy:jwtStrategy,
               
@@ -39,16 +42,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 			  private readonly playservice:PlayService,
 			  
 			  private configservice: ConfigService,
-			  
-			  private NotificationService:NotificationService ){}
+			   ){}
 
   private logger:Logger = new Logger('TestGateway');
 
   public room_invite_flag = {} //room id -> TRUE || FALSE
-
-  private move_time = {}; //takes the timestamp when a move is played
-
-  private user_start = true;
   
   @WebSocketServer() wss:Server;
   
@@ -62,17 +60,22 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 
   async handleConnection(client:Socket) {
 	
-	console.log(client.handshake.query.token)
-	
     if(client.handshake.query.token){
 		var data = client.handshake.query.token
 		try{
 			const ans = <JwtPayLoad>jwt.verify(data,this.configservice.get<string>('JWT_SECRET'))
 			let isuserValidatedwithPlayload = await this.jwtstrategy.validate(ans)
-			console.log(isuserValidatedwithPlayload);
 			if(isuserValidatedwithPlayload) {
+				// client.id= isuserValidatedwithPlayload.username;
+				
+				var clientInfo = {
+					clientID :client.id,
+					username:isuserValidatedwithPlayload.username;
+				}
 
-				client.id= isuserValidatedwithPlayload.username;
+				this.Clients.push(clientInfo);
+				console.log(this.Clients);
+
 				client.emit('Connection',isuserValidatedwithPlayload) //in the browser console this output will be showm
 			}
 
@@ -172,17 +175,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 		this.leave_match(client,obj);
 		}
 	}
-
-
-
-	@SubscribeMessage('show')
-	handleshow(): void {
-		console.log(`--------------------------------------------`)
-		console.log("room id : true if there is a pending invitation")
-		console.log(this.room_invite_flag)
-		console.log(`--------------------------------------------`)
+	leave_match(client: Socket, obj: Object) {
+		throw new Error('Method not implemented.');
 	}
-
 
 
 
@@ -192,7 +187,6 @@ async finalResult(gameid:string)
 	
 	var existing_game = await this.match.find({gameid:gameid})
 					
-
 	let gameINDB = await this.passkey.findOne({gameid:gameid})
 
 	let db_user1 = await this.user.findOne({username:gameINDB.user1});
@@ -204,7 +198,7 @@ async finalResult(gameid:string)
 		let user1name  = gameINDB.user1;
 		let user2name  = gameINDB.user2;
 
-		let user1 = 0,user2 = 0, draw = 0;
+		let user1 = 0, user2 = 0, draw = 0;
 		
 		for(const player in gameINDB.playerWin)
 		{
@@ -244,332 +238,240 @@ async finalResult(gameid:string)
 async playGame(client:Socket,obj:Object)
 {
 	var data = obj.card_number;
-	console.log(data);
-	let gameAlreadyExist =  await this.passkey.findOne({gameid:obj.gameid});
-	let matchinstance = await this.match.findOne({gameid:obj.gameid});
-	let gameisfurtherPlay = true;
-    
-	if(gameAlreadyExist)
-	{
-		let client1existinGame = true,client2existinGame = false;
-		
-		if(gameAlreadyExist.client2id)
-		client2existinGame = true;
 	
-		
-		if(client1existinGame && client2existinGame)
-		{
-			
-			if(matchinstance.stars_of_player1 == 0 || matchinstance.stars_of_player2 == 0)
-			gameisfurtherPlay = false;
+	let gameExistinPasskey = await this.passkey.findOne({gameid:obj.gameid});  // Fetch details from db
+	let gameExistinMatch = await this.match.findOne({gameid:obj.gameid}); // fetch match detials from db
+	console.log(gameExistinPasskey);
+	// If passkey collection is empty against this gameid then insert this match instance in the collection
 
-			if(!gameisfurtherPlay)
-			{
-			const _match = await this.match.findOne({gameid: obj.gameid});
-			this.finalResult(obj.gameid)
-			_match.status = "Aborted";
-			await _match.save();
-			this.handleEndGame(client,obj.gameid);
-		}
+	if(gameExistinPasskey == null){
+	// client.to(obj.gameid).emit("move_response", gameExistinPasskey);
+	//  Storing data in passkey collection
+	let passkeyObj = new this.passkey({		
+	player1address:gameExistinMatch.player1.publicaddress,
+    player2address:gameExistinMatch.player2.publicaddress,
+    client1id: gameExistinMatch.player1.username,
+    client2id:gameExistinMatch.player2.username,
+    token1:0,
+    token2:0,
+    gameid:gameExistinMatch.gameid,
+    card1:null,
+    card2:null,
+    user1: null,
+    user2:null,
+    moves:[],
+    playerWin:null,
+    card1played:false,
+    card2played:false
+	});
+	
+	await passkeyObj.save(); // Save function is called here
+	// Saving passkey in this collection - Ends here
+     if(gameExistinMatch && obj.username == gameExistinMatch.player1.username && gameExistinPasskey && gameExistinPasskey.token1 == 0){
+		
+		this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number}});
+
+	 }
+	 else if (gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player2.username && gameExistinPasskey.token2 == 0){ 
+	
+		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true}});
 	}
 }
-	
 
-	if(gameisfurtherPlay)
-	{
-		console.log("Everything running fine")
+if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player1.username && gameExistinPasskey.token1 == 0){
+	
+	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true}});
+	// console.log( await this.passkey.find({gameid:obj.gameid}))
+}
+
+else if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player2.username && gameExistinPasskey.token2 == 0){ 
+	
+	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true}});
+}
+else{
+
+	// Rectify this
+	if(gameExistinPasskey){
+		client.emit("move_response","You already made your move")
+	}
+	
+}
+
+if(gameExistinPasskey && gameExistinMatch && gameExistinPasskey.token1 > 0 && gameExistinPasskey.token2 > 0){
+	// console.log("I was here");
+
+	for (var i = 0; i <= 1 ; i++){
 		let carddetail: string | string[];
+		let givenCardType;
+		console.log(i);
+		if(i == 0){
 
-		let givenCardType: string;
-		if(data == "NONE"){
-		carddetail = "NONE";
-		givenCardType = "NONE";
+			carddetail = await detailOfCard(gameExistinPasskey.token1);
+			(carddetail[0] === "1")?(givenCardType="ROCK"):(
+				(carddetail[0] === "2")?(givenCardType="PAPER"):(
+													(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
+		
+													await this.passkey.updateOne({gameid:obj.gameid}, {$set:{card1:givenCardType}});
 		}
-		else
-		{
-		 carddetail = await detailOfCard(data); 
-	     console.log(carddetail+"   "+carddetail[0]+"   "+carddetail[1]);
-        (carddetail[0] === "1")?(givenCardType="ROCK"):(
-									(carddetail[0] === "2")?(givenCardType="PAPER"):(
-																		(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
-				
-		}
-																
-		let gameid = obj.gameid;
-        if(givenCardType == CardStatus.PAPER || givenCardType == CardStatus.ROCK || givenCardType == CardStatus.SCISSOR)
-		{
-			let gameexist = await this.passkey.findOne({gameid:gameid});
-            let nameinUSERDB = await this.user.findOne({username:obj.username});
-			 
+		else{
+			carddetail = await detailOfCard(gameExistinPasskey.token2);
 			
-			//find index of given card
-			let indexofCard = (nameinUSERDB.notUsedCards.indexOf(data))
-	        console.log(indexofCard)
+			(carddetail[0] === "1")?(givenCardType="ROCK"):(
+				(carddetail[0] === "2")?(givenCardType="PAPER"):(
+													(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
+		
+													await this.passkey.updateOne({gameid:obj.gameid}, {$set:{card2:givenCardType}});
+		}												
+		
+
+	}
+
+	//  Winner of round : Starts
+	var dat = obj.gameid;
+ let gamedetails = await this.passkey.find({"gameid":obj.gameid});
+//  console.log(gamedetails);
+switch (gamedetails[0].card1)
+{
+	case 'ROCK':
+		console.log(gamedetails[0].card2);
+		switch (gamedetails[0].card2)
+		{
+			case 'ROCK': 
+			await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+			this.wss.to(obj.gameid).emit("move_response","Match tie");
+			break;
+			case 'PAPER':
+			await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+			this.wss.to(obj.gameid).emit("move_response","Player2 win");
+			break;
+			case 'SCISSOR':
+				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+				this.wss.to(obj.gameid).emit("move_response","Player1 win");
+				break;		
+
+		}break;
+	case 'PAPER':
+		console.log(gamedetails[0].card2);
+		switch (gamedetails[0].card2)
+		{
+			case 'ROCK': 
+			console.log(gamedetails[0].card2);
+			console.log(4);
+			await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+			this.wss.to(obj.gameid).emit("move_response","Player1 win");
+			break;
+			case 'PAPER':
+				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+			this.wss.to(obj.gameid).emit("move_response","Tie");
+			break;
+			case 'SCISSOR':
+				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+				this.wss.to(obj.gameid).emit("move_response","Player2 win");	
+				break;
+			default:
+			break;
+		} break;
+
+		case 'SCISSOR':
+			console.log(gamedetails[0].card2);
+			switch (gamedetails[0].card2)
+			{
+				case 'ROCK':
+					await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+				this.wss.to(obj.gameid).emit("move_response","Player2 win");
+				break;
+				case 'PAPER':
+				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+				this.wss.to(obj.gameid).emit("move_response","Player 1 win");
+				break;
+				case 'SCISSOR':
+					await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+					this.wss.to(obj.gameid).emit("move_response","Tie");	
+				default:
+					break;
 	
-			if(gameexist && gameexist.client1id && gameexist.client2id && indexofCard !== -1)
-			{	
-				//1st round is completed successfully
-				if(!gameexist.card1played && client.id === gameexist.client1id)
-			   {
-				    gameexist.card1 = givenCardType;
-				    gameexist.token1 = data;
-					gameexist.card1played = true;
-					await gameexist.save();
-
-			   }
-			   else if(!gameexist.card2played && client.id === gameexist.client2id)
-			   {
-					gameexist.card2 = givenCardType;
-					gameexist.token2 = data;
-					gameexist.card2played = true;
-					await gameexist.save();
-			   }
-			}
-				
-			else if(gameexist && indexofCard !== -1)
-			{
-				gameexist.card2 = givenCardType;
-				gameexist.user2 = nameinUSERDB.username;
-				gameexist.player2address = nameinUSERDB.publickey;
-				gameexist.token2 = data
-				gameexist.card2played = true
-				gameexist.client2id = client.id   
-				await gameexist.save();
-			}
-			else if(indexofCard !== -1)
-			{
-				
-				
-				const cardDetail = new this.passkey({
-					gameid:gameid,
-					card1:givenCardType,
-					user1:nameinUSERDB.username,
-					client1id:client.id,
-					card1played:true,
-					card2played:false,
-					player1address:nameinUSERDB.publickey,
-					token1:data
-				})
-				await cardDetail.save()
-			}
-			if(indexofCard !== -1)
-			{
-			    nameinUSERDB.usedCards.push(data)
-                let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
-			    let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
-			    y.forEach((element) => x.push(element));
-			    nameinUSERDB.notUsedCards = x;
-			
-			    await nameinUSERDB.save();
-			}
-
-		}
-			let gameexist = await this.passkey.findOne({gameid:gameid});
-
-
-/*------------------------------If card is not given within time respose considered as NONE------------------------------*/
-
-			
-if(carddetail === "NONE"){
-
-	let winner:string;
-	if(gameexist && !gameexist.card1played && gameexist.card2played){
-		winner = gameexist.user2;
-	}
-	else if(gameexist && !gameexist.card2played && gameexist.card1played){
-		winner = gameexist.user1;
-	}
-	else if(!gameexist || (!gameexist.card1played && !gameexist.card2played)){
-		winner = "NONE";
-	}
-				
-				
-	let gameINDB = await this.passkey.findOne({gameid:gameid});
-
-	const user1name = gameINDB.user1;
-	const user2name = gameINDB.user2;
-    const user1card = gameINDB.card1;
-	const user2card = gameINDB.card2;
-	let   token1    = gameINDB.token1;
-    let   token2    = gameINDB.token2;
-
-	let gameResult = winner;
-
-
-	if(gameResult === user1name){
-					
-		gameINDB.playerWin.push(user1name);
-		matchinstance.stars_of_player1++;
-	    matchinstance.stars_of_player2--;
-
-        matchinstance.Rounds.push({
-								
-			player1:{
-				card_type:user1card,
-				card_number:token1,
-				timestamp:new Date					
-			},
-								
-			player2:{
-				card_type:null,
-				card_number:-1,
-				timestamp:new Date
-			}					
-		})
-
-
-
-					
-	const nameinUSERDB = await this.user.findOne({username:user1name});
-	let indexofCard = (nameinUSERDB.notUsedCards.indexOf(data))
-	nameinUSERDB.usedCards.push(data)
-    let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
-	let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
-	y.forEach((element) => x.push(element));
-	nameinUSERDB.notUsedCards = x;
-	await nameinUSERDB.save();
-	await matchinstance.save();
-	await gameINDB.save();
-				
-    }
-				
-    else if(gameResult === user2name){
-					
-		matchinstance.stars_of_player2++;
-		matchinstance.stars_of_player1--;
-	    gameINDB.playerWin.push(user2name)
-
-        matchinstance.Rounds.push({
-
-			player1:{
-
-				card_type:null,
-				card_number:-1,
-				timestamp:new Date
-			},
-			player2:{
-							
-				card_type:user2card,
-				card_number:token2,
-				timestamp:new Date			
-			}
-					
-		})
-
-
-
-	const nameinUSERDB = await this.user.findOne({username:user2name});
-	let indexofCard = (nameinUSERDB.notUsedCards.indexOf(data))
-	nameinUSERDB.usedCards.push(data)
-    let x = nameinUSERDB.notUsedCards.slice(0,indexofCard);
-	let y = nameinUSERDB.notUsedCards.slice(indexofCard+1);
-	y.forEach((element) => x.push(element));
-	nameinUSERDB.notUsedCards = x;
-	await nameinUSERDB.save();
-	await matchinstance.save();
-	await gameINDB.save();
-				
+			}break;
+			default:
+			break;
 }
-				
-				
-    else if(gameResult === "NONE"){
-
-	this.wss.to(gameid).emit('move_response',"None Of The Player play a move")				
-    }
-				
-}
-
-
-/*------------------------------------------------------------*/
-
-	else if(gameexist && gameexist.card1played && gameexist.card2played)
-    {
-
-		matchinstance = await this.match.findOne({gameid:gameid});
-		let gameINDB = await this.passkey.findOne({gameid:gameid});
-
-		const user1name = gameINDB.user1;
-		const user2name = gameINDB.user2;
-		const user1card = gameINDB.card1;
-		const user2card = gameINDB.card2;
-		let   token1    = gameINDB.token1;
-		let   token2    = gameINDB.token2;
-
-			
-		let gameResult = await  this.playservice.play(gameid);
-
-		if(gameResult === user1name){
-			matchinstance.stars_of_player1++;
-		    matchinstance.stars_of_player2--;
-		}
-		else if(gameResult === user2name){
-			matchinstance.stars_of_player1--;
-		    matchinstance.stars_of_player2++;
-		}
-		
-		if(gameResult === "game is draw")
-		{
-			this.wss.to(gameid).emit('move_response',"DRAW")
-		}
-		else
-		{
-			this.wss.to(gameid).emit('move_response',gameResult+" WON ");
-		}	
-		this.wss.to(gameid).emit(`${user1name}`,user1card);
-		this.wss.to(gameid).emit(`${user2name}`,user2card);
-				
-
-		gameINDB = await this.passkey.findOne({gameid:gameid})
-
-				
-
-		if(gameINDB.playerWin.length > 0){
-					
-			matchinstance.Rounds.push({
-						
-				player1:{			
-					card_type:user1card,
-					card_number:token1,
-					timestamp:new Date		
-				},		
-				player2:{
-					card_type:user2card,
-				    card_number:token2,
-					timestamp:new Date		
-				}
-					
-			})
-					
-			await matchinstance.save();
-					
-			
-			if(gameINDB.playerWin.length == 3){
-						
-		        matchinstance.TotalRounds = 3;
-			    matchinstance.status = "Completed";
-                await matchinstance.save();
-				this.finalResult(gameid);
-					
-			}
-				
-		}				
-			
-	}
-		
-		
+	// Winner of round: Ends
 	
 }
+
+this.wss.to(obj.gameid).emit("move_response",{"gameid":obj.gameid,"card_position":obj.card_position})
+
 }
 
+// Function to update match details and sending response.
+async handletransfers(winner,card1,card2,token1,token2,game):Promise<any>{
 
-        
+console.log(winner,card1,card2,token1,token2,game)
+let gameblock = await this.match.find({gameid:game},{});
+console.log(gameblock)
 
+if(winner == 1){
+	gameblock[0].stars_of_player2--;
+	gameblock[0].stars_of_player1++
+}
+else if(winner == 2){
+	gameblock[0].stars_of_player2++;
+	gameblock[0].stars_of_player1--;
+}
+//  console.log(gameblock[0]);
+ gameblock[0].round++;
+ if(gameblock){
+gameblock[0].Rounds.push({
+	player1:{
+			card_type:card1,
+			card_number:token1,
+			timestamp:new Date()
+		},
+		player2:{
+			card_type:card2,
+			card_number:token2,
+			timestamp:new Date()
+		}
+
+})}
+
+if(gameblock[0].round == 3 || gameblock[0].stars_of_player1 == 0 || gameblock[0].stars_of_player2 == 0){
+	gameblock[0].status = "COMPLETED";
+	if(gameblock[0].stars_of_player1 > gameblock[0].stars_of_player2){
+        gameblock[0].winner = "1";
+	}
+	else if(gameblock[0].stars_of_player2 > gameblock[0].stars_of_player1){
+        gameblock[0].winner = "2";
+	}
+	else{
+		gameblock[0].winner ="0";
+	}
+	// Final settlement of stars on blockchain
+	if(gameblock[0].stars_of_player1 > 0 && gameblock[0].player1.publicaddress !== null){
+		await transferstar(gameblock[0].player1.publicaddress,gameblock[0].stars_of_player1,gameblock[0].player1.publicaddress);
+	}
+if(gameblock[0].stars_of_player1 > 0 && gameblock[0].player1.publicaddress !== null){
+	await transferstar(gameblock[0].player2.publicaddress,gameblock[0].stars_of_player1,gameblock[0].player2.publicaddress);
+}
+}
+
+await this.passkey.updateOne({gameid:game},{$set:{
+	token1:0,
+	token2:0,
+	card1:null,
+	card2:null
+}})
+// await gameblock[0].save();
+return "1"
+}
+		
 	@SubscribeMessage('chat')
 	handlechat(client: Socket, data: string):void 
 	{
-
-				const room = data.roomID;
-				this.wss.to(room).emit('chat', data);
+                     
+				const room = data;
+				console.log(room);
+				client.join(room);
+				this.wss.to(room).emit('chat_response', data);
 	}
   
 
@@ -646,13 +548,7 @@ if(carddetail === "NONE"){
 			client.emit("new_match_response", "Invalid user");
 		}
 		
-	}
-	
-
-
-
-
-
+	}	
 
     //Join Private game starts here
 
@@ -664,8 +560,6 @@ if(carddetail === "NONE"){
 			this.room_invite_flag[`${game_id}`] = true;
 		
 	}
-
-
 
 // Join Public game starts here  -----  
 @SubscribeMessage('Public')
@@ -683,7 +577,6 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 		console.log(userdetails.publickey);
 		
 		if(userdetails.publickey){
-
 			var stars = await show_stars(userdetails.publickey);
 		    var card_details = await total_cards(userdetails.publickey);					
 					
@@ -794,9 +687,8 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 								if (err) return "Error while creating match";
 		
 								else {
-									console.log("888888888888888"+client.id);
 
-									await this.user.updateOne({"username":client.id}, {$set:{stars:0}}, function(err,res){
+									await this.user.updateOne({"username":object.username}, {$set:{stars:0}}, function(err,res){
 										if(err){
 											console.log(err)
 										}
@@ -858,19 +750,21 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			console.log(data);
 			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
-		
+			
 			try{
 			if(userdetails){
 				let matchinDB =  await this.match.findOne({gameid:data.gameid});
 				let userinDB  =  await this.user.findOne({username:data.username}); 
-				   var room=data.gameid;
+				   var room= data.gameid;
+
+
 					client.join(room, async function(err){
 						if(err) throw err;
 						else {
 
-							if(this.room_invite_flag[`${room}`] && data.username === matchinDB.player2.username){
-								this.room_invite_flag[`${room}`] = false;
-							}
+							// if(this.room_invite_flag[`${room}`] && data.username === matchinDB.player2.username){
+							// 	this.room_invite_flag[`${room}`] = false;
+							// }
 						  
 							if(matchinDB.player1.username === userinDB.username){
 								userinDB.stars -= matchinDB.stars_of_player1;
@@ -879,31 +773,20 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 								userinDB.stars -= matchinDB.stars_of_player2;
 							}
 							await userinDB.save();
-							
-							var  matchresponse={
-								"username":client.id,
-								"timestamp": new Date(),
-								"gameid":data.gameid,
-								"response":200
-
-							}
-						client.to(room).emit('start_match_response', matchresponse);
 						
 					  
+
 					  }
 			 });
-				   
-					console.log(Object.keys(client));
-					console.log(client.rooms);
-					var  matchresponse={
-						"username":client.id,
-						"timestamp": new Date(),
-						"gameid":data.gameid,
-						"response":200
+			 var  matchresponse={
+				"username":data.username,
+				"timestamp": new Date(),
+				"gameid":data.gameid,
+				"response":200
 
-					}
-	
-					client.emit('start_match_response',matchresponse);
+			}
+			this.wss.to(room).emit('start_match_response', matchresponse);
+					// client.emit('start_match_response',matchresponse);
                     
 				}
 			}
@@ -913,7 +796,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 				
 					response:401,
 					message:"Invalid User"
-				}
+				} 
                 client.emit('start_match_response',res)
 
 			}
@@ -927,7 +810,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 				console.log(roo);
 				console.log(client.rooms);
 
-				client.to("c29b47d8-e7c9-4636-8a06-9baac2d97047").emit('activerooms_response', "This is the message");
+				client.emit('activerooms_response', "This is the message");
 		}
 		@SubscribeMessage("getroomID")
         async getroomID(client:Socket, data:Object){
@@ -964,6 +847,22 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
                 client.emit('leave_match_response',res)
 
 			}
+		 }
+
+		 @SubscribeMessage('room_check')
+		  roomcheck(client:Socket, data:string):WsResponse<unknown>{
+			 console.log("asdfghjkl");
+			 
+			 
+			client.join(data);
+
+			 console.log(Object.keys(client.rooms));
+			 
+			this.wss.to(data).emit('room_check_response', {room: 'aRoomwww'});
+			this.wss.to(Object.keys(client.rooms)[0]).emit('room_check_response', {room: 'aRoom'});
+
+			return ;
+			// socket.to('aRoom').emit('roomCreated', {room: 'aRoom'});
 		 }
 
 
@@ -1023,8 +922,9 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
 			try{
 
-				client.connected = false;
+				// client.connected = false;
 				this.logger.log(`${client.id} disconnected`);
+				client.emit('Disconnect_response',res)
 				client.disconnect();
 			}
 			catch{

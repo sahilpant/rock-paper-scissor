@@ -93,7 +93,7 @@ export class RegisterService
 
                 {
 
-                  this.EmailVerify.deleteMany({email:email}, function (err) 
+                  this.EmailVerify.deleteMany({email:email}, function (err)
 
                   {
 
@@ -128,8 +128,6 @@ export class RegisterService
 
                   {
 					return  new UnauthorizedException("invalid_email")
-
-					
 
                   }
 

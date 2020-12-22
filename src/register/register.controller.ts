@@ -1,4 +1,4 @@
-import { Controller, Post, ValidationPipe, Body ,Get, Param, Delete} from '@nestjs/common';
+import { Controller, Post, ValidationPipe, Body ,Get, Param, Delete, Header, Req} from '@nestjs/common';
 import { RegisterService } from './register.service';
 import { username } from 'src/required/dto/username.dto';
 import {publickey} from '../required/dto/publickey.dto'
@@ -63,7 +63,7 @@ export class RegisterController {
     }
 
     @Delete('/:reset')
-    @ApiOkResponse({description : 'resetting of the password is done'})
+    @ApiOkResponse({description : 'Password updated sucessfully '})
     @ApiBody({type:reset})
     reset(@Body() reset:reset){
       console.log(reset); 
@@ -76,6 +76,9 @@ export class RegisterController {
          const data = await detailOfCard(392);
          console.log(data+"   "+data[0]+"   "+data[1]);
     }
+
+    
+
 
 
   }

@@ -23,6 +23,10 @@ export class WebsocketService {
      this.socket.emit('Message', "ddddd")
    }
 
+   checkmsg(){
+     this.socket.emit('room_check', "abcd");
+   }
+
    public(){
     var data = {
         jwt_token: token,
@@ -87,10 +91,10 @@ export class WebsocketService {
       match_type: "short",
       publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid: localStorage.getItem('gameID'),
+      gameid: localStorage.getItem('roomID'),
     }
     
-    console.log(data);
+    // console.log(data);
     this.socket.emit('start_match',data);
    }
 
@@ -123,7 +127,7 @@ export class WebsocketService {
       match_type: "short",
       publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid: localStorage.getItem('gameID'),
+      gameid: localStorage.getItem('roomID'),
       card_number:localStorage.getItem('cardno'),
     } 
     
@@ -141,6 +145,15 @@ export class WebsocketService {
     
     console.log(data);
     this.socket.emit('End_Game',data);
+   }
+
+   joinroom(){
+     console.log("ddd")
+     this.socket.emit('joinRoom',"1234");
+   }
+
+   chat(){
+     this.socket.emit('chat',"12345");
    }
     
 }

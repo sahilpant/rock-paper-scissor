@@ -29,7 +29,10 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   
     handleConnection(client: Socket, ...args:any[]):void {
     
-      client.id=uuid()
+      client.id=uuid();
+      console.log("eee")
+
+      // client.join("abcd").broadcast.emit("start_match_response","adfghjk")
     
       this.users[client.id] = ++this.ctr;
     
@@ -61,9 +64,9 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   
     @SubscribeMessage('joinRoom')
     handleJoinRoom(client: Socket, room: string){
-    
+    console.log(room);
       client.join(room);
-    
+      client.broadcast.to(room).emit('roomj',"aaddd");
       client.broadcast.to(room).emit(`${this.users[client.id]} joined ${room}`);
   
     }
