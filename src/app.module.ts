@@ -90,7 +90,7 @@ import { BiddingModule } from './bidding/bidding.module';
     
       secret: "hello",
     
-      signOptions:{ expiresIn:3600, },
+      signOptions:{ expiresIn:604800, },
    
     }),
     

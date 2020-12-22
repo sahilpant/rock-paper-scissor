@@ -62,8 +62,13 @@ export class RegisterController {
       return this.registerService.show(account);
     }
 
+<<<<<<< HEAD
     @Delete('/:reset')
     @ApiOkResponse({description : 'Password updated sucessfully '})
+=======
+    @Post('/:reset')
+    @ApiOkResponse({description : 'resetting of the password is done'})
+>>>>>>> e823fa7719502f13b07e719e54d3d2ef1cda5ccf
     @ApiBody({type:reset})
     reset(@Body() reset:reset){
       console.log(reset); 

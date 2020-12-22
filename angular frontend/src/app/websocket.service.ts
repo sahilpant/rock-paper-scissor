@@ -50,10 +50,11 @@ export class WebsocketService {
    invite(){
     var data = {
         jwt_token: token,
-        match_type: "short",
+        match_type: "long",
         publickey:localStorage.getItem('publickey'),
         username:localStorage.getItem('username'),
-        email:localStorage.getItem('email')
+        email:localStorage.getItem('email'),
+        gameid: localStorage.getItem('gameID'),
       }
     this.socket.emit('invite', data )
    }

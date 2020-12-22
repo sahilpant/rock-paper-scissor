@@ -814,10 +814,15 @@ var getalldetails = async function(address) { await getAllDetails(address) }
 // 	console.log(data)
 // });
 
+<<<<<<< HEAD
 transferstar("0x00552dd9014394aE4cb97efDdf688bbfC6B7cd2C",80000,'0x00552dd9014394aE4cb97efDdf688bbfC6B7cd2C').then((data)=>{
 	console.log(data);
 });
 // console.log( show_stars("0x95B01B8c39D2431519361cf0Ec81B89096D8c6F7"));
+=======
+
+//console.log( show_stars("0x95B01B8c39D2431519361cf0Ec81B89096D8c6F7"));
+>>>>>>> e823fa7719502f13b07e719e54d3d2ef1cda5ccf
 module.exports = {
         sign_up:sign_up,
         show_stars:show_stars,
@@ -835,4 +840,4 @@ module.exports = {
 //  {
 //var d = createNewToken("0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4",3,40,account1,privateKey1,nftContractAddress);
 //   }
-returnOwnedToken("0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4");
+//returnOwnedToken("0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4");
