@@ -794,7 +794,7 @@ var detailOfCard = async function(tokenId) { return await details(tokenId)}
 var ownerof = async function(tokenId) { return await ownerOf(tokenId)}
 var transferstar =async function(_to,value,gameContractAddress) { await Transfer(_to,value,account1,privateKey1,gameContractAddress)}
 var transferfrom = async function(_from,_to,value, gameContractadd) {await TransferFrom(_from,_to,value , account2 , privateKey2 , gameContractadd)}
-var burn = async function(tokenId,gameContractAddress) {  await burn(tokenId,account1,privateKey1,gameContractAddress)}
+var Burn = async function(tokenId,gameContractAddress) {  await burn(tokenId,account1,privateKey1,gameContractAddress)}
 var getalldetails = async function(address) { await getAllDetails(address) }
 
 
