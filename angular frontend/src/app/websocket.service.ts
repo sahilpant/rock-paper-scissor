@@ -50,11 +50,10 @@ export class WebsocketService {
    invite(){
     var data = {
         jwt_token: token,
-        match_type: "long",
+        match_type: "short",
         publickey:localStorage.getItem('publickey'),
         username:localStorage.getItem('username'),
-        email:localStorage.getItem('email'),
-        gameid: localStorage.getItem('gameID'),
+        email:localStorage.getItem('email')
       }
     this.socket.emit('invite', data )
    }
@@ -126,11 +125,12 @@ export class WebsocketService {
     var data = {
       jwt_token: token,
       match_type: "short",
-      publickey:localStorage.getItem('publickey'),
+      // publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
       gameid: localStorage.getItem('roomID'),
       card_number:localStorage.getItem('cardno'),
-    } 
+      card_positon: 1
+    }
     
     console.log(data);
     this.socket.emit('move',data);
@@ -146,6 +146,13 @@ export class WebsocketService {
     
     console.log(data);
     this.socket.emit('End_Game',data);
+   }
+
+   deleteGame(){
+     var data ={
+       gameid:localStorage.getItem('roomID')
+     }
+     this.socket.emit('DeletePasskey', data);
    }
 
    joinroom(){
