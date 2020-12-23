@@ -253,7 +253,7 @@ async playGame(client:Socket,obj:Object)
 	let gameExistinMatch = await this.match.findOne({gameid:obj.gameid}); // fetch match detials from db
 	// console.log(gameExistinPasskey);
 	// If passkey collection is empty against this gameid then insert this match instance in the collection
-
+if(gameExistinMatch.status == "active"){
 	if(gameExistinPasskey == null){
 		console.log("It entered in the loop")
 	// client.to(obj.gameid).emit("move_response", gameExistinPasskey);
@@ -380,11 +380,11 @@ switch (gamedetails[0].card1)
 		switch (gamedetails[0].card2)
 		{
 			case 'ROCK': 
-			await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+			await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
 			this.wss.to(obj.gameid).emit("move_response","Match tie");
 			break;
 			case 'PAPER':
-			await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+			await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
 			this.wss.to(obj.gameid).emit("move_response","Player2 win");
 			break;
 			case 'SCISSOR':
@@ -398,17 +398,15 @@ switch (gamedetails[0].card1)
 		switch (gamedetails[0].card2)
 		{
 			case 'ROCK': 
-			console.log(gamedetails[0].card2);
-			console.log(4);
 			await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
 			this.wss.to(obj.gameid).emit("move_response","Player1 win");
 			break;
 			case 'PAPER':
-				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+				await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
 			this.wss.to(obj.gameid).emit("move_response","Tie");
 			break;
 			case 'SCISSOR':
-				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+				await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
 				this.wss.to(obj.gameid).emit("move_response","Player2 win");	
 				break;
 			default:
@@ -420,7 +418,7 @@ switch (gamedetails[0].card1)
 			switch (gamedetails[0].card2)
 			{
 				case 'ROCK':
-					await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+					await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
 				this.wss.to(obj.gameid).emit("move_response","Player2 win");
 				break;
 				case 'PAPER':
@@ -428,7 +426,7 @@ switch (gamedetails[0].card1)
 				this.wss.to(obj.gameid).emit("move_response","Player 1 win");
 				break;
 				case 'SCISSOR':
-					await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
+					await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
 					this.wss.to(obj.gameid).emit("move_response","Tie");	
 				default:
 					break;
@@ -444,6 +442,10 @@ switch (gamedetails[0].card1)
 
 this.wss.to(obj.gameid).emit("move_response",{"gameid":obj.gameid,"card_position":obj.card_position, "username":obj.username});
 
+}
+else{
+	this.wss.to(obj.gameid).emit("move_response","Invalid game");
+}
 }
 
 
