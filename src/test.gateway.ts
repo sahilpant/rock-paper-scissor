@@ -375,7 +375,6 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 													await this.passkey.updateOne({gameid:obj.gameid}, {$set:{card2:givenCardType}});
 		}												
 		
-
 	}
 
 	//  Winner of round : Starts
@@ -504,9 +503,15 @@ if(gameblock[0].round == 3 || gameblock[0].stars_of_player1 == 0 || gameblock[0]
 	// Final settlement of stars on blockchain
 	if(gameblock[0].stars_of_player1 > 0 && gameblock[0].player1.publicaddress !== null){
 		await transferstar(gameblock[0].player1.publicaddress,gameblock[0].stars_of_player1,gameblock[0].player1.publicaddress);
+		await this.user.updateOne({publickey:gameblock[0].player1.publicaddress},{$inc:{
+			stars:gameblock[0].stars_of_player1
+		}})
 	}
 if(gameblock[0].stars_of_player1 > 0 && gameblock[0].player1.publicaddress !== null){
 	await transferstar(gameblock[0].player2.publicaddress,gameblock[0].stars_of_player1,gameblock[0].player2.publicaddress);
+	await this.user.updateOne({publickey:gameblock[0].player2.publicaddress},{$inc:{
+		stars:gameblock[0].stars_of_player2
+	}})
 }
 }
 

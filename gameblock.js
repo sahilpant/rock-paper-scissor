@@ -814,9 +814,9 @@ var getalldetails = async function(address) { await getAllDetails(address) }
 // 	console.log(data)
 // });
 
-transferstar("0x00552dd9014394aE4cb97efDdf688bbfC6B7cd2C",80000,'0x00552dd9014394aE4cb97efDdf688bbfC6B7cd2C').then((data)=>{
-	console.log(data);
-});
+// transferstar("0x00552dd9014394aE4cb97efDdf688bbfC6B7cd2C",80000,'0x00552dd9014394aE4cb97efDdf688bbfC6B7cd2C').then((data)=>{
+// 	console.log(data);
+// });
 // console.log( show_stars("0x95B01B8c39D2431519361cf0Ec81B89096D8c6F7"));
 module.exports = {
         sign_up:sign_up,
