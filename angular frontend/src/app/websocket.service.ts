@@ -152,7 +152,7 @@ export class WebsocketService {
      var data ={
        gameid:localStorage.getItem('roomID')
      }
-     this.socket.emit('DeletePasskey', data);
+     this.socket.emit('roundetails', data);
    }
 
    joinroom(){

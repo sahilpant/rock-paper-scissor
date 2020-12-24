@@ -236,14 +236,23 @@ async finalResult(gameid:string)
 
 
 
-@SubscribeMessage('DeletePasskey')
+@SubscribeMessage('roundetails')
 async deletepasskey(client:Socket,obj:Object){
-
 	var data = obj.gameid;
-	console.log(data);
-	console.log(await this.passkey.findOne({"gameid":data},{}));
-	// this.passkey.deleteOne({"gameid":data});
+	var roundetails = await this.passkey.findOne({"gameid":data},{});
+
+	let response = {
+		"player1":roundetails.card1played,
+		"P1_position":roundetails.user1,
+		"player2":roundetails.card2played,
+		"P2_position":roundetails.user2
+	}
+	console.log(response)
+	client.emit("roundetails_response", response)
+	
 }
+
+
 @SubscribeMessage('move')
 async playGame(client:Socket,obj:Object)
 {
@@ -278,46 +287,29 @@ if(gameExistinMatch.status == "active"){
 	
 	await passkeyObj.save(); // Save function is called here
 	// Saving passkey in this collection - Ends here
-	// console.log("*********************")
-	// console.log(gameExistinMatch.player1.username);
-	// console.log(gameExistinMatch.player2.username);
-	console.log(obj.username);
      if(gameExistinMatch && obj.username == gameExistinMatch.player1.username){
-		
-		console.log("Updated for first player")
-		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card2played:true}});
+		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card2played:true,user1:obj.card_position}});
 
 	 }
 	 else if (gameExistinMatch && obj.username == gameExistinMatch.player2.username){ 
-		console.log("Updated for second player")
-		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true}});
+		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true, user2:obj.card_position}});
 	}
 }
 
 // Add to passkey if passkey object exists
-
-if(gameExistinPasskey){
-	console.log(true);
-}
-
-console.log("*********//////")
-console.log(gameExistinPasskey);
-console.log("*********//////")
-console.log(gameExistinPasskey);
-
 
 if(gameExistinPasskey && gameExistinMatch){
 
 
 if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player1.username && gameExistinPasskey.token1 == 0){
 	
-	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true}});
+	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true,user1:obj.card_position}});
 	// console.log( await this.passkey.find({gameid:obj.gameid}))
 }
 
 else if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player2.username && gameExistinPasskey.token2 == 0){ 
 	
-	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true}});
+	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true,user2:obj.card_position}});
 }
 else{
 
@@ -336,8 +328,6 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null){
 	console.log("Entered in first loop")
 	
 	gameExistinPasskey = await this.passkey.findOne({gameid:obj.gameid});  // Fetch details from db
-	console.log(gameExistinPasskey.token1);
-	console.log(gameExistinPasskey.token2);
 
 if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasskey.token1 > 0 && gameExistinPasskey.token2 > 0){
 	// console.log("I was here");
@@ -505,7 +495,12 @@ await this.passkey.updateOne({gameid:game},{$set:{
 	token1:0,
 	token2:0,
 	card1:null,
-	card2:null
+	card2:null,
+	user1:null,
+	user2:null,
+	card1played:false,
+	card2played:false
+
 }})
 await gameblock[0].save();
 return "1"
@@ -537,10 +532,7 @@ return "1"
 		const room = obj.roomID;
 		client.emit("Success",`Invitation sent to ${obj.email}`);
 		this.NotificationService.send_room_code(obj.email,room);
-	}
-	
-		
-		
+	}	
 		
 		@SubscribeMessage('joinGameByInvite')
 		async joinGame_throughInvite(client: Socket,data:Object) {
