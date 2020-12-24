@@ -8,7 +8,7 @@ export class AppGateway implements OnGatewayInit, OnGatewayConnection, OnGateway
   @WebSocketServer() wss: Server;
   
    private logger: Logger = new Logger('AppGateway');
-
+   
    public users:any = {};
    
    public userid:any = [];

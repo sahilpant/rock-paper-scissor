@@ -247,7 +247,6 @@ async deletepasskey(client:Socket,obj:Object){
 		"player2":roundetails.card2played,
 		"P2_position":roundetails.user2
 	}
-	console.log(response)
 	client.emit("roundetails_response", response)
 	
 }
@@ -289,10 +288,20 @@ if(gameExistinMatch.status == "active"){
 	// Saving passkey in this collection - Ends here
      if(gameExistinMatch && obj.username == gameExistinMatch.player1.username){
 		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card2played:true,user1:obj.card_position}});
-
+		await this.user.update({"username":obj.username},{
+			$pull:{notUsedCards:obj.card_number
+			},
+			$push:{ usedCards:obj.card_number}
+		})
+           
 	 }
 	 else if (gameExistinMatch && obj.username == gameExistinMatch.player2.username){ 
 		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true, user2:obj.card_position}});
+		await this.user.update({"username":obj.username},{
+			$pull:{notUsedCards:obj.card_number
+			},
+			$push:{ usedCards:obj.card_number}
+		})
 	}
 }
 
@@ -305,11 +314,21 @@ if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.pl
 	
 	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true,user1:obj.card_position}});
 	// console.log( await this.passkey.find({gameid:obj.gameid}))
+	await this.user.update({"username":obj.username},{
+		$pull:{notUsedCards:obj.card_number
+		},
+		$push:{ usedCards:obj.card_number}
+	})
 }
 
 else if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player2.username && gameExistinPasskey.token2 == 0){ 
 	
 	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true,user2:obj.card_position}});
+	await this.user.update({"username":obj.username},{
+		$pull:{notUsedCards:obj.card_number
+		},
+		$push:{ usedCards:obj.card_number}
+	})
 }
 else{
 
@@ -975,6 +994,20 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
                 client.emit('Disconnect_response',res)
 
 			}
+		 }
+
+
+		 @SubscribeMessage('userinfo')
+		 async userinfo(client:Socket, data:Object){
+		 
+		 await this.user.update({"username":data.username},{
+			 $pull:{notUsedCards:1876
+			 },
+			 $push:{ usedCards:1876}
+		 })
+
+		 var response =  await this.user.find({"username":data.username},{});
+		 console.log(response);
 		 }
 
 

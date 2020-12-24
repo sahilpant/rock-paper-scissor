@@ -160,6 +160,13 @@ export class WebsocketService {
      this.socket.emit('joinRoom',"1234");
    }
 
+   userinfo(){
+     var data ={
+       username:localStorage.getItem('username')
+     }
+     this.socket.emit('userinfo',data)
+   }
+
    chat(){
      this.socket.emit('chat',"12345");
    }

@@ -65,6 +65,9 @@ export class AppComponent {
      deletegames(){
       this.webSocketservice.deleteGame();
     }
+    userinfo(){
+      this.webSocketservice.userinfo();
+    }
 
      startmatch(){
       this.webSocketservice.startmatch()
