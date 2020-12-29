@@ -29,6 +29,8 @@ export class AppComponent {
       this.socket.on('roomj', data => console.log(data));
       this.socket.on('chat_response', data => console.log(data));
       this.socket.on('move_response', data => console.log(data));
+      this.socket.on('private_response',data => console.log(data));
+      this.socket.on('pending_match_request_response', data => console.log(data));
     
   }
   
@@ -49,9 +51,17 @@ export class AppComponent {
       this.webSocketservice.private();
      }  
 
+     guestaction(){
+       this.webSocketservice.guest_action();
+     }
+
      invite(){
 
       this.webSocketservice.invite();
+     }
+
+     pendingrequest(){
+       this.webSocketservice.pendingrequest();
      }
 
      joingameByInvite(){

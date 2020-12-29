@@ -5,6 +5,7 @@ export interface match extends mongoose.Document{
 	findOne(): any;
     
     gameid:string,
+    class:string,
     TotalRounds:number,
     GameLength:number,
     match_type:{type:String},

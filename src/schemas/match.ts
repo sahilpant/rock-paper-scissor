@@ -4,6 +4,7 @@ import { type } from 'os';
  export const match =new mongoose.Schema({
     
     gameid:{type:String},
+    class:{type:String},
     match_type:{type:String},
     TotalRounds:{type:Number},
     GameLength:{type:Number},

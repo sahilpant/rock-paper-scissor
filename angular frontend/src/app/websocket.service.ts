@@ -42,9 +42,27 @@ export class WebsocketService {
         jwt_token: token,
         match_type: "long",
         publickey:localStorage.getItem('publickey'),
-        username:localStorage.getItem('username')
+        username:localStorage.getItem('username'),
+        palyer2:"singhsrahul8",
+        address2:"0x860b8fb1306d94354A19A1b8a75a5b49cb690e80"
       }
+      console.log("private was called");
     this.socket.emit('private', data )
+   }
+
+   pendingrequest(){
+
+    var data = {
+      jwt_token: token,
+      match_type: "long",
+      publickey:localStorage.getItem('publickey'),
+      username:localStorage.getItem('username'),
+      palyer2:"singhsrahul8",
+      address2:"0x860b8fb1306d94354A19A1b8a75a5b49cb690e80"
+    }
+
+    this.socket.emit('pending_match_request', data )
+
    }
 
    invite(){
@@ -97,6 +115,8 @@ export class WebsocketService {
     // console.log(data);
     this.socket.emit('start_match',data);
    }
+
+
 
    activerooms(){
     var data = {
@@ -170,5 +190,15 @@ export class WebsocketService {
    chat(){
      this.socket.emit('chat',"12345");
    }
+
+   guest_action(){
+     var data ={
+       "jwt_token":token,
+       'gameid':"43bf985a-487b-4f33-86dc-af0cfc065d23",
+       "action":"1"
+     }
+    
+    this.socket.emit('invitee_action',data);
+  }
     
 }

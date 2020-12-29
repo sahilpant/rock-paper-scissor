@@ -24,6 +24,7 @@ import { NotificationService } from './notification/notification.service';
 import { join } from "path"
 import {match} from './schemas/match'
 import { BiddingModule } from './bidding/bidding.module';
+import { request } from './schemas/request';
 
 @Module({
 
@@ -32,7 +33,7 @@ import { BiddingModule } from './bidding/bidding.module';
 
     NotificationModule,
 
-    MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey},{name:'match', schema:match}]),
+    MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey},{name:'match', schema:match},{name:'request', schema:request}]),
 
     // RedisModule.register
 

@@ -17,6 +17,7 @@ import { ConfigService } from '@nestjs/config';
 import { AppGateway } from './app.gateway'
 import { NotificationService } from './notification/notification.service';
 import { match } from './required/interfaces/match.interface';
+import { request } from './required/interfaces/request.interface';
 import { object } from '@hapi/joi';
 import { networkInterfaces } from 'os';
 
@@ -38,6 +39,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 			  @InjectModel('passkey') private readonly passkey:Model<passkey>,
 
 			  @InjectModel('match') private readonly match:Model<match>,
+
+			  @InjectModel('request') private readonly request:Model<request>,
               
 			  private readonly playservice:PlayService,
 			  
@@ -263,7 +266,7 @@ async playGame(client:Socket,obj:Object)
 	// If passkey collection is empty against this gameid then insert this match instance in the collection
 if(gameExistinMatch.status == "active"){
 	if(gameExistinPasskey == null){
-		console.log("It entered in the loop")
+		
 	// client.to(obj.gameid).emit("move_response", gameExistinPasskey);
 	//  Storing data in passkey collection
 	let passkeyObj = new this.passkey({		
@@ -344,13 +347,13 @@ else{
 // console.log(gameExistinMatch,gameExistinPasskey,gameExistinPasskey.token1,gameExistinPasskey.token2);
 
 if(gameExistinPasskey !== null && gameExistinMatch !== null){
-	console.log("Entered in first loop")
+	// console.log("Entered in first loop")
 	
 	gameExistinPasskey = await this.passkey.findOne({gameid:obj.gameid});  // Fetch details from db
 
 if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasskey.token1 > 0 && gameExistinPasskey.token2 > 0){
 	// console.log("I was here");
-	console.log("Entered in second loop")
+	// console.log("Entered in second loop")
 
 	for (var i = 0; i <= 1 ; i++){
 		let carddetail: string | string[];
@@ -389,15 +392,15 @@ switch (gamedetails[0].card1)
 		{
 			case 'ROCK': 
 			await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("move_response","Match tie");
+			this.wss.to(obj.gameid).emit("round_results","Tie");
 			break;
 			case 'PAPER':
 			await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("move_response","Player2 win");
+			this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client2id);
 			break;
 			case 'SCISSOR':
 				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("move_response","Player1 win");
+				this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client1id);
 				break;		
 
 		}break;
@@ -407,15 +410,15 @@ switch (gamedetails[0].card1)
 		{
 			case 'ROCK': 
 			await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("move_response","Player1 win");
+			this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client1id);
 			break;
 			case 'PAPER':
 				await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("move_response","Tie");
+			this.wss.to(obj.gameid).emit("round_results","Tie");
 			break;
 			case 'SCISSOR':
 				await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("move_response","Player2 win");	
+				this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client2id);	
 				break;
 			default:
 			break;
@@ -427,15 +430,15 @@ switch (gamedetails[0].card1)
 			{
 				case 'ROCK':
 					await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("move_response","Player2 win");
+				this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client2id);
 				break;
 				case 'PAPER':
 				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("move_response","Player 1 win");
+				this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client1id);
 				break;
 				case 'SCISSOR':
 					await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-					this.wss.to(obj.gameid).emit("move_response","Tie");	
+					this.wss.to(obj.gameid).emit("round_results","Tie");	
 				default:
 					break;
 	
@@ -613,24 +616,12 @@ return "1"
 		
 	}	
 
-    //Join Private game starts here
-
-		@SubscribeMessage('private')
-	async handleJoin_with_Friend(client: Socket, data:Object) {
-
-			let game_id = await this.startpublicgame(client,data);
-			console.log(game_id);
-			this.room_invite_flag[`${game_id}`] = true;
-		
-	}
-
-// Join Public game starts here  -----  
 @SubscribeMessage('Public')
 async startpublicgame(client:Socket, data:Object):Promise<any>{
 				
 	var token = data.jwt_token;
-	console.log(token);
-	console.log(data);
+	// console.log(token);
+	// console.log(data);
 	let generated_gameid:any;
     try{
 		
@@ -723,6 +714,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			const match = new this.match({
 								gameid:uuid(),
 								match_type:data.match_type,
+								class:'public',
 								stars_of_player1:stars,
 								stars_of_player2:0,
 								start_date: new Date(),
@@ -956,23 +948,198 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 
 		 }
 
+		//  Create Private Match -  Starts
+
 		 @SubscribeMessage('private')
 		 async Joinprivate(client: Socket, data:Object) {
+			 var token = data.jwt_token;
+			 console.log("private was called");
+			 const decryptedvalue =  <JwtPayLoad>jwt.verify(token, this.configservice.get<string>('JWT_SECRET'));
+			 let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+			 if(userdetails){
+				try{
+					console.log("yruieow");
+					if(userdetails.publickey){
+						var stars = await show_stars(userdetails.publickey);
+						var card_details = await total_cards(userdetails.publickey)					
+								
+					}
+								
+				 if( stars > 0 &&  card_details >0 ){
+					if(stars>=3){
+								console.log("here")		 
+						const match = new this.match({
+											gameid:uuid(),
+											calss:'private',
+											match_type:data.match_type,
+											GameLength: data.match_type =='short' ? 60:129600,
+											stars_of_player1:3,
+											stars_of_player2:0,
+											TotalRounds:3,
+											start_date: new Date(),
+											round:0,
+											player1:{
+												username: data.username,
+												publicaddress:data.publickey,
+											},
+											player2:{
+												username:data.palyer2,
+												publicaddress:data.address2
+											},
+											Rounds:[],
+											status:"waiting confirmation",
+											winner:""
+										})
+			
+						var generated_gameid = match.gameid;
+						await match.save();
+						
+						const request = new this.request({
+							gameid:generated_gameid,
+							host:data.username,
+							invitee:data.palyer2,
+							lastUpdated:new Date(),
+							status:"pending"
 
-			var token = data.jwt_token; 
-			console.log(data);
-			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
-			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
-			 if(this.check[client.id]){
-				 this.handlejoinFirstTime(client);
-				 const room = this.users[client.id];
-				 this.room_invite_flag[room] = true;
+						})
+
+						await request.save();
+						client.emit("private_response", data);
+					
+					}
+					else{
+			
+						const match = new this.match({
+											gameid:uuid(),
+											match_type:data.match_type,
+											class:'private',
+											stars_of_player1:stars,
+											stars_of_player2:0,
+											start_date: new Date(),
+											TotalRounds:3,
+											GameLength: data.match_type =='short' ? 60:129600,
+											round:0,
+											player1:{
+												username: data.username,
+												publicaddress:data.publickey,
+											},
+											player2:{
+												username:data.palyer2,
+												publicaddress:data.address2
+											},
+											Rounds:[],
+											status:"waiting confirmation",
+											winner:""
+										}
+										)
+			
+										generated_gameid = match.gameid;							
+										await match.save();
+										console.log("This is called 2");
+										console
+										const request = new this.request({
+											gameid:generated_gameid,
+											host:data.username,
+											invitee:data.palyer2,
+											lastUpdated:new Date(),
+											status:"pending"
+				
+										});
+										await request.save();
+										client.emit("private_response", data);
+			
+									}					 
+									}
+							}
+			 catch{
+				client.emit("private_response", "Error while creating match");
 			 }
-			 else{
-				 client.emit("Error","invalid_token");
-				 client.disconnect();
-			 }
+
+			}
+			else{
+				client.emit("private_response", data);
+			}
+
 		 }
+		//  Create Private match - Ends
+
+
+
+		//Private Match request starts
+		
+
+		@SubscribeMessage('pending_match_request')
+		async privatematchrequest(client:Socket, data:Object){
+			var token = data.jwt_token;
+			console.log("private was called");
+			const decryptedvalue =  <JwtPayLoad>jwt.verify(token, this.configservice.get<string>('JWT_SECRET'));
+			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+            console.log(userdetails);
+			if(userdetails){
+				 
+				var response = await this.request.find({$or:[{"host":userdetails.username},
+			                                        {"invitee":userdetails.username}]},{})
+                client.emit('pending_match_request_response', response);
+    
+			}
+			else{
+				client.emit('pending_match_request_response', "Invalid Token")
+			}
+			}
+		//Private Match request Ends
+
+		@SubscribeMessage('invitee_action')
+		async hostaction(client:Socket, data:Object){
+			var token = data.jwt_token;
+			const decryptedvalue =  <JwtPayLoad>jwt.verify(token, this.configservice.get<string>('JWT_SECRET'));
+			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+
+			if(userdetails){
+
+				let detail = await this.request.find({"gameid":data.gameid},{});
+				console.log(detail, userdetails.username);
+				if(detail[0].invitee == userdetails.username && data.action == 1 && detail[0].status == "waiting confirmation"){
+					if(userdetails.publickey){
+						var stars = await show_stars(userdetails.publickey);
+						var card_details = await total_cards(userdetails.publickey);					
+								
+					}
+
+					// Updating mathc detials
+
+					if(stars>=3 && card_details>0){
+			
+						await  this.match.updateOne({gameid:data.gameid},{$set:{'stars_of_player2':3,'player_joined':2,"status":"active"}}, function(err,data){
+							if( err) console.log(err)
+						})
+					}
+					else if(stars<3 && stars>0 && card_details>0){
+					
+						await  this.match.updateOne({gameid:data.gameid},{$set:{'stars_of_player2':stars,'player_joined':2,"status":"active"}}, function(err,data){
+							if( err) console.log(err)
+						})
+					}
+					else
+					{
+							//This is client2's first game
+							client.disconnect();
+					}
+
+					
+				}
+
+				
+				await this.request.updateOne({gameid:data.gameid},{$set:{"status":data.action == 1 ? "accepted":"rejected"}});
+
+				client.emit('invitee_action_response', data.action == 1 ? "Request approved":"Request rejected");
+
+			}
+			else{
+				client.emit('invitee_action_response', "Invalid Token")
+			}
+
+		}
+
 	handlejoinFirstTime(client: Socket) {
 		throw new Error('Method not implemented.');
 	}
@@ -984,7 +1151,6 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
 			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
 			try{
-
 				// client.connected = false;
 				this.logger.log(`${client.id} disconnected`);
 				client.emit('Disconnect_response',res)
@@ -1000,21 +1166,5 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 
 			}
 		 }
-
-
-		 @SubscribeMessage('userinfo')
-		 async userinfo(client:Socket, data:Object){
-		 
-		 await this.user.update({"username":data.username},{
-			 $pull:{notUsedCards:1876
-			 },
-			 $push:{ usedCards:1876}
-		 })
-
-		 var response =  await this.user.find({"username":data.username},{});
-		 console.log(response);
-		 }
-
-
 
 }
