@@ -20,6 +20,7 @@ import { match } from './required/interfaces/match.interface';
 import { request } from './required/interfaces/request.interface';
 import { object } from '@hapi/joi';
 import { networkInterfaces } from 'os';
+import { matches } from 'class-validator';
 
 @WebSocketGateway({namespace:'/game'})
 export class TestGateway implements OnGatewayInit, OnGatewayConnection{
@@ -107,80 +108,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 
 
 		
-	@SubscribeMessage('End_Game')
-	async handleEndGame(client:Socket,obj:Object) {
-		const _room = obj.gameid;
-	
 
-		//DB access
 
-		const game = await this.passkey.findOne().where('gameid').equals(_room).exec();
-        const match_details = await this.match.findOne({gameid:_room});
-
- 		if(game && (game.player1address || game.player2address)){
-
-			const user_1 =  await this.user.findOne({publickey:game.player1address});
-
-			const user_2 =  await this.user.findOne({publickey:game.player2address});
-
-			/*---------------------------Card Returning Logic Starts Here-------------------------*/
-				
-			if(game.card1 && game.card1 !== null){
-				let returnedTokenId = user_1.usedCards.pop()
-
-				user_1.notUsedCards.push(returnedTokenId)
-			}
-
-			else if(game.card2 && game.card2 !== null){
-				let returnedTokenId = user_2.usedCards.pop()
-
-				user_2.notUsedCards.push(returnedTokenId)
-			}
-
-			/*-----------------------Card Returning Logic Ends Here-------------------------------*/
-					
-			/*-----------------------Stars Returning Logic Starts Here-------------------------------*/
-				
-			if(user_1){
-		
-				user_1.stars += match_details.stars_of_player1;
-				await user_1.save();
-			}
-			
-			if(user_2){
-				
-				user_2.stars += match_details.stars_of_player2;
-				await user_2.save();
-			}
-
-			
-			await this.finalResult(_room);				
-			/*-----------------------Stars Returning Logic ends Here-------------------------------*/
-			
-				
-			await game.deleteOne();
-			
-			await this.finalResult(obj.gameid);
-
-		
-			
-			delete this.room_invite_flag[`${_room}`];
-
-			//Blockchain part for star transefer from admin
-
-			client.to(_room).broadcast.emit('End_Game_Response', `${client.id} has ended the Game`);
-			client.leave(_room);
-
-		}
-
-		else{
-		delete this.room_invite_flag[`${_room}`];
-		this.leave_match(client,obj);
-		}
-	}
-	leave_match(client: Socket, obj: Object) {
-		throw new Error('Method not implemented.');
-	}
 
 
 
@@ -543,6 +472,229 @@ return "1"
 				this.wss.to(room).emit('chat_response', data);
 	}
   
+	// EndGame starts here
+
+	@SubscribeMessage('End_Game')
+	async handleEndGame(client:Socket,obj:Object) {
+		const _room = obj.gameid;
+		//DB access
+		const game = await this.passkey.findOne().where('gameid').equals(_room).exec();
+		const match_details = await this.match.findOne({gameid:_room});
+		
+ 		if(game && (game.player1address  || game.player2address)){
+	   
+			if(game.card1played == true || game.card2played == true){
+				// Player has to forefit card and loose one star
+
+
+				
+
+				if(game.card1played == true && obj.publickey == game.player1address){
+					// Deduct one star from player1 address
+					
+match_details[0].round++;
+ if(match_details){
+	match_details[0].Rounds.push({
+	player1:{
+			card_type:game[0].card1,
+			card_number:game[0].token1,
+			timestamp:new Date()
+		},
+		player2:{
+			card_type:"NA",
+			card_number:0,
+			timestamp:new Date()
+		}
+
+})}
+
+match_details[0].status = "aborted",
+match_details[0].winner = 4,
+match_details[0].stars_of_player1--,
+match_details[0].stars_of_player2++
+await this.passkey.updateOne({gameid:obj.gameid},{$set:{
+	token1:0,
+	token2:0,
+	card1:null,
+	card2:null,
+	user1:null,
+	user2:null,
+	card1played:false,
+	card2played:false
+
+}})
+await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,match_details[0].player2.publicaddress);
+	await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
+		stars:match_details[0].stars_of_player2
+	}})
+
+	await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,match_details[0].player1.publicaddress);
+	await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
+		stars:match_details[0].stars_of_player2
+	}})
+
+await match_details[0].save();
+this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
+	}
+				else if(game.card1played = true && obj.publickey == game.player2address){
+					// Deduct one star from player2 address and set card played as None
+
+					match_details[0].round++;
+ if(match_details){
+	match_details[0].Rounds.push({
+	player1:{
+			card_type:game[0].card1,
+			card_number:game[0].token1,
+			timestamp:new Date()
+		},
+		player2:{
+			card_type:"NA",
+			card_number:0,
+			timestamp:new Date()
+		}
+
+})}
+
+match_details[0].status = "aborted",
+match_details[0].winner = 4,
+match_details[0].stars_of_player1++,
+match_details[0].stars_of_player2--
+await this.passkey.updateOne({gameid:obj.gameid},{$set:{
+	token1:0,
+	token2:0,
+	card1:null,
+	card2:null,
+	user1:null,
+	user2:null,
+	card1played:false,
+	card2played:false
+
+}})
+await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,match_details[0].player2.publicaddress);
+	await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
+		stars:match_details[0].stars_of_player2
+	}})
+
+	await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,match_details[0].player1.publicaddress);
+	await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
+		stars:match_details[0].stars_of_player2
+	}})
+
+await match_details[0].save();
+this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
+
+
+				} else if(game.card2played == true && obj.publickey == game.player2address ){
+					// deduct one star from player2 and add it to player 1
+					match_details[0].round++;
+					if(match_details){
+					   match_details[0].Rounds.push({
+					   player1:{
+							   card_type:"NA",
+							   card_number:0,
+							   timestamp:new Date()
+						   },
+						   player2:{
+							   card_type:game[0].card2,
+							   card_number:game[0].token2,
+							   timestamp:new Date()
+						   }
+				   
+				   })}
+				   
+				   match_details[0].status = "aborted",
+				   match_details[0].winner = 4,
+				   match_details[0].stars_of_player1++,
+				   match_details[0].stars_of_player2--
+				   await this.passkey.updateOne({gameid:obj.gameid},{$set:{
+					   token1:0,
+					   token2:0,
+					   card1:null,
+					   card2:null,
+					   user1:null,
+					   user2:null,
+					   card1played:false,
+					   card2played:false
+				   
+				   }})
+				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,match_details[0].player2.publicaddress);
+					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
+						   stars:match_details[0].stars_of_player2
+					   }})
+				   
+					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,match_details[0].player1.publicaddress);
+					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
+						   stars:match_details[0].stars_of_player2
+					   }})
+				   
+				   await match_details[0].save();
+				   this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
+				}
+				else {
+					// deduct one star from player 1 address and add none
+					match_details[0].round++;
+					if(match_details){
+					   match_details[0].Rounds.push({
+					   player1:{
+							   card_type:"NA",
+							   card_number:0,
+							   timestamp:new Date()
+						   },
+						   player2:{
+							   card_type:game[0].card2,
+							   card_number:game[0].token2,
+							   timestamp:new Date()
+						   }
+				   
+				   })}
+				   
+				   match_details[0].status = "aborted",
+				   match_details[0].winner = 4,
+				   match_details[0].stars_of_player1--,
+				   match_details[0].stars_of_player2++
+				   await this.passkey.updateOne({gameid:obj.gameid},{$set:{
+					   token1:0,
+					   token2:0,
+					   card1:null,
+					   card2:null,
+					   user1:null,
+					   user2:null,
+					   card1played:false,
+					   card2played:false
+				   
+				   }})
+				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,match_details[0].player2.publicaddress);
+					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
+						   stars:match_details[0].stars_of_player2
+					   }})
+				   
+					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,match_details[0].player1.publicaddress);
+					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
+						   stars:match_details[0].stars_of_player2
+					   }})
+				   
+				   await match_details[0].save();
+
+				   this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
+				}
+
+
+			}
+			else{
+				// Settle the game at the current status
+			}
+			
+			
+
+		}
+
+		else{
+		delete this.room_invite_flag[`${_room}`];
+		this.leave_match(client,obj);
+		}
+	}
+
+	// End game Ends Here
 
 
 	@SubscribeMessage('Message')
@@ -620,15 +772,11 @@ return "1"
 async startpublicgame(client:Socket, data:Object):Promise<any>{
 				
 	var token = data.jwt_token;
-	// console.log(token);
-	// console.log(data);
 	let generated_gameid:any;
     try{
 		
 		const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'))  
 		let userdetails = await this.jwtstrategy.validate(decryptedvalue);
-		console.log(userdetails);
-		console.log(userdetails.publickey);
 		
 		if(userdetails.publickey){
 			var stars = await show_stars(userdetails.publickey);
@@ -643,22 +791,19 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			{'player1.username':{$ne:userdetails.username}},
 			{'player2.username':null}
 				
-		]})
-		
-		console.log(stars+"  "+card_details+"  "+existing_game.length);					
+		]})					
 		
 		if(existing_game.length > 0 && !this.room_invite_flag[`${existing_game[0].gameid}`]){
 
 		
-			if(stars>=3 && card_details>0){
-			
-				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':3,'player_joined':2,"status":"active"}}, function(err,data){
+			if(stars>=3 && card_details>0){			
+				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':3,'player_joined':2,"status":"active",start_date: new Date(),}}, function(err,data){
 					if( err) console.log(err)
 				})
 			}
-			else if(stars<3 && stars>0 && card_details>0){
+			else if(stars < 3 && stars>0 && card_details >0){
 			
-				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':stars,'player_joined':2,"status":"active"}}, function(err,data){
+				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':stars,'player_joined':2,"status":"active",start_date: new Date(),}}, function(err,data){
 					if( err) console.log(err)
 				})
 			}
@@ -668,8 +813,6 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 		            client.disconnect();
 			}
 					
-			
-
 		var response = await this.match.findOne().where('gameid').equals(existing_game[0].gameid).exec()
 
 		client.emit("new_match_response", response);
@@ -705,12 +848,11 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 							})
 
 			generated_gameid = match.gameid;
-			console.log("748848595885");
 			await match.save();
-		
+
+			client.emit("new_match_response", match);
 		}
 		else{
-
 			const match = new this.match({
 								gameid:uuid(),
 								match_type:data.match_type,
