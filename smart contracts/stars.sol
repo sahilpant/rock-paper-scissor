@@ -1,6 +1,130 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.6.0;
+contract star{
+    
+    using SafeMath for uint256;
+    
+    string  public name = "Star";
+    string  public symbol = "*";
+    uint256 public decimals=0;
+    uint256 public currentSeason=1;
+    uint256 public totalSupply;
+    address public ownerAddress;
+    address public gameContractAddress;
+    address public marketAddress;
+    
+    mapping(address =>mapping(uint256=> uint256)) public balances;
+    
+    mapping(address =>mapping(uint256=>mapping(address => uint256))) public allowance;
+    
+    event Transfer(address indexed _from,address indexed _to,uint256 _value);
 
-pragma solidity >=0.4.23;
+    event Approval(address indexed _owner,address indexed _spender,uint256 _value);
+
+    constructor (uint256 _initialSupply,address _gameContractAddress,address market) public {
+        
+        ownerAddress=msg.sender;
+        balances[msg.sender][currentSeason] = _initialSupply;
+        gameContractAddress = _gameContractAddress;
+        marketAddress = market;
+        totalSupply=_initialSupply;
+        emit Transfer(address(0),msg.sender,_initialSupply);
+    
+    }
+    
+    function Seller_Approve_Market(address from , address spender ,uint256 _value) public payable {
+    
+        require(msg.sender == marketAddress);
+        allowance[from][currentSeason][spender] += _value;
+        emit Approval(from,spender,_value);
+    
+    }
+    
+    function transfer(address _to, uint256 _value) public payable returns (bool success) {
+    
+        require(_value>0);
+        require(balances[msg.sender][currentSeason]>=_value);
+        balances[msg.sender][currentSeason] = balances[msg.sender][currentSeason].sub(_value);     
+        balances[_to][currentSeason] =balances[_to][currentSeason].add(_value);
+        emit Transfer(msg.sender, _to, _value);
+        return true;
+    
+    }
+    
+    function approve(address _spender, uint256 _value) public returns (bool success) {
+    
+        allowance[msg.sender][currentSeason][_spender] += _value;                                 ///////////if he already approved then it get overrideen =>(Sir 
+        emit Approval(msg.sender,_spender, _value);
+        return true;
+    
+    }
+    
+    function balanceOf(address request) public view returns (uint256){
+    
+        return balances[request][currentSeason];
+    
+    }
+    
+    function transferFrom(address _from, address _to, uint256 _value) public payable returns (bool success) {
+        
+        require (_value>0);
+        require(_value <= allowance[_from][currentSeason][msg.sender]);  //checking that whether sender is approved or not...
+        balances[_from][currentSeason]= balances[_from][currentSeason].sub(_value);
+        balances[_to][currentSeason] = balances[_to][currentSeason].add(_value);
+        allowance[_from][currentSeason][msg.sender]=allowance[_from][currentSeason][msg.sender].sub(_value);
+        emit Transfer(_from, _to, _value);
+        return true;
+    
+    }
+    function changeowner(address _newaddress) public  returns(bool success){
+    
+        require(msg.sender==ownerAddress);
+        balances[_newaddress][currentSeason]=balances[ownerAddress][currentSeason];
+        balances[ownerAddress][currentSeason]=0;
+        ownerAddress=_newaddress;
+        return true;
+    
+    }
+    
+    function IncreaseSupply(uint256 _newSupply) public payable onlyOwner {
+       
+        balances[ownerAddress][currentSeason]=balances[ownerAddress][currentSeason].add(_newSupply);  
+        totalSupply+=_newSupply;
+    
+    }
+    
+    function DecreaseSupply(uint _reduceSupply) public payable onlyOwner{
+       
+        require(_reduceSupply<=balances[ownerAddress][currentSeason]);
+        balances[ownerAddress][currentSeason]=balances[ownerAddress][currentSeason].sub(_reduceSupply);
+        totalSupply-=_reduceSupply;
+    
+    }
+    
+    function changeSeason()public payable onlyOwner{
+        
+        currentSeason+=1;
+        balances[ownerAddress][currentSeason] =balances[ownerAddress][currentSeason].add(balances[ownerAddress][currentSeason.sub(1)]);
+        approve(gameContractAddress , balances[ownerAddress][currentSeason]);
+        
+    }
+
+    function returnSeason() public view returns(uint256){
+        
+        return currentSeason;
+
+    }
+
+    modifier onlyOwner () {
+ 
+        require(msg.sender == ownerAddress);
+        _;
+
+    }
+}
+
+
+
 
 /**
  * @dev Wrappers over Solidity's arithmetic operations with added overflow
