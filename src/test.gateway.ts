@@ -606,7 +606,7 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 				   
 				   })}
 				   
-				   match_details[0].status = "aborted",
+				   match_details[0].status = "Aborted",
 				   match_details[0].winner = "4",
 				   match_details[0].stars_of_player1++,
 				   match_details[0].stars_of_player2--
@@ -681,6 +681,7 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 				   
 				   await match_details[0].save();
 
+                   this.clients.emit("End_Game_response","Aborted")
 				   this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 				}
 
@@ -728,6 +729,7 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
                 this.wss.to(obj.gameid).emit("End_Game_response","Aborted");   
 			}
 			else{
+				
 				this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 			}
 		}

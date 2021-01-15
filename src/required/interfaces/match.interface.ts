@@ -2,8 +2,7 @@ import * as mongoose from  'mongoose';
 
 export interface match extends mongoose.Document{
 	findMany(): any;
-	findOne(): any;
-    
+	findOne(): any;    
     gameid:string,
     class:string,
     TotalRounds:number,
