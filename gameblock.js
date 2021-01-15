@@ -742,7 +742,7 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
 async function Transfer(_to,value, account , privateKey , deployedAddress){ ///transfer stars from self to other
 	try{
 
-		console.log("this is address" + _to +"amount" + value + "account"+ account)
+		console.log("this is address" + _to +"amount" + value + "account"+ account + "address" + deployedAddress)
                 var data = await star.methods.transfer(_to,value).encodeABI();
                 runCode(data , account , privateKey , deployedAddress);
         }catch(err){
@@ -802,6 +802,10 @@ var getalldetails = async function(address) { await getAllDetails(address) }
 // 	console.log(data);
 // });
 
+// transferstar("0x780E9DC8d5B073a96380D06DB6c626d873610c2d",10,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe').then((data)=>{
+// 	console.log(data);
+// })
+
 // transferfrom("0x984C21390376b2CB0cE40fA80CCa2cFBd86C14B7",transferacc, 1,"0x0A27A7370D14281152f7393Ed6bE963C2019F5fe").then((data)=>{
 // 	console.log(data);
 // },
@@ -814,10 +818,10 @@ var getalldetails = async function(address) { await getAllDetails(address) }
 // 	console.log(data)
 // });
 
-// transferstar("0x00552dd9014394aE4cb97efDdf688bbfC6B7cd2C",80000,'0x00552dd9014394aE4cb97efDdf688bbfC6B7cd2C').then((data)=>{
+// transferstar("0x780E9DC8d5B073a96380D06DB6c626d873610c2d",80000,'0x780E9DC8d5B073a96380D06DB6c626d873610c2d').then((data)=>{
 // 	console.log(data);
 // });
-// console.log( show_stars("0x95B01B8c39D2431519361cf0Ec81B89096D8c6F7"));
+console.log( show_stars("0x056927c3e32f0e5c481c72bd8bd82c0255bedefb"));
 module.exports = {
         sign_up:sign_up,
         show_stars:show_stars,

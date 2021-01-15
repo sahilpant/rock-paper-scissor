@@ -161,7 +161,7 @@ export class WebsocketService {
       jwt_token: token,
       publickey:localStorage.getItem('publickey'),
       username:localStorage.getItem('username'),
-      gameid: localStorage.getItem('gameID'),
+      gameid: localStorage.getItem('roomID'),
     } 
     
     console.log(data);

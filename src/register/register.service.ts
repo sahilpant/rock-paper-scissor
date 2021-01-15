@@ -195,12 +195,14 @@ export class RegisterService
 				{
 
 
-				console.log(user)
+				
 				const userinDBwithThisEmail =  await this.user.collection.findOne({ email: userNameDto.email}) 
 				if(userinDBwithThisEmail){
 					return new BadRequestException('Email Already Exist');
 				}
-				const userinDBwithThisPublicKey = await this.user.collection.findOne({ publickey: userNameDto.publickey}) 
+				
+				const userinDBwithThisPublicKey = await this.user.collection.findOne({ publickey: userNameDto.publickey});
+				console.log(userinDBwithThisPublicKey);
 				if(userinDBwithThisPublicKey){
 					return new BadRequestException('Public key already in use');
 				}
