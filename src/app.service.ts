@@ -6,6 +6,7 @@ import { user } from './required/interfaces/user.interface';
 import { JwtPayLoad } from './required/interfaces/jwt-payload.interface';
 import * as bcrypt from 'bcrypt'
 import { signin } from './required/dto/sign.dto';
+import {returnownedTokens,detailOfCard,show_stars} from '../gameblock';
 @Injectable()
 export class AppService 
 {
@@ -66,6 +67,43 @@ export class AppService
                     const payload:JwtPayLoad = {email: userinDB.email ,username: userinDB.username, role: userinDB.role = 'PLAYER'}
   
                     this.accessToken= this.jwtService.sign(payload);
+
+                    let arrofCards = await returnownedTokens(userinDB.publickey)
+
+                    let rock:number[];
+                    let paper:number[];
+                    let scissor:number[];
+                    let notUSed:number[];
+                    console.log(<Int32Array>arrofCards)
+                    
+                    for(var i=0;i<arrofCards.length;i++)
+                    {
+                      let carddetail = await detailOfCard(arrofCards[i]);
+
+                      if(carddetail[0] === "1")
+                      rock.push(arrofCards[i]);
+                      else if(carddetail[0] === "2")
+                      paper.push(arrofCards[i]);
+                      else if(carddetail[0] === "3")
+                      scissor.push(arrofCards[i]);
+                      
+                      notUSed.push(arrofCards[i]);
+                    }
+
+						    
+						        userinDB.cards.ROCK = rock;
+        
+						        
+						        userinDB.cards.PAPER = paper;
+						        
+						        
+						        userinDB.cards.SCISSOR = scissor;
+        
+						        userinDB.notUsedCards = notUSed;
+        
+						        userinDB.stars = await show_stars(userinDB.publickey);
+        
+						        await userinDB.save();
   
                     return   this.accessToken;
   
