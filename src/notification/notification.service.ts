@@ -70,12 +70,12 @@ export class NotificationService {
         await this.Eventgateway.wss.to(id).emit('notification',"notification sent successfully")
     }
     async findUser(username:string):Promise<any>{
-        const result = await this.user.find({ username: { $regex: `((?i)${username})`} ||  { $regex: `/^${username}/i`} })
-        console.log(result);
-        let usernames = [];
-        for(let i=0;i<result.length;i++)
-        usernames.push(result[i].username);
-        return usernames;
+        const result = await this.user.find({ username: { $regex: `((?i)${username})`} ||  { $regex: `/^${username}/i`} },{username:1,publickey:1})
+        // console.log(result);
+        // let usernames = [];
+        // for(let i=0;i<result.length;i++)
+        // usernames.push(result[i].username.concat);
+        return result;
       }
 
 }
