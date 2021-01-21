@@ -797,7 +797,9 @@ var transferfrom = async function(_from,_to,value, gameContractadd) {await Trans
 var Burn = async function(tokenId,gameContractAddress) {  await burn(tokenId,account1,privateKey1,gameContractAddress)}
 var getalldetails = async function(address) { await getAllDetails(address) }
 
-
+total_cards("0xd8f0BC6D001F90e52bc84daa0E9D150b7622E108").then((res)=>{
+	console.log(res);
+})
 // transferstar(transferacc,1,account1,privateKey1,"0x0A27A7370D14281152f7393Ed6bE963C2019F5fe").then((data)=>{
 // 	console.log(data);
 // });
