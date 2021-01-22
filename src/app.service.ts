@@ -7,6 +7,7 @@ import { JwtPayLoad } from './required/interfaces/jwt-payload.interface';
 import * as bcrypt from 'bcrypt'
 import { signin } from './required/dto/sign.dto';
 import {returnownedTokens,detailOfCard,show_stars} from '../gameblock';
+import { date } from '@hapi/joi';
 @Injectable()
 export class AppService 
 {
@@ -70,41 +71,30 @@ export class AppService
 
                     let arrofCards = await returnownedTokens(userinDB.publickey)
 
-                    let rock:number[];
-                    let paper:number[];
-                    let scissor:number[];
-                    let notUSed:number[];
+                  
                     console.log(<Int32Array>arrofCards)
                     
                     for(var i=0;i<arrofCards.length;i++)
                     {
                       let carddetail = await detailOfCard(arrofCards[i]);
 
-                      if(carddetail[0] === "1")
-                      rock.push(arrofCards[i]);
-                      else if(carddetail[0] === "2")
-                      paper.push(arrofCards[i]);
-                      else if(carddetail[0] === "3")
-                      scissor.push(arrofCards[i]);
+                      if(carddetail[0] === "1"  && !userinDB.cards.ROCK.find(arrofCards[i]))
+                      userinDB.cards.ROCK.push(arrofCards[i]);
+                      else if(carddetail[0] === "2" && !userinDB.cards.PAPER.find(arrofCards[i]))
+                      userinDB.cards.PAPER.push(arrofCards[i]);
+                      else if(carddetail[0] === "3" && !userinDB.cards.SCISSOR.find(arrofCards[i]))
+                      userinDB.cards.SCISSOR.push(arrofCards[i]);
                       
-                      notUSed.push(arrofCards[i]);
+                      if(!userinDB.notUsedCards.find(arrofCards[i]))
+                      userinDB.notUsedCards.push(arrofCards[i]);
                     }
 
-						    
-						        userinDB.cards.ROCK = rock;
-        
-						        
-						        userinDB.cards.PAPER = paper;
-						        
-						        
-						        userinDB.cards.SCISSOR = scissor;
-        
-						        userinDB.notUsedCards = notUSed;
-        
-						        userinDB.stars = await show_stars(userinDB.publickey);
-        
-						        await userinDB.save();
-  
+                    await userinDB.save();
+
+                    await userinDB.updateOne({$set:{stars:await show_stars(userinDB.publickey)}});
+                    
+                    await userinDB.updateOne({$set:{lastUpdated:new Date()}});
+                    
                     return   this.accessToken;
   
                   }
