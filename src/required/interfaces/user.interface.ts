@@ -2,6 +2,7 @@ import * as mongoose from 'mongoose'
 import { cards } from './cards.interface';
 
 export interface user extends mongoose.Document{
+	cardDebt: number;
 
     username:string
 

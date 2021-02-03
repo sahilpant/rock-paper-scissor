@@ -26,11 +26,13 @@ export class AppComponent {
       });
 
       this.socket.on('room_check_response', data => console.log(data));
+      this.socket.on('private_game_notification', data => console.log(data));
       this.socket.on('roomj', data => console.log(data));
       this.socket.on('chat_response', data => console.log(data));
       this.socket.on('move_response', data => console.log(data));
       this.socket.on('private_response',data => console.log(data));
       this.socket.on('End_Game_response',data => console.log(data));
+      this.socket.on('online_users_response',data => console.log(data));
       this.socket.on('pending_match_request_response', data => console.log(data));
     
   }
@@ -51,6 +53,11 @@ export class AppComponent {
 
       this.webSocketservice.private();
      }  
+
+     online(){
+
+      this.webSocketservice.Online();
+     }
 
      guestaction(){
        this.webSocketservice.guest_action();

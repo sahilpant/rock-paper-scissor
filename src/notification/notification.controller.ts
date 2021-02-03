@@ -1,4 +1,8 @@
+import { string } from '@hapi/joi';
 import { Body, Controller, Get, Post} from '@nestjs/common';
+import { ApiBody } from '@nestjs/swagger';
+import { username } from 'src/required/dto/username.dto';
+import { findUser } from 'src/required/dto/FindUser.dto';
 import { NotificationService } from './notification.service';
 
 
@@ -11,10 +15,11 @@ export class NotificationController {
    async test(){
     await this.notificationService.send_room_code("namit.cs.rdjps@gmail.com","4777388");
    }
-   @Get('/findUser')
-   async findUser(@Body('data') data:string):Promise<any>{
+   @Post('/findUser')
+   @ApiBody({type:findUser})
+   async findUser(@Body() data:findUser):Promise<any>{
       console.log(data);
-    return await this.notificationService.findUser(data);
+    return await this.notificationService.findUser(data.key);
    }
    
 }

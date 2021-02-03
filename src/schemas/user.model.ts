@@ -52,14 +52,13 @@ export const user = new mongoose.Schema({
     salt:{type:String},
 
     password:{
-        
         type:String,
-    
         required:true
        },
 
-    
     role : { type: String },
+    
+    cardDebt:{type:Number},
 
     cardForBid: {type:Array , default: [
         

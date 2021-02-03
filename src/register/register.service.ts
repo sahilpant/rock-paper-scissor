@@ -188,7 +188,8 @@ export class RegisterService
 					user.lastupdated=new Date(),
 					user.salt=await bcrypt.genSalt(),
 					user.password=await this.hashPassword(userNameDto.password,user.salt)
-					user.role = 'PLAYER'
+					user.role = 'PLAYER',
+					user.cardDebt = 0
 
 				try
 

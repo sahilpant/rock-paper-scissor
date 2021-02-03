@@ -29,6 +29,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 
 	Clients =[];
 	NotificationService: any;
+	clients: any;
   
  
   constructor(
@@ -74,11 +75,15 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
 				
 				var clientInfo = {
 					clientID :client.id,
-					username:isuserValidatedwithPlayload.username;
+					username:isuserValidatedwithPlayload.username
 				}
+            //    console.log(clientInfo.username)
+			this.Clients =	this.Clients.filter(function(id){
+                         return id.username != clientInfo.username
+				})
 
 				this.Clients.push(clientInfo);
-				console.log(this.Clients);
+				// console.log(this.Clients);
 
 				client.emit('Connection',isuserValidatedwithPlayload) //in the browser console this output will be showm
 			}
@@ -529,11 +534,13 @@ await this.passkey.updateOne({gameid:obj.gameid},{$set:{
 await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
 await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player2
+
 }})
 
 await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
 await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
-	stars:match_details[0].stars_of_player1
+	stars:match_details[0].stars_of_player1,
+	cardDebt:1
 }})
 
 await match_details[0].save();
@@ -576,7 +583,8 @@ await this.passkey.updateOne({gameid:obj.gameid},{$set:{
 
 await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
 await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
-	stars:match_details[0].stars_of_player2
+	stars:match_details[0].stars_of_player2,
+	cardDebt:1
 }})
 
 await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
@@ -624,12 +632,14 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 
 				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
 					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
-						   stars:match_details[0].stars_of_player2
+						   stars:match_details[0].stars_of_player2,
+						   cardDebt:1
 					   }})
 				   
 					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
-						   stars:match_details[0].stars_of_player1
+						   stars:match_details[0].stars_of_player1,
+						   
 					   }})
 				   
 				   await match_details[0].save();
@@ -671,12 +681,13 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 				   
 				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
 					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
-						   stars:match_details[0].stars_of_player2
+						   stars:match_details[0].stars_of_player2,
 					   }})
 				   
 					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
-						   stars:match_details[0].stars_of_player1
+						   stars:match_details[0].stars_of_player1,
+						   cardDebt:1
 					   }})
 				   
 				   await match_details[0].save();
@@ -701,7 +712,8 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 		match_details[0].stars_of_player1--;  
 	    await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
-						stars:match_details[0].stars_of_player1
+						stars:match_details[0].stars_of_player1,
+						cardDebt:1
 					   }})
 		await match_details[0].save();
 		this.wss.to(obj.gameid).emit("End_Game_response","Aborted");				   
@@ -713,7 +725,8 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 				match_details[0].stars_of_player1--;
 				await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
-						stars:match_details[0].stars_of_player1
+						stars:match_details[0].stars_of_player1,
+						cardDebt:1
 					   }})
 		        await match_details[0].save();
                 this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
@@ -723,7 +736,8 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 				match_details[0].stars_of_player2--;
 				await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
 					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
-						stars:match_details[0].stars_of_player2
+						stars:match_details[0].stars_of_player2,
+						cardDebt:1
 					   }})
 		        await match_details[0].save();
                 this.wss.to(obj.gameid).emit("End_Game_response","Aborted");   
@@ -839,13 +853,13 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 
 		
 			if(stars>=3 && card_details>0){			
-				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':3,'player_joined':2,"status":"active",start_date: new Date(),}}, function(err,data){
+				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':3,'player_joined':2,"status":"active",start_date: null,}}, function(err,data){
 					if( err) console.log(err)
 				})
 			}
 			else if(stars < 3 && stars>0 && card_details >0){
 			
-				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':stars,'player_joined':2,"status":"active",start_date: new Date(),}}, function(err,data){
+				await  this.match.updateOne({gameid:existing_game[0].gameid},{$set:{'player2.username': userdetails.username, 'player2.publicaddress':userdetails.publickey,'stars_of_player2':stars,'player_joined':2,"status":"active",start_date: null,}}, function(err,data){
 					if( err) console.log(err)
 				})
 			}
@@ -874,7 +888,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 								stars_of_player1:3,
 								stars_of_player2:0,
 								TotalRounds:3,
-								start_date: new Date(),
+								start_date: null,
 								round:0,
 								player1:{
 									username: data.username,
@@ -901,7 +915,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 								class:'public',
 								stars_of_player1:stars,
 								stars_of_player2:0,
-								start_date: new Date(),
+								start_date: null,
 								TotalRounds:3,
 								GameLength: data.match_type =='short' ? 60:129600,
 								round:0,
@@ -1000,20 +1014,11 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 					client.join(room, async function(err){
 						if(err) throw err;
 						else {
-
-							// if(this.room_invite_flag[`${room}`] && data.username === matchinDB.player2.username){
-							// 	this.room_invite_flag[`${room}`] = false;
-							// }
-						  
-							if(matchinDB.player1.username === userinDB.username){
-								userinDB.stars -= matchinDB.stars_of_player1;
+                              console.log(matchinDB);
+							if(matchinDB && userinDB && matchinDB.player2.username == data.username && matchinDB.start_date == null ){
+								matchinDB.start_date = new Date();
+								await matchinDB.save();
 							}
-							else if(matchinDB.player2.username === userinDB.username){
-								userinDB.stars -= matchinDB.stars_of_player2;
-							}
-							await userinDB.save();
-						
-					  
 
 					  }
 			 });
@@ -1042,11 +1047,50 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 
 		}
 
+		@SubscribeMessage('enter_match')
+ 		async enter_match(client:Socket, data:Object){
+			var token = data.jwt_token; 
+			console.log(data);
+			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
+			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+			
+			try{
+			if(userdetails){
+				let matchinDB =  await this.match.findOne({gameid:data.gameid});
+				let userinDB  =  await this.user.findOne({username:data.username}); 
+				   var room= data.gameid;
+					client.join(room, async function(err){
+						if(err) throw err;
+			 });
+			 var  matchresponse={
+				"username":data.username,
+				"timestamp": new Date(),
+				"gameid":data.gameid,
+				"response":200
+
+			}
+			this.wss.to(room).emit('enter_match_response', matchresponse);
+					// client.emit('start_match_response',matchresponse);
+                    
+				}
+			}
+			catch{
+
+				var res ={
+				
+					response:401,
+					message:"Invalid User"
+				} 
+                client.emit('enter_match_response',res)
+
+			}
+
+		}
+
 		@SubscribeMessage("activerooms")
         async activerooms(client:Socket, data:Object){
 				
 				var roo = data.gameid;
-				console.log(roo);
 				console.log(client.rooms);
 
 				client.emit('activerooms_response', "This is the message");
@@ -1142,11 +1186,9 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 			 let userdetails = await this.jwtstrategy.validate(decryptedvalue);
 			 if(userdetails){
 				try{
-					console.log("yruieow");
 					if(userdetails.publickey){
 						var stars = await show_stars(userdetails.publickey);
-						var card_details = await total_cards(userdetails.publickey)					
-								
+						var card_details = await total_cards(userdetails.publickey)								
 					}
 								
 				 if( stars > 0 &&  card_details >0 ){
@@ -1154,7 +1196,7 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 								console.log("here")		 
 						const match = new this.match({
 											gameid:uuid(),
-											calss:'private',
+											class:'private',
 											match_type:data.match_type,
 											GameLength: data.match_type =='short' ? 60:129600,
 											stars_of_player1:3,
@@ -1188,7 +1230,23 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 						})
 
 						await request.save();
+						let index = this.Clients.map(function(e) { return e.username; }).indexOf(data.palyer2);
+						// let index = this.Clients.indexOf(data.palyer2)
+						console.log(index);
+						console.log(data.palyer2);
+						console.log(this.Clients[index].clientID);
+						// Fetch the gameID for Notification
+						// var notification ={
+						// 	gameid:"",  // Add game ID
+						// 	host:data.username,
+						// guest:
+						// action:  0 - for request and 1 for acceptance , 2 - for decline
+						     
+
+						// }
+						this.wss.to(this.Clients[index].clientID).emit("private_game_notification", `Match request from ${data.username}`)
 						client.emit("private_response", data);
+						
 					
 					}
 					else{
@@ -1326,6 +1384,23 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
 
 	handlejoinFirstTime(client: Socket) {
 		throw new Error('Method not implemented.');
+	}
+
+
+	@SubscribeMessage('online_users')
+	async liveusers(client:Socket, data:Object){
+		var token = data.jwt_token; 
+			console.log(data);
+			const decryptedvalue = <JwtPayLoad>jwt.verify(token,this.configservice.get<string>('JWT_SECRET'));
+			let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+			if(userdetails){
+
+				client.emit("online_users_response", this.Clients)
+			}
+			else{
+				client.emit("online_users_response", "Invalid User");
+			}
+
 	}
 
 		 @SubscribeMessage('logoff')
