@@ -18,16 +18,7 @@ export class AppService
               private jwtService:JwtService,
               
               @InjectModel('user')  private readonly user:Model<user>){}
-  
-              getHello(): string 
-  
-              {
-                return 'Hello World!';
-  
-              }
 
-
-  
               async validatePassword(realPassword:string,givenPassword:string,salt:string):Promise<boolean>{
   
                 const hash = await bcrypt.hash(givenPassword,salt);
@@ -43,7 +34,7 @@ export class AppService
   
                 const userinDB = await this.user.findOne({email: `${signin.email}`}).exec();
   
-                console.log(userinDB)
+                // console.log(userinDB)
   
                 if(!userinDB)
   
@@ -56,51 +47,66 @@ export class AppService
                 else
   
                 {
-  
-          
-  
-                  const result = await this.validatePassword(userinDB.password,signin.password,userinDB.salt);
-                  
+                  const result = await this.validatePassword(userinDB.password,signin.password,userinDB.salt);   
                   if(result)
-  
                   {
-
                     const payload:JwtPayLoad = {email: userinDB.email ,username: userinDB.username, role: userinDB.role = 'PLAYER'}
-  
                     this.accessToken= this.jwtService.sign(payload);
-
                     let arrofCards = await returnownedTokens(userinDB.publickey)
+                    var rock = [];
+                    var paper = [];
+                    var scissor = [];
+                    var notUSed = [];
+                    var completearray = userinDB.notUsedCards.concat(userinDB.usedCards);
+                    // console.log(<Int32Array>arrofCards);
+                    var isNewCardPresent = arrofCards.filter(function(id){
+                      return completearray.indexOf(id) < 0;
+                    })
 
-                  
-                    console.log(<Int32Array>arrofCards)
-                    
-                    for(var i=0;i<arrofCards.length;i++)
+                    if(isNewCardPresent.length > 0){
+
+                      for(var i=0;i<arrofCards.length;i++)
                     {
                       let carddetail = await detailOfCard(arrofCards[i]);
 
-                      if(carddetail[0] === "1"  && !userinDB.cards.ROCK.find(arrofCards[i]))
-                      userinDB.cards.ROCK.push(arrofCards[i]);
-                      else if(carddetail[0] === "2" && !userinDB.cards.PAPER.find(arrofCards[i]))
-                      userinDB.cards.PAPER.push(arrofCards[i]);
-                      else if(carddetail[0] === "3" && !userinDB.cards.SCISSOR.find(arrofCards[i]))
-                      userinDB.cards.SCISSOR.push(arrofCards[i]);
-                      
-                      if(!userinDB.notUsedCards.find(arrofCards[i]))
-                      userinDB.notUsedCards.push(arrofCards[i]);
+                      if(carddetail[0] === "1")
+                      rock.push(arrofCards[i]);
+                      else if(carddetail[0] === "2")
+                      paper.push(arrofCards[i]);
+                      else if(carddetail[0] === "3")
+                      scissor.push(arrofCards[i]);
+                      notUSed.push(arrofCards[i]);
+                    }
+                    var c =  rock.filter(function(id){
+                      return userinDB.usedCards.indexOf(id) < 0
+                    })
+
+                    var d =  paper.filter(function(id){
+                      return userinDB.usedCards.indexOf(id) < 0
+                    })
+
+                    var e =  scissor.filter(function(id){
+                      return userinDB.usedCards.indexOf(id) < 0
+                    })
+                    var f = notUSed.filter(function(id){
+                         return userinDB.usedCards.indexOf(id) < 0
+                    })
+                    userinDB.cards.ROCK = c; 
+						        userinDB.cards.PAPER = d;
+						        userinDB.cards.SCISSOR = e;
+						        userinDB.notUsedCards = f;
+						        userinDB.stars = await show_stars(userinDB.publickey);
+						        await userinDB.save();  
+                    return  this.accessToken;
                     }
 
-                    await userinDB.save();
-
-                    await userinDB.updateOne({$set:{stars:await show_stars(userinDB.publickey)}});
-                    
-                    await userinDB.updateOne({$set:{lastUpdated:new Date()}});
-                    
-                    return   this.accessToken;
-  
+                    else{
+                     console.log("I was here")
+                      return  this.accessToken;
+                    }  
                   }
   
                   else
-  
                   throw new UnauthorizedException('invalid_password');
   
                 }

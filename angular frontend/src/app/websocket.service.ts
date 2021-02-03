@@ -37,13 +37,22 @@ export class WebsocketService {
     this.socket.emit('Public', data )
    }
 
+   Online(){
+    var data = {
+        jwt_token: token
+      }
+    this.socket.emit('online_users', data )
+   }
+
+   
+
    private(){
     var data = {
         jwt_token: token,
         match_type: "long",
         publickey:localStorage.getItem('publickey'),
         username:localStorage.getItem('username'),
-        palyer2:"singhsrahul8",
+        palyer2:"james",
         address2:"0x860b8fb1306d94354A19A1b8a75a5b49cb690e80"
       }
       console.log("private was called");
