@@ -22,12 +22,7 @@ export class RegisterService
    
               private readonly notificationService:NotificationService,
               private configueservice : ConfigService ){}
-  
-              private obj_deployed_addresses = {
-              gameContractAddress : this.configueservice.get<string>('gameContractAddress'),
-              nftContractAddress : this.configueservice.get<string>('nftContractAddress'),
-              starsContractAddress : this.configueservice.get<string>('starsContractAddress'),
-              }
+
               
 
 
@@ -260,7 +255,7 @@ export class RegisterService
 
 						const secondFunction = async () => 
 						{
-						const result = await sign_up(userNameDto.publickey,this.obj_deployed_addresses.gameContractAddress)
+						const result = await sign_up(userNameDto.publickey)
 						if(result === 1)
 						flag=1
 						
