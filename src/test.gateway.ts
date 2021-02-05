@@ -442,14 +442,14 @@ if(gameblock[0].round == 3 || gameblock[0].stars_of_player1 == 0 || gameblock[0]
 	console.log(gameblock[0].stars_of_player2);
 	if(gameblock[0].stars_of_player1 > 0 && gameblock[0].player1.publicaddress !== null){
 		console.log(`Stars of Player one + ${gameblock[0].stars_of_player1}`);
-		await transferstar(gameblock[0].player1.publicaddress,gameblock[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+		await transferstar(gameblock[0].player1.publicaddress,gameblock[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 		await this.user.updateOne({publickey:gameblock[0].player1.publicaddress},{$inc:{
 			stars:gameblock[0].stars_of_player1
 		}})
 	}
  if(gameblock[0].stars_of_player2 > 0 && gameblock[0].player2.publicaddress !== null){
 	console.log(`Stars of Player two + ${gameblock[0].stars_of_player2}`);
-	await transferstar(gameblock[0].player2.publicaddress,gameblock[0].stars_of_player2,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+	await transferstar(gameblock[0].player2.publicaddress,gameblock[0].stars_of_player2,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 	await this.user.updateOne({publickey:gameblock[0].player2.publicaddress},{$inc:{
 		stars:gameblock[0].stars_of_player2
 	}})
@@ -531,13 +531,13 @@ await this.passkey.updateOne({gameid:obj.gameid},{$set:{
 
 }})
 
-await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player2
 
 }})
 
-await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player1,
 	cardDebt:1
@@ -581,13 +581,13 @@ await this.passkey.updateOne({gameid:obj.gameid},{$set:{
 
 }})
 
-await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player2,
 	cardDebt:1
 }})
 
-await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player1
 }})
@@ -630,13 +630,13 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 				   
 				   }})
 
-				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player2,
 						   cardDebt:1
 					   }})
 				   
-					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player1,
 						   
@@ -679,12 +679,12 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 				   
 				   }})
 				   
-				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player2,
 					   }})
 				   
-					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player1,
 						   cardDebt:1
@@ -710,7 +710,7 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 
 		match_details[0].status="Aborted";
 		match_details[0].stars_of_player1--;  
-	    await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+	    await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 						stars:match_details[0].stars_of_player1,
 						cardDebt:1
@@ -723,7 +723,7 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 			if(obj.publickey ==  match_details[0].player1.publicaddress && match_details[0].status == 'active'){
 				match_details[0].status="Aborted";
 				match_details[0].stars_of_player1--;
-				await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+				await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 						stars:match_details[0].stars_of_player1,
 						cardDebt:1
@@ -734,7 +734,7 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 			else  if(obj.publickey ==  match_details[0].player2.publicaddress && match_details[0].status == 'active'){
 				match_details[0].status="Aborted";
 				match_details[0].stars_of_player2--;
-				await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2,'0x0A27A7370D14281152f7393Ed6bE963C2019F5fe');
+				await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2,'0xf0448292f85E83F2E05115fEF6fF6DB0B00364aa');
 					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 						stars:match_details[0].stars_of_player2,
 						cardDebt:1
