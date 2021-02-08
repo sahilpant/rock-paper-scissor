@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at Etherscan.io on 2021-01-14
+*/
+
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.4.17;
 
@@ -33,9 +37,11 @@ contract Game{
     NFT public nft;
     
     function set_token_address(address token_add) public {
+        require(msg.sender == owner);
         stars = Interface_stars(token_add);
     }
     function set_nft_address(address nft_add) public{
+        require(msg.sender == owner);
         nft = NFT(nft_add);
         
     }
@@ -50,16 +56,6 @@ contract Game{
     uint256 public value;
     uint256 public NoOfTokens;
     uint256 public starCount; 
-   
-    
-    
-    
-    
-    // function setOwner(address _newOwner) public payable{
-    //     require(msg.sender == owner
-    //     stars.approve(_newOwner , )
-    //     manager = _newOwner;
-    // }
     
     function setValue(uint256 _value) public payable {
         require(msg.sender==owner);

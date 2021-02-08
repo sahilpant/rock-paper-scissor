@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at Etherscan.io on 2021-01-14
+*/
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.6.0;
 contract star{
@@ -21,15 +25,23 @@ contract star{
 
     event Approval(address indexed _owner,address indexed _spender,uint256 _value);
 
-    constructor (uint256 _initialSupply,address _gameContractAddress,address market) public {
+    constructor (uint256 _initialSupply) public {
         
         ownerAddress=msg.sender;
         balances[msg.sender][currentSeason] = _initialSupply;
-        gameContractAddress = _gameContractAddress;
-        marketAddress = market;
         totalSupply=_initialSupply;
         emit Transfer(address(0),msg.sender,_initialSupply);
     
+    }
+    
+    function setGameContractAddress(address contractAddress) public payable {
+        require(msg.sender == ownerAddress);
+        gameContractAddress = contractAddress;
+    }
+
+    function setMarketAddress(address _address) public payable {
+        require(msg.sender == ownerAddress);
+        marketAddress = _address;
     }
     
     function Seller_Approve_Market(address from , address spender ,uint256 _value) public payable {

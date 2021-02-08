@@ -1,3 +1,7 @@
+/**
+ *Submitted for verification at Etherscan.io on 2021-01-14
+*/
+
 // SPDX-License-Identifier: MIT
 pragma experimental ABIEncoderV2;
 pragma solidity >=0.4.23;
@@ -20,10 +24,22 @@ interface NFT {
     function SellerApproveMarket(address from , address spender , uint256 tokenId) external;
 }
 
+interface erc20 {
+    function transfer(address, uint256) external view returns (bool);
+
+    function balanceOf(address) external view returns (uint256);
+
+    function transferFrom(address,address,uint256) external payable returns (bool);
+    
+    function Seller_Approve_Market(address from , address spender ,uint256 _value) external payable ; 
+}
+
 
  contract MarketPlace {
     
     NFT public nft;
+    
+    erc20 public erc;
     
     using Strings for *;
     
@@ -39,9 +55,11 @@ interface NFT {
 
     uint256 public available_token_count; //count of avaiable token for selling its ownership rights
     
-    uint256 constant marketTokenPrice = 500; //token price of each token purchase from marketplace
+    uint256 public marketTokenPrice; //token price of each token purchase from marketplace
     
-    uint256 finite_game_commision = 5; //precentage commision of finite games
+    uint256 public marketStarPrice; //price of each star purchase from marketplace 
+    
+    uint256 finite_game_commision; //precentage commision of finite games
 
     mapping(uint256 => token_sell_information) public token_details;
     
@@ -79,16 +97,45 @@ interface NFT {
         imagetype[1] = rock_image;
         imagetype[2] = paper_image;
         imagetype[3] = scissor_image;
+        marketStarPrice = 50;
+        marketTokenPrice = 500;
+        finite_game_commision = 5;
     }
 
     function setNftAddress(address _address) public onlyOwner {
         //set NFT token contract address (ERC721)
         nft = NFT(_address);
     }
+    
+    function setStarsAddress(address _address) public onlyOwner {
+        //set NFT token contract address (ERC721)
+        erc = erc20(_address);
+    }
 
 
     function changeFiniteGamesCommision(uint256 new_commision) public onlyOwner {
         finite_game_commision = new_commision;
+    }
+    
+    function changeStarPrice(uint new_star_price) public returns(bool){
+        require(msg.sender == owner_address,"caller is not owner");
+        marketStarPrice = new_star_price;
+        return true;
+    }
+    
+    function changeTokenPrice(uint new_token_price) public returns(bool){
+        require(msg.sender == owner_address,"caller is not owner");
+        marketTokenPrice = new_token_price;
+        return true;
+    }
+    
+    function buyStarsFromAdmin(uint no_of_star) public payable {
+        require(no_of_star>0);
+        require(msg.value>=no_of_star*marketStarPrice);
+        erc.Seller_Approve_Market(owner_address,address(this),no_of_star);
+        erc.transferFrom(owner_address,msg.sender,no_of_star);
+        payable(owner_address).transfer(msg.value);
+        
     }
 
     function buyCardFromAdmin(uint token_type) public payable {        

@@ -1,3 +1,6 @@
+/**
+ *Submitted for verification at Etherscan.io on 2021-01-14
+*/
 
 // File: browser/QuestCrypto/EnumerableMap.sol
 // SPDX-License-Identifier: MIT
