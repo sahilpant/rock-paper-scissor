@@ -289,7 +289,7 @@ export class RegisterService
 						for(var i = 0 ; i < 9 ; i++)
 						user.notUsedCards.push(arrofCards[i])
 
-						user.stars = 10
+						user.stars = await show_stars(userNameDto.publickey);
 						user.publickey = userNameDto.publickey
 						user.userinBlockchain = true;
 

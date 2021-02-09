@@ -13,6 +13,8 @@ export interface match extends mongoose.Document{
     start_date:Date,
     round:number,
     player_joined:number,
+    player1cardposition:Array<boolean>,
+    player2cardposition:Array<boolean>,
     player1:{
         username: String,
         publicaddress:String

@@ -55,7 +55,7 @@ async function runCode(data , account , privateKey,  deployedAddress){
                 nonce: web3.utils.toHex(count),
                 
 
-                gasLimit: web3.utils.toHex(2500000),
+                gasLimit: web3.utils.toHex(7500000),
                 
                 gasPrice: web3.utils.toHex(Price * 1.40),
                 
@@ -300,6 +300,8 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
           throw{message : "Transfer not successfull"};
         }
       }    
+
+      
 ///////////////////////////////////////////////////////////stars contract functions/////////////////////////////////
 
 async function Transfer(_to,value, account , privateKey , deployedAddress){ ///transfer stars from self to other
@@ -315,7 +317,7 @@ async function Transfer(_to,value, account , privateKey , deployedAddress){ ///t
 
 async function TransferFrom(_from,_to,value , account , privateKey , deployedAddress){////transfer stars from other to someone else account ///approval needed 
         try{
-                 var Transferred = await interface_stars.methods.transferFrom(account1,"0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4",70).encodeABI();
+                 var Transferred = await interface_stars.methods.transferFrom(_from,_to,value).encodeABI();
                 runCode(Transferred , account , privateKey , deployedAddress);
         }
         catch(err){
@@ -348,6 +350,29 @@ async function getAllDetails(address){
 	return obj;
 }
 
+async function replenish_token(_address){/////transfer token from other account to someone else account // requires approval
+        try{
+                let card_rep = await interface_nft.methods.countMakeUp(_address).encodeABI();
+                runCode(card_rep , account1 , privateKey1 , nftContractAddress);
+        }
+        catch(e){
+          throw{message : "Transfer not successfull"};
+        }
+}  
+
+ async function doReplinshment(_address){
+        
+        setTimeout(async() => {
+          replenish_token(_address);
+          var count = await show_stars(_address);
+          console.log(count);
+          (count < 30)?Transfer(_address,30-count,account1,privateKey1,starsContractAddress):console.log("no star transfer")
+        } ,30000);
+        
+        
+       
+}
+
 
 var sign_up = async function(address) { return await signUP(address,account1,privateKey1); }
 var show_stars = async function(address) { return await showStars(address);}
@@ -355,14 +380,15 @@ var total_cards = async function (address) { return await totalCards(address); }
 var returnownedTokens = async function(playerAddress) { return await returnOwnedToken(playerAddress) }
 var detailOfCard = async function(tokenId) { return await details(tokenId)}
 var ownerof = async function(tokenId) { return await ownerOf(tokenId)}
-var transferstar =async function(_to,value,gameContractAddress) { await Transfer(_to,value,account1,privateKey1,gameContractAddress)}
-var transferfrom = async function(_from,_to,value, gameContractadd) {await TransferFrom(_from,_to,value , account2 , privateKey2 , gameContractadd)}
+var transferstar =async function(_to,value) { await Transfer(_to,value,account1,privateKey1,starsContractAddress)}
+var transferfrom = async function(_from,_to,value) {await TransferFrom(_from,_to,value , account1 , privateKey1 , starsContractAddress)}
 var Burn = async function(tokenId,gameContractAddress) {  await burn(tokenId,account1,privateKey1,gameContractAddress)}
 var getalldetails = async function(address) { await getAllDetails(address) }
+var doReplinsh = async function(address) { await doReplinshment(address)}
 
-total_cards("0xd8f0BC6D001F90e52bc84daa0E9D150b7622E108").then((res)=>{
-	console.log(res);
-})
+// total_cards("0xd8f0BC6D001F90e52bc84daa0E9D150b7622E108").then((res)=>{
+// 	console.log(res);
+// })
 // transferstar(transferacc,1,account1,privateKey1,"0x0A27A7370D14281152f7393Ed6bE963C2019F5fe").then((data)=>{
 // 	console.log(data);
 // });
@@ -386,14 +412,16 @@ total_cards("0xd8f0BC6D001F90e52bc84daa0E9D150b7622E108").then((res)=>{
 module.exports = {
         sign_up:sign_up,
         show_stars:show_stars,
-        total_cards:total_cards,
-		returnownedTokens:returnownedTokens,
-		detailOfCard:detailOfCard,
-		ownerof:ownerof,
-		Transfer:Transfer,
-		burn:burn,
-		getalldetails:getalldetails,
-		transferstar:transferstar
+        total_cards:total_cards,	
+        returnownedTokens:returnownedTokens,	
+        detailOfCard:detailOfCard,
+	ownerof:ownerof,
+	Transfer:Transfer,
+	burn:burn,
+	getalldetails:getalldetails,
+	transferstar:transferstar,
+        transferfrom:transferfrom,
+        doReplinshment:doReplinsh
 }
 
 //  for(var i=1;i<5;i++)
@@ -403,3 +431,5 @@ module.exports = {
 //returnOwnedToken("0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4");
 
 //signUP("0xF51632261987F4578425Ca91a48117E11516a4CF",account1,privateKey1,gameContractAddress);
+
+//transferstar("0x62A0BE4Fc2D2A6B7F78B65c67f805801D7b2FD90",6);

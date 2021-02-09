@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt'
 import { signin } from './required/dto/sign.dto';
 import {returnownedTokens,detailOfCard,show_stars} from '../gameblock';
 import { date } from '@hapi/joi';
+import { publickey } from './required/dto/publickey.dto';
 @Injectable()
 export class AppService 
 {
@@ -18,6 +19,10 @@ export class AppService
               private jwtService:JwtService,
               
               @InjectModel('user')  private readonly user:Model<user>){}
+
+              async getUserdetails(publickey):Promise<any>{
+                return this.user.findOne({publickey:publickey});
+              }
 
               async validatePassword(realPassword:string,givenPassword:string,salt:string):Promise<boolean>{
   

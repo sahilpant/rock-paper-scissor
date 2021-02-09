@@ -3,6 +3,7 @@ import {map} from 'rxjs/operators'
 import {Socket} from 'ngx-socket-io';
 
 import {token} from './app.module'
+import { number } from '@hapi/joi';
 @Injectable({
   providedIn: 'root'
 })
@@ -32,8 +33,9 @@ export class WebsocketService {
         jwt_token: token,
         match_type: "short",
         publickey:localStorage.getItem('publickey'),
-        username:localStorage.getItem('username')
+        username:localStorage.getItem('username'),
       }
+    localStorage.setItem('card_position_array','[false,false,false,false,false,false,false,false,false]')
     this.socket.emit('Public', data )
    }
 
@@ -158,11 +160,18 @@ export class WebsocketService {
       username:localStorage.getItem('username'),
       gameid: localStorage.getItem('roomID'),
       card_number:localStorage.getItem('cardno'),
-      card_positon: 1
+      card_position:localStorage.getItem('cardpos')
+    }
+    let card_pos = <number><unknown>(data.card_position)
+    let card_array = JSON.parse(localStorage.getItem('card_position_array'))
+    if(card_pos <= card_array.length){
+      card_array[card_pos-1] = true;
+      localStorage.setItem('card_position_array',JSON.stringify(card_array));
+      data['card_position_array'] = JSON.parse(localStorage.getItem('card_position_array'))
+      console.log(data);
+      this.socket.emit('move',data);
     }
     
-    console.log(data);
-    this.socket.emit('move',data);
    }
 
    endGame(){
