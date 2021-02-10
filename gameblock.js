@@ -360,7 +360,7 @@ async function replenish_token(_address){/////transfer token from other account 
         }
 }  
 
- async function doReplinshment(_address){
+ async function assetReplinshment(_address){
         
         setTimeout(async() => {
           replenish_token(_address);
@@ -384,7 +384,7 @@ var transferstar =async function(_to,value) { await Transfer(_to,value,account1,
 var transferfrom = async function(_from,_to,value) {await TransferFrom(_from,_to,value , account1 , privateKey1 , starsContractAddress)}
 var Burn = async function(tokenId,gameContractAddress) {  await burn(tokenId,account1,privateKey1,gameContractAddress)}
 var getalldetails = async function(address) { await getAllDetails(address) }
-var doReplinsh = async function(address) { await doReplinshment(address)}
+var assetReplinsh = async function(address) { await assetReplinshment(address)}
 
 // total_cards("0xd8f0BC6D001F90e52bc84daa0E9D150b7622E108").then((res)=>{
 // 	console.log(res);
@@ -421,7 +421,7 @@ module.exports = {
 	getalldetails:getalldetails,
 	transferstar:transferstar,
         transferfrom:transferfrom,
-        doReplinshment:doReplinsh
+        assetReplinshment:assetReplinsh
 }
 
 //  for(var i=1;i<5;i++)

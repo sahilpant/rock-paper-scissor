@@ -193,9 +193,10 @@ async deletepasskey(client:Socket,obj:Object){
 async playGame(client:Socket,obj:Object)
 {
 	var data = obj.card_number;
-	
+    var cardindex = obj.card_position;	
 	let gameExistinPasskey = await this.passkey.findOne({gameid:obj.gameid});  // Fetch details from db
 	let gameExistinMatch = await this.match.findOne({gameid:obj.gameid}); // fetch match detials from db
+	
 	// console.log(gameExistinPasskey);
 	// If passkey collection is empty against this gameid then insert this match instance in the collection
 if(gameExistinMatch.status == "active"){
@@ -224,7 +225,10 @@ if(gameExistinMatch.status == "active"){
 	await passkeyObj.save(); // Save function is called here
 	// Saving passkey in this collection - Ends here
      if(gameExistinMatch && obj.username == gameExistinMatch.player1.username){
-		await this.match.updateOne({gameid:obj.gameid},{$set:{player1cardposition:obj.card_position_array}})
+		let new_arr = gameExistinMatch.player1cardposition;
+		if(new_arr[cardindex] == false)
+		new_arr[cardindex] = true;
+		await this.match.updateOne({gameid:obj.gameid},{$set:{player1cardposition:new_arr}})
 		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card2played:true,user1:obj.card_position}});
 		await this.user.update({"username":obj.username},{
 			$pull:{notUsedCards:obj.card_number
@@ -234,7 +238,10 @@ if(gameExistinMatch.status == "active"){
            
 	 }
 	 else if (gameExistinMatch && obj.username == gameExistinMatch.player2.username){ 
-		await this.match.updateOne({gameid:obj.gameid},{$set:{player2cardposition:obj.card_position_array}})
+		let new_arr = gameExistinMatch.player2cardposition;
+		if(new_arr[cardindex] == false)
+		new_arr[cardindex] = true;
+		await this.match.updateOne({gameid:obj.gameid},{$set:{player2cardposition:new_arr}})
 		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true, user2:obj.card_position}});
 		await this.user.update({"username":obj.username},{
 			$pull:{notUsedCards:obj.card_number
@@ -250,7 +257,10 @@ if(gameExistinPasskey && gameExistinMatch){
 
 
 if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player1.username && gameExistinPasskey.token1 == 0){
-	await this.match.updateOne({gameid:obj.gameid},{$set:{player1cardposition:obj.card_position_array}})	
+	let new_arr = gameExistinMatch.player1cardposition;
+	if(new_arr[cardindex] == false)
+	new_arr[cardindex] = true;
+	await this.match.updateOne({gameid:obj.gameid},{$set:{player1cardposition:new_arr}})	
 	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true,user1:obj.card_position}});
 	// console.log( await this.passkey.find({gameid:obj.gameid}))
 	await this.user.update({"username":obj.username},{
@@ -261,7 +271,10 @@ if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.pl
 }
 
 else if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player2.username && gameExistinPasskey.token2 == 0){ 
-	await this.match.updateOne({gameid:obj.gameid},{$set:{player2cardposition:obj.card_position_array}})	
+	let new_arr = gameExistinMatch.player2cardposition;
+	if(new_arr[cardindex] == false)
+	new_arr[cardindex] = true;
+	await this.match.updateOne({gameid:obj.gameid},{$set:{player2cardposition:new_arr}})
 	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true,user2:obj.card_position}});
 	await this.user.update({"username":obj.username},{
 		$pull:{notUsedCards:obj.card_number

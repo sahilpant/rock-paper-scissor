@@ -35,7 +35,6 @@ export class WebsocketService {
         publickey:localStorage.getItem('publickey'),
         username:localStorage.getItem('username'),
       }
-    localStorage.setItem('card_position_array','[false,false,false,false,false,false,false,false,false]')
     this.socket.emit('Public', data )
    }
 
@@ -163,11 +162,7 @@ export class WebsocketService {
       card_position:localStorage.getItem('cardpos')
     }
     let card_pos = <number><unknown>(data.card_position)
-    let card_array = JSON.parse(localStorage.getItem('card_position_array'))
-    if(card_pos <= card_array.length){
-      card_array[card_pos-1] = true;
-      localStorage.setItem('card_position_array',JSON.stringify(card_array));
-      data['card_position_array'] = JSON.parse(localStorage.getItem('card_position_array'))
+    if(card_pos <= 9){
       console.log(data);
       this.socket.emit('move',data);
     }
