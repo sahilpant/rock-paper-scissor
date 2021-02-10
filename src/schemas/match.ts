@@ -14,8 +14,8 @@ import { type } from 'os';
     round:{type:Number},
     player_joined:{type:Number},
     live:{type:Boolean},
-    player1cardposition:{type:Array,default:[false,false,false,false,false,false,false,false,false]},
-    player2cardposition:{type:Array,default:[false,false,false,false,false,false,false,false,false]},
+    player1cardposition:{type:Array},
+    player2cardposition:{type:Array},
     player1:{
         username: String,
         publicaddress:String

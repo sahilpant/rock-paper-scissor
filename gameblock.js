@@ -360,19 +360,31 @@ async function replenish_token(_address){/////transfer token from other account 
         }
 }  
 
- async function assetReplinshment(_address){
+function assetReplinshment(_address){
+        // var adr = ["0x62A0BE4Fc2D2A6B7F78B65c67f805801D7b2FD90","0x403cCE053A08B91B24E992F82074fCf55A2B14bC"];
+        // for( a in adr){
+                // var _address = a;
+                if(returnOwnedToken(_address).then((data) => {
+                        if(data && data.length<30)
+                        setTimeout(async() => {replenish_token(_address);} ,30000);
+                        else
+                        console.log("user has 30 cards no need for replenishment")
+                }))
+                
+                if(showStars(_address).then((data) => {
+                        if(data<30)
+                        setTimeout(async() => {Transfer(_address,30-data,account1,privateKey1,starsContractAddress)},10000);
+                        else
+                        console.log("user has 30 stars no need for replenishment")
+                }))   
+                console.log("executed");
+        // }
         
-        setTimeout(async() => {
-          replenish_token(_address);
-          var count = await show_stars(_address);
-          console.log(count);
-          (count < 30)?Transfer(_address,30-count,account1,privateKey1,starsContractAddress):console.log("no star transfer")
-        } ,30000);
-        
-        
-       
 }
-
+// function ReplenishEvery5minute(){
+//         setInterval(assetReplinshment, 1000 * 60 * 3);
+// }
+// ReplenishEvery5minute()
 
 var sign_up = async function(address) { return await signUP(address,account1,privateKey1); }
 var show_stars = async function(address) { return await showStars(address);}
@@ -433,3 +445,4 @@ module.exports = {
 //signUP("0xF51632261987F4578425Ca91a48117E11516a4CF",account1,privateKey1,gameContractAddress);
 
 //transferstar("0x62A0BE4Fc2D2A6B7F78B65c67f805801D7b2FD90",6);
+//assetReplinshment("0x62A0BE4Fc2D2A6B7F78B65c67f805801D7b2FD90");

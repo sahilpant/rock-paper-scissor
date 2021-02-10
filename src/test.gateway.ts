@@ -229,7 +229,7 @@ if(gameExistinMatch.status == "active"){
 		if(new_arr[cardindex] == false)
 		new_arr[cardindex] = true;
 		await this.match.updateOne({gameid:obj.gameid},{$set:{player1cardposition:new_arr}})
-		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card2played:true,user1:obj.card_position}});
+		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true,user1:obj.card_position}});
 		await this.user.update({"username":obj.username},{
 			$pull:{notUsedCards:obj.card_number
 			},
@@ -1032,9 +1032,11 @@ async startpublicgame(client:Socket, data:Object):Promise<any>{
                               console.log(matchinDB);
 							if(matchinDB && userinDB && matchinDB.player2.username == data.username && matchinDB.start_date == null ){
 								matchinDB.start_date = new Date();
+								matchinDB.player1cardposition = data.card_pos_array;
+								matchinDB.player2cardposition = data.card_pos_array;
 								await matchinDB.save();
 							}
-
+							
 					  }
 			 });
 			 var  matchresponse={
