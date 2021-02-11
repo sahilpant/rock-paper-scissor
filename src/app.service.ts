@@ -27,13 +27,17 @@ export class AppService
               }
 
               async assetReplenishEvery24Hour({publickey}:publickey):Promise<any>{
-                let user = this.asset.findOne({publickey:publickey});
-                console.log(user);
+                console.log(publickey);
+                let user = await this.asset.findOne({publickey:publickey});
+                const oneDay = 24 * 60 * 60 * 1000;
+                const LastDate =user.lastupdated;
+                const CurrentDate = new Date();
                 if(user){
-                  if((new Date).getTime()/1000 >= (await user).lastupdated.getTime()/1000 + (24*60*60)){
+                  if(Math.abs((CurrentDate - LastDate)/oneDay >= 1){
                       (await user).lastupdated = new Date();
                       await (await user).save();
-                      assetReplinshment(publickey);
+                      await assetReplinshment(publickey);
+                      await this.updateUserdata(publickey);
                   }
                 }
                 else{
@@ -41,8 +45,67 @@ export class AppService
                   new_user.publickey = publickey;
                   new_user.lastupdated = new Date;
                   await new_user.save();
-                  assetReplinshment(publickey);
+                  await assetReplinshment(publickey);
+                  await this.updateUserdata(publickey);
                 }
+               
+              }
+
+
+              async updateUserdata(publickey:string):Promise<any>{
+
+                var userinDB = await this.user.findOne({publickey: `${publickey}`}).exec()
+
+                let arrofCards = await returnownedTokens(publickey)
+                    var rock = [];
+                    var paper = [];
+                    var scissor = [];
+                    var notUSed = [];
+
+                    var completearray = userinDB.notUsedCards.concat(userinDB.usedCards);
+                    // console.log(<Int32Array>arrofCards);
+                    var isNewCardPresent = arrofCards.filter(function(id){
+                      return completearray.indexOf(id) < 0;
+                    })
+
+                    if(isNewCardPresent.length > 0){
+                      for(var i=0;i<arrofCards.length;i++)
+                      {
+                        let carddetail = await detailOfCard(arrofCards[i]);
+  
+                        if(carddetail[0] === "1")
+                        rock.push(arrofCards[i]);
+                        else if(carddetail[0] === "2")
+                        paper.push(arrofCards[i]);
+                        else if(carddetail[0] === "3")
+                        scissor.push(arrofCards[i]);
+                        notUSed.push(arrofCards[i]);
+                      }
+                      var c =  rock.filter(function(id){
+                        return userinDB.usedCards.indexOf(id) < 0
+                      })
+  
+                      var d =  paper.filter(function(id){
+                        return userinDB.usedCards.indexOf(id) < 0
+                      })
+  
+                      var e =  scissor.filter(function(id){
+                        return userinDB.usedCards.indexOf(id) < 0
+                      })
+                      var f = notUSed.filter(function(id){
+                           return userinDB.usedCards.indexOf(id) < 0
+                      })
+
+                      
+                    userinDB.cards.ROCK = c; 
+						        userinDB.cards.PAPER = d;
+						        userinDB.cards.SCISSOR = e;
+						        userinDB.notUsedCards = f;
+						        userinDB.stars = await show_stars(userinDB.publickey);
+                    return await userinDB.save();
+                    
+                    }
+
               }
 
               async validatePassword(realPassword:string,givenPassword:string,salt:string):Promise<boolean>{
@@ -52,8 +115,11 @@ export class AppService
                 return realPassword === hash;
   
               }    
+
+
+              
   
-  
+                
 
   
               async signIn(signin : signin):Promise<string>{
