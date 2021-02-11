@@ -15,7 +15,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('app');
-  const options = new DocumentBuilder().setTitle('Roshambo Api').setDescription('Rock Paper Scissor').setVersion('1.0.0').build();
+  const options = new DocumentBuilder().setTitle('Roshambo Api').setDescription('Rock Paper Scissor').setVersion('1.0.0').addBearerAuth().build();
   const  document = SwaggerModule.createDocument(app,options);
   SwaggerModule.setup('app',app,document);
  
