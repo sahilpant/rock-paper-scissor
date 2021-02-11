@@ -25,7 +25,7 @@ import { join } from "path"
 import {match} from './schemas/match'
 import { BiddingModule } from './bidding/bidding.module';
 import { request } from './schemas/request';
-
+import { assetReplenish } from './schemas/assetReplenish.model';
 @Module({
 
   imports: [
@@ -33,7 +33,7 @@ import { request } from './schemas/request';
 
     NotificationModule,
 
-    MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey},{name:'match', schema:match},{name:'request', schema:request}]),
+    MongooseModule.forFeature([{ name: 'user', schema: user },{name: 'passkey' , schema: passKey},{name:'match', schema:match},{name:'request', schema:request},{name:'assetReplenish',schema:assetReplenish}]),
 
     // RedisModule.register
 

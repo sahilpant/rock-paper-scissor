@@ -361,9 +361,6 @@ async function replenish_token(_address){/////transfer token from other account 
 }  
 
 function assetReplinshment(_address){
-        // var adr = ["0x62A0BE4Fc2D2A6B7F78B65c67f805801D7b2FD90","0x403cCE053A08B91B24E992F82074fCf55A2B14bC"];
-        // for( a in adr){
-                // var _address = a;
                 if(returnOwnedToken(_address).then((data) => {
                         if(data && data.length<30)
                         setTimeout(async() => {replenish_token(_address);} ,30000);
@@ -378,13 +375,8 @@ function assetReplinshment(_address){
                         console.log("user has 30 stars no need for replenishment")
                 }))   
                 console.log("executed");
-        // }
         
 }
-// function ReplenishEvery5minute(){
-//         setInterval(assetReplinshment, 1000 * 60 * 3);
-// }
-// ReplenishEvery5minute()
 
 var sign_up = async function(address) { return await signUP(address,account1,privateKey1); }
 var show_stars = async function(address) { return await showStars(address);}

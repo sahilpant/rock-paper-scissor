@@ -6,9 +6,10 @@ import { user } from './required/interfaces/user.interface';
 import { JwtPayLoad } from './required/interfaces/jwt-payload.interface';
 import * as bcrypt from 'bcrypt'
 import { signin } from './required/dto/sign.dto';
-import {returnownedTokens,detailOfCard,show_stars} from '../gameblock';
+import {returnownedTokens,detailOfCard,show_stars, assetReplinshment} from '../gameblock';
 import { date } from '@hapi/joi';
 import { publickey } from './required/dto/publickey.dto';
+import { asset } from './required/interfaces/assetReplenish.interface';
 @Injectable()
 export class AppService 
 {
@@ -18,10 +19,30 @@ export class AppService
   constructor(
               private jwtService:JwtService,
               
-              @InjectModel('user')  private readonly user:Model<user>){}
+              @InjectModel('user')  private readonly user:Model<user>,
+              @InjectModel('assetReplenish') private readonly asset:Model<asset>){}
 
               async getUserdetails(publickey):Promise<any>{
                 return this.user.findOne({publickey:publickey});
+              }
+
+              async assetReplenishEvery24Hour({publickey}:publickey):Promise<any>{
+                let user = this.asset.findOne({publickey:publickey});
+                console.log(user);
+                if(user){
+                  if((new Date).getTime()/1000 >= (await user).lastupdated.getTime()/1000 + (24*60*60)){
+                      (await user).lastupdated = new Date();
+                      await (await user).save();
+                      assetReplinshment(publickey);
+                  }
+                }
+                else{
+                  let new_user = new this.asset();
+                  new_user.publickey = publickey;
+                  new_user.lastupdated = new Date;
+                  await new_user.save();
+                  assetReplinshment(publickey);
+                }
               }
 
               async validatePassword(realPassword:string,givenPassword:string,salt:string):Promise<boolean>{

@@ -44,5 +44,13 @@ export class AppController {
                  return this.appService.getUserdetails(publickey)
               }
 
+              @Post('/replenish')
+              @ApiOkResponse({description:"replensih user assets"})
+              @ApiUnauthorizedResponse({description:`<ul>
+              <li>User with this public key not exists</li>
+              `})
+              async replensih(@Body()publickey:publickey){
+                return this.appService.assetReplenishEvery24Hour(publickey);
+              }
 
             }
