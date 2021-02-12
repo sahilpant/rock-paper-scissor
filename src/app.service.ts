@@ -30,15 +30,21 @@ export class AppService
                 console.log(publickey);
                 let user = await this.asset.findOne({publickey:publickey});
                 const oneDay = 24 * 60 * 60 * 1000;
-                const LastDate =user.lastupdated;
-                const CurrentDate = new Date();
+                const LastDate =user.lastupdated.getTime();
+                const CurrentDate = new Date().getTime();
+                console.log(oneDay);
+                console.log(LastDate);
+                console.log(CurrentDate);
+                console.log(Math.abs((CurrentDate - LastDate)/oneDay))
                 if(user){
-                  if(Math.abs((CurrentDate - LastDate)/oneDay >= 1){
-                      (await user).lastupdated = new Date();
-                      await (await user).save();
+                  if(Math.abs((CurrentDate - LastDate)/oneDay) >= 1){
+                      (user).lastupdated = new Date();
+                      await (user).save();
                       await assetReplinshment(publickey);
                       await this.updateUserdata(publickey);
                   }
+                  else
+                  return `Asset Replenish Every 24 hr time remaining ${(LastDate+oneDay-CurrentDate)/1000}s`
                 }
                 else{
                   let new_user = new this.asset();
