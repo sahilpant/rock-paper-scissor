@@ -47,8 +47,7 @@ export class AppService
                   await new_user.save();
                   await assetReplinshment(publickey);
                   await this.updateUserdata(publickey);
-                }
-               
+                }         
               }
 
 
