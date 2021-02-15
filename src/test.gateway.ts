@@ -52,6 +52,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
   private logger:Logger = new Logger('TestGateway');
 
   public room_invite_flag = {} //room id -> TRUE || FALSE
+
+  public delay = ms => new Promise(res => setTimeout(res, ms));
   
   @WebSocketServer() wss:Server;
   
@@ -455,6 +457,7 @@ if(gameblock[0].round == 3 || gameblock[0].stars_of_player1 == 0 || gameblock[0]
 	// Final settlement of stars on blockchain
 	console.log("Stars of player 2 ***********************************************")
 	console.log(gameblock[0].stars_of_player2);
+
 	if(gameblock[0].stars_of_player1 > 0 && gameblock[0].player1.publicaddress !== null){
 		console.log(`Stars of Player one + ${gameblock[0].stars_of_player1}`);
 		await transferstar(gameblock[0].player1.publicaddress,gameblock[0].stars_of_player1);
@@ -464,7 +467,10 @@ if(gameblock[0].round == 3 || gameblock[0].stars_of_player1 == 0 || gameblock[0]
 	}
  if(gameblock[0].stars_of_player2 > 0 && gameblock[0].player2.publicaddress !== null){
 	console.log(`Stars of Player two + ${gameblock[0].stars_of_player2}`);
-	await transferstar(gameblock[0].player2.publicaddress,gameblock[0].stars_of_player2);
+
+		this.delay(20000).then(async() =>await transferstar(gameblock[0].player2.publicaddress,gameblock[0].stars_of_player2));
+
+	
 	await this.user.updateOne({publickey:gameblock[0].player2.publicaddress},{$inc:{
 		stars:gameblock[0].stars_of_player2
 	}})
@@ -518,8 +524,8 @@ match_details[0].round++;
  if(match_details){
 	match_details[0].Rounds.push({
 	player1:{
-			card_type:game[0].card1,
-			card_number:game[0].token1,
+			card_type:game.card1,
+			card_number:game.token1,
 			timestamp:new Date()
 		},
 		player2:{
@@ -546,13 +552,13 @@ await this.passkey.updateOne({gameid:obj.gameid},{$set:{
 
 }})
 
-await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1);
+await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2)
 await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player2
 
 }})
+this.delay(20000).then(async() => await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1))
 
-await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1);
 await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player1,
 	cardDebt:1
@@ -596,13 +602,17 @@ await this.passkey.updateOne({gameid:obj.gameid},{$set:{
 
 }})
 
-await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1);
+	await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2)
+
 await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player2,
 	cardDebt:1
 }})
 
-await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1);
+	this.delay(20000).then(async() =>await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1))
+	
+
+
 await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player1
 }})
@@ -644,14 +654,18 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 					   card2played:false
 				   
 				   }})
-
-				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1);
+				   
+					await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2);
+				
+				   
 					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player2,
 						   cardDebt:1
 					   }})
-				   
-					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1);
+					   this.delay(20000).then(async() =>await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1))
+	
+						
+					  
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player1,
 						   
@@ -693,13 +707,18 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 					   card2played:false
 				   
 				   }})
+		
+					await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2);;
+			
 				   
-				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1);
 					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player2,
 					   }})
+
+					   this.delay(20000).then(async() =>await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1))
+						
 				   
-					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1);
+					   
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player1,
 						   cardDebt:1
