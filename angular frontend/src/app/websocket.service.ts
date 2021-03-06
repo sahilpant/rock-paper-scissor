@@ -122,7 +122,7 @@ export class WebsocketService {
       gameid: localStorage.getItem('roomID'),
     }
     localStorage.setItem('card_position_array',JSON.stringify([false,false,false,false,false,false,false,false,false]));
-    data['card_pos_array'] = localStorage.getItem('card_position_array');
+    data["card_pos_array"] = localStorage.getItem('card_position_array');
     // console.log(data);
     this.socket.emit('start_match',data);
    }
@@ -164,7 +164,6 @@ export class WebsocketService {
     }
     let card_pos = <number><unknown>(data.card_position)
     if(card_pos <= 9){
-      console.log(data);
       this.socket.emit('move',data);
     }
     

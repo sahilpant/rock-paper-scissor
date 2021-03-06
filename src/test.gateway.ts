@@ -199,17 +199,18 @@ async playGame(client:Socket,obj:Object)
 	let gameExistinPasskey = await this.passkey.findOne({gameid:obj.gameid});  // Fetch details from db
 	let gameExistinMatch = await this.match.findOne({gameid:obj.gameid}); // fetch match detials from db
 	let givenCardType;
-    let carddetail = await detailOfCard(gameExistinPasskey.token1);
-	(carddetail[0] === "1")?(givenCardType="ROCK"):(		
-		(carddetail[0] === "2")?(givenCardType="PAPER"):(
-			(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
-		
+	if(gameExistinPasskey){
+		let carddetail = await detailOfCard(obj.card_number);
+		console.log("step 1");
+		(carddetail[0] === "1")?(givenCardType="ROCK"):(		
+			(carddetail[0] === "2")?(givenCardType="PAPER"):(
+				(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
+	}
 	
 	// console.log(gameExistinPasskey);
 	// If passkey collection is empty against this gameid then insert this match instance in the collection
 if(gameExistinMatch.status == "active"){
 	if(gameExistinPasskey == null){
-		
 	// client.to(obj.gameid).emit("move_response", gameExistinPasskey);
 	//  Storing data in passkey collection
 	let passkeyObj = new this.passkey({		
@@ -233,10 +234,10 @@ if(gameExistinMatch.status == "active"){
 	await passkeyObj.save(); // Save function is called here
 	// Saving passkey in this collection - Ends here
      if(gameExistinMatch && obj.username == gameExistinMatch.player1.username){
-		let new_arr = gameExistinMatch.player1cardposition;
+		let new_arr = JSON.parse(gameExistinMatch.player1cardposition);
 		if(new_arr[cardindex] == false)
 		new_arr[cardindex] = true;
-		await this.match.updateOne({gameid:obj.gameid},{$set:{player1cardposition:new_arr}})
+		await this.match.updateOne({gameid:obj.gameid},{$set:{player1cardposition:JSON.stringify(new_arr)}})
 		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true,user1:obj.username,card1:givenCardType}});
 		await this.user.update({"username":obj.username},{
 			$pull:{notUsedCards:obj.card_number
@@ -262,8 +263,6 @@ if(gameExistinMatch.status == "active"){
 // Add to passkey if passkey object exists
 
 if(gameExistinPasskey && gameExistinMatch){
-
-
 if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player1.username && gameExistinPasskey.token1 == 0){
 	let new_arr = gameExistinMatch.player1cardposition;
 	if(new_arr[cardindex] == false)
@@ -309,8 +308,6 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null){
 	gameExistinPasskey = await this.passkey.findOne({gameid:obj.gameid});  // Fetch details from db
 
 if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasskey.token1 > 0 && gameExistinPasskey.token2 > 0){
-	// console.log("I was here");
-	// console.log("Entered in second loop")
 
 	for (var i = 0; i <= 1 ; i++){
 		let carddetail: string | string[];
@@ -349,15 +346,15 @@ switch (gamedetails[0].card1)
 		{
 			case 'ROCK': 
 			await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("round_results","Tie");
+			this.wss.to(obj.gameid).emit("round_result","Tie");
 			break;
 			case 'PAPER':
 			await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client2id);
+			this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client2id);
 			break;
 			case 'SCISSOR':
 				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client1id);
+				this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client1id);
 				break;		
 
 		}break;
@@ -367,15 +364,15 @@ switch (gamedetails[0].card1)
 		{
 			case 'ROCK': 
 			await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client1id);
+			this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client1id);
 			break;
 			case 'PAPER':
 				await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("round_results","Tie");
+			this.wss.to(obj.gameid).emit("round_result","Tie");
 			break;
 			case 'SCISSOR':
 				await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client2id);	
+				this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client2id);	
 				break;
 			default:
 			break;
@@ -387,15 +384,15 @@ switch (gamedetails[0].card1)
 			{
 				case 'ROCK':
 					await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client2id);
+				this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client2id);
 				break;
 				case 'PAPER':
 				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("round_results",gamedetails[0].client1id);
+				this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client1id);
 				break;
 				case 'SCISSOR':
 					await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-					this.wss.to(obj.gameid).emit("round_results","Tie");	
+					this.wss.to(obj.gameid).emit("round_result","Tie");	
 				default:
 					break;
 	
