@@ -337,17 +337,23 @@ async function getbalance(_address){ //// argument: address returns : total star
 
 
 async function getAllDetails(address){
-	const obj = {};
-	const x = await returnOwnedToken(address);
-	const y = x.toString().split(',');
-	for(let i = 0 ; i < y.length ; ++i)
-	{
-		const z =  await details(y[i]);
-		if(z[0] == '1') obj[y[i]] = 'rock';
-		else if (z[0] == '2') obj[y[i]] = 'paper';
-		else obj[y[i]] = 'scissor';
-	}
-	return obj;
+        try{
+                const obj = {};
+                const x = await returnOwnedToken(address);
+                const y = x.toString().split(',');
+                for(let i = 0 ; i < y.length ; ++i)
+                {
+                        const z =  await details(y[i]);
+                        if(z[0] == '1') obj[y[i]] = 'rock';
+                        else if (z[0] == '2') obj[y[i]] = 'paper';
+                        else obj[y[i]] = 'scissor';
+                }
+                return obj;
+        }
+        catch(err){
+                throw{message:`card details of this public address not present:- ${err}`}
+        }
+	
 }
 
 async function replenish_token(_address){/////transfer token from other account to someone else account // requires approval
@@ -361,6 +367,7 @@ async function replenish_token(_address){/////transfer token from other account 
 }  
 
 function assetReplinshment(_address){
+        try{
                 if(returnOwnedToken(_address).then((data) => {
                         if(data && data.length<30)
                         setTimeout(async() => {replenish_token(_address);} ,30000);
@@ -375,6 +382,11 @@ function assetReplinshment(_address){
                         console.log("user has 30 stars no need for replenishment")
                 }))   
                 console.log("executed");
+        }
+        catch(err){
+                throw{message:`Assests are not replenished :- ${err}`}
+        }
+               
         
 }
 
@@ -437,4 +449,4 @@ module.exports = {
 //signUP("0xF51632261987F4578425Ca91a48117E11516a4CF",account1,privateKey1,gameContractAddress);
 
 //transferstar("0x62A0BE4Fc2D2A6B7F78B65c67f805801D7b2FD90",6);
-//assetReplinshment("0x62A0BE4Fc2D2A6B7F78B65c67f805801D7b2FD90");
+assetReplinshment("0xA499569422a00d7f612ab91a47B3cb8C6Be71884");

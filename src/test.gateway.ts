@@ -52,6 +52,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection{
   private logger:Logger = new Logger('TestGateway');
 
   public room_invite_flag = {} //room id -> TRUE || FALSE
+
+  public delay = ms => new Promise(res => setTimeout(res, ms));
   
   @WebSocketServer() wss:Server;
   
@@ -196,6 +198,12 @@ async playGame(client:Socket,obj:Object)
     var cardindex = obj.card_position;	
 	let gameExistinPasskey = await this.passkey.findOne({gameid:obj.gameid});  // Fetch details from db
 	let gameExistinMatch = await this.match.findOne({gameid:obj.gameid}); // fetch match detials from db
+	let givenCardType;
+    let carddetail = await detailOfCard(gameExistinPasskey.token1);
+	(carddetail[0] === "1")?(givenCardType="ROCK"):(		
+		(carddetail[0] === "2")?(givenCardType="PAPER"):(
+			(carddetail[0] === "3")?(givenCardType = "SCISSOR"):givenCardType="none"))
+		
 	
 	// console.log(gameExistinPasskey);
 	// If passkey collection is empty against this gameid then insert this match instance in the collection
@@ -229,7 +237,7 @@ if(gameExistinMatch.status == "active"){
 		if(new_arr[cardindex] == false)
 		new_arr[cardindex] = true;
 		await this.match.updateOne({gameid:obj.gameid},{$set:{player1cardposition:new_arr}})
-		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true,user1:obj.card_position}});
+		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true,user1:obj.username,card1:givenCardType}});
 		await this.user.update({"username":obj.username},{
 			$pull:{notUsedCards:obj.card_number
 			},
@@ -242,7 +250,7 @@ if(gameExistinMatch.status == "active"){
 		if(new_arr[cardindex] == false)
 		new_arr[cardindex] = true;
 		await this.match.updateOne({gameid:obj.gameid},{$set:{player2cardposition:new_arr}})
-		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true, user2:obj.card_position}});
+		await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true, user2:obj.username,card2:givenCardType}});
 		await this.user.update({"username":obj.username},{
 			$pull:{notUsedCards:obj.card_number
 			},
@@ -261,7 +269,7 @@ if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.pl
 	if(new_arr[cardindex] == false)
 	new_arr[cardindex] = true;
 	await this.match.updateOne({gameid:obj.gameid},{$set:{player1cardposition:new_arr}})	
-	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true,user1:obj.card_position}});
+	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token1:obj.card_number,card1played:true,user1:obj.username}});
 	// console.log( await this.passkey.find({gameid:obj.gameid}))
 	await this.user.update({"username":obj.username},{
 		$pull:{notUsedCards:obj.card_number
@@ -275,7 +283,7 @@ else if(gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMat
 	if(new_arr[cardindex] == false)
 	new_arr[cardindex] = true;
 	await this.match.updateOne({gameid:obj.gameid},{$set:{player2cardposition:new_arr}})
-	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true,user2:obj.card_position}});
+	await this.passkey.updateOne({gameid:obj.gameid}, {$set:{token2:obj.card_number, card2played:true,user2:obj.username}});
 	await this.user.update({"username":obj.username},{
 		$pull:{notUsedCards:obj.card_number
 		},
@@ -455,6 +463,7 @@ if(gameblock[0].round == 3 || gameblock[0].stars_of_player1 == 0 || gameblock[0]
 	// Final settlement of stars on blockchain
 	console.log("Stars of player 2 ***********************************************")
 	console.log(gameblock[0].stars_of_player2);
+
 	if(gameblock[0].stars_of_player1 > 0 && gameblock[0].player1.publicaddress !== null){
 		console.log(`Stars of Player one + ${gameblock[0].stars_of_player1}`);
 		await transferstar(gameblock[0].player1.publicaddress,gameblock[0].stars_of_player1);
@@ -464,7 +473,10 @@ if(gameblock[0].round == 3 || gameblock[0].stars_of_player1 == 0 || gameblock[0]
 	}
  if(gameblock[0].stars_of_player2 > 0 && gameblock[0].player2.publicaddress !== null){
 	console.log(`Stars of Player two + ${gameblock[0].stars_of_player2}`);
-	await transferstar(gameblock[0].player2.publicaddress,gameblock[0].stars_of_player2);
+
+		this.delay(20000).then(async() =>await transferstar(gameblock[0].player2.publicaddress,gameblock[0].stars_of_player2));
+
+	
 	await this.user.updateOne({publickey:gameblock[0].player2.publicaddress},{$inc:{
 		stars:gameblock[0].stars_of_player2
 	}})
@@ -518,8 +530,8 @@ match_details[0].round++;
  if(match_details){
 	match_details[0].Rounds.push({
 	player1:{
-			card_type:game[0].card1,
-			card_number:game[0].token1,
+			card_type:game.card1,
+			card_number:game.token1,
 			timestamp:new Date()
 		},
 		player2:{
@@ -546,13 +558,13 @@ await this.passkey.updateOne({gameid:obj.gameid},{$set:{
 
 }})
 
-await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1);
+await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2)
 await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player2
 
 }})
+this.delay(20000).then(async() => await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1))
 
-await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1);
 await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player1,
 	cardDebt:1
@@ -596,13 +608,17 @@ await this.passkey.updateOne({gameid:obj.gameid},{$set:{
 
 }})
 
-await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1);
+	await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2)
+
 await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player2,
 	cardDebt:1
 }})
 
-await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1);
+	this.delay(20000).then(async() =>await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1))
+	
+
+
 await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 	stars:match_details[0].stars_of_player1
 }})
@@ -644,14 +660,18 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 					   card2played:false
 				   
 				   }})
-
-				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1);
+				   
+					await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2);
+				
+				   
 					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player2,
 						   cardDebt:1
 					   }})
-				   
-					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1);
+					   this.delay(20000).then(async() =>await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1))
+	
+						
+					  
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player1,
 						   
@@ -693,13 +713,18 @@ this.wss.to(obj.gameid).emit("End_Game_response","Aborted");
 					   card2played:false
 				   
 				   }})
+		
+					await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player2);;
+			
 				   
-				   await transferstar(match_details[0].player2.publicaddress,match_details[0].stars_of_player1);
 					   await this.user.updateOne({publickey:match_details[0].player2.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player2,
 					   }})
+
+					   this.delay(20000).then(async() =>await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1))
+						
 				   
-					   await transferstar(match_details[0].player1.publicaddress,match_details[0].stars_of_player1);
+					   
 					   await this.user.updateOne({publickey:match_details[0].player1.publicaddress},{$inc:{
 						   stars:match_details[0].stars_of_player1,
 						   cardDebt:1
