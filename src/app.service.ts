@@ -27,7 +27,7 @@ export class AppService
               }
 
               async assetReplenishEvery24Hour({publickey}:publickey):Promise<any>{
-                console.log(publickey);
+                // console.log(publickey);
                 let user = await this.asset.findOne({publickey:publickey});
                 const oneDay = 24 * 60 * 60 * 1000;
                 const LastDate =user.lastupdated.getTime();
