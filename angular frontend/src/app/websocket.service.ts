@@ -123,7 +123,7 @@ export class WebsocketService {
     }
     localStorage.setItem('card_position_array',JSON.stringify([false,false,false,false,false,false,false,false,false]));
     data["card_pos_array"] = localStorage.getItem('card_position_array');
-    // console.log(data);
+    console.log(data);
     this.socket.emit('start_match',data);
    }
 

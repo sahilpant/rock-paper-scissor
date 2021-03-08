@@ -346,15 +346,15 @@ switch (gamedetails[0].card1)
 		{
 			case 'ROCK': 
 			await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("round_result","Tie");
+			this.wss.to(obj.gameid).emit("roundetails_response","Tie");
 			break;
 			case 'PAPER':
 			await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client2id);
+			this.wss.to(obj.gameid).emit("roundetails_response",gamedetails[0].client2id);
 			break;
 			case 'SCISSOR':
 				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client1id);
+				this.wss.to(obj.gameid).emit("roundetails_response",gamedetails[0].client1id);
 				break;		
 
 		}break;
@@ -364,15 +364,15 @@ switch (gamedetails[0].card1)
 		{
 			case 'ROCK': 
 			await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client1id);
+			this.wss.to(obj.gameid).emit("roundetails_response",gamedetails[0].client1id);
 			break;
 			case 'PAPER':
 				await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-			this.wss.to(obj.gameid).emit("round_result","Tie");
+			this.wss.to(obj.gameid).emit("roundetails_response","Tie");
 			break;
 			case 'SCISSOR':
 				await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client2id);	
+				this.wss.to(obj.gameid).emit("roundetails_response",gamedetails[0].client2id);	
 				break;
 			default:
 			break;
@@ -384,15 +384,15 @@ switch (gamedetails[0].card1)
 			{
 				case 'ROCK':
 					await this.handletransfers(2,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client2id);
+				this.wss.to(obj.gameid).emit("roundetails_response",gamedetails[0].client2id);
 				break;
 				case 'PAPER':
 				await this.handletransfers(1,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-				this.wss.to(obj.gameid).emit("round_result",gamedetails[0].client1id);
+				this.wss.to(obj.gameid).emit("roundetails_response",gamedetails[0].client1id);
 				break;
 				case 'SCISSOR':
 					await this.handletransfers(0,gamedetails[0].card1,gamedetails[0].card2,gamedetails[0].token1,gamedetails[0].token2,dat);
-					this.wss.to(obj.gameid).emit("round_result","Tie");	
+					this.wss.to(obj.gameid).emit("roundetails_response","Tie");	
 				default:
 					break;
 	
