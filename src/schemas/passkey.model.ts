@@ -1,6 +1,13 @@
       import * as mongoose from "mongoose";
 
 export const passKey = new mongoose.Schema({
+
+      cardposition:
+            {
+                  card1pos:Number,
+                  card2pos:Number     
+            }
+        ,
       
       player1address:{type:String},
       
