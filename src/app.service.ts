@@ -37,6 +37,7 @@ export class AppService
                       await (user).save();
                       await assetReplinshment(publickey);
                       await this.updateUserdata(publickey);
+                      return `Cards replenished successfully`
                   }
                   else
                   return `Cards are repleninshed only after every 24 hrs. Time remaining ${(LastDate+oneDay-CurrentDate)/1000}s`
