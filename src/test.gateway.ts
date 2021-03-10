@@ -504,6 +504,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
                     if ((card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER")) {
                         player1win++;
                     }
+                    else if(card1 === card2){
+                                    
+                    }
                     else {
                         player2win++;
                     }
@@ -600,6 +603,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 								if ((card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER")) {
 									player1win++;
 								}
+                                else if(card1 === card2){
+                                    
+                                }
 								else {
 									player2win++;
 								}
@@ -681,6 +687,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 								if ((card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER")) {
 									player1win++;
 								}
+                                else if(card1 === card2){
+                                    
+                                }
 								else {
 									player2win++;
 								}
@@ -766,6 +775,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 								if ((card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER")) {
 									player1win++;
 								}
+                                else if(card1 === card2){
+                                    
+                                }
 								else {
 									player2win++;
 								}
@@ -850,6 +862,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 								if ((card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER")) {
 									player1win++;
 								}
+                                else if(card1 === card2){
+                                    
+                                }
 								else {
 									player2win++;
 								}
@@ -941,6 +956,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 								if ((card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER")) {
 									player1win++;
 								}
+                                else if(card1 === card2){
+                                    
+                                }
 								else {
 									player2win++;
 								}
@@ -983,6 +1001,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 								if ((card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER")) {
 									player1win++;
 								}
+                                else if(card1 === card2){
+                                    
+                                }
 								else {
 									player2win++;
 								}
