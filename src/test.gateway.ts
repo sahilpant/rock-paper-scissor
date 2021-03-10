@@ -239,11 +239,12 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				// Saving passkey in this collection - Ends here
 				if (gameExistinMatch && obj.username == gameExistinMatch.player1.username) {
 					let new_arr = (gameExistinMatch.player1cardposition);
-					new_arr = new_arr[0].slice(1, new_arr[0].length - 1).split(',');
-					//console.log(new_arr);
-					if (new_arr[cardindex] === "false")
-						new_arr[cardindex] = "true";
-					new_arr = "[" + new_arr.toString() + "]";
+					new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
+					if (new_arr[cardindex] === "false"){
+                        new_arr[cardindex] = "true";
+                        new_arr = "[" + new_arr.toString() + "]";
+                    }
+					
 					//console.log(new_arr);	
 					await this.match.updateOne({ gameid: obj.gameid }, { $set: { player1cardposition: new_arr } })
 					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token1: obj.card_number, card1played: true, user1: obj.username, card1: givenCardType } });
@@ -257,11 +258,12 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				}
 				else if (gameExistinMatch && obj.username == gameExistinMatch.player2.username) {
 					let new_arr = gameExistinMatch.player2cardposition;
-					new_arr = new_arr[0].slice(1, new_arr[0].length - 1).split(',');
+					new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
 					//console.log(new_arr);
-					if (new_arr[cardindex] === "false")
-						new_arr[cardindex] = "true";
-					new_arr = "[" + new_arr.toString() + "]";
+                    if (new_arr[cardindex] === "false"){
+                        new_arr[cardindex] = "true";
+                        new_arr = "[" + new_arr.toString() + "]";
+                    }
 					//console.log(new_arr);	
 					await this.match.updateOne({ gameid: obj.gameid }, { $set: { player2cardposition: new_arr } })
 					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token2: obj.card_number, card2played: true, user2: obj.username, card2: givenCardType } });
@@ -276,13 +278,12 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 			// Add to passkey if passkey object exists
 
-			if (gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasskey.token1 > 0 && gameExistinPasskey.token2 > 0) {
-
+			if (gameExistinPasskey !== null && gameExistinMatch !== null) {
 
 				if (gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player1.username && gameExistinPasskey.token1 == 0) {
 					let new_arr = gameExistinMatch.player1cardposition;
 					console.log(new_arr);
-					new_arr = new_arr[0].slice(1, new_arr[0].length - 1).split(',');
+					new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
 					//console.log(new_arr);
 					if (new_arr[cardindex] === "false")
 						new_arr[cardindex] = "true";
@@ -305,7 +306,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 				else if (gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player2.username && gameExistinPasskey.token2 == 0) {
 					let new_arr = gameExistinMatch.player2cardposition;
-					new_arr = new_arr[0].slice(1, new_arr[0].length - 1).split(',');
+					new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
 					//console.log(new_arr);
 					if (new_arr[cardindex] === "false")
 						new_arr[cardindex] = "true";
