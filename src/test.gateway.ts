@@ -89,12 +89,17 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 					client.emit('Connection', isuserValidatedwithPlayload) //in the browser console this output will be showm
 				}
-
 				else {
 					console.log("invalid token")
 					client.emit('Connection', "invalid_token")
 
 				}
+            //    console.log(clientInfo.username)
+			this.Clients =	this.Clients.filter(function(id){
+                         return id.username != clientInfo.username
+				})
+
+			
 			}
 			catch (err) {
 
@@ -713,7 +718,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 					})
 
 					this.delay(20000).then(async () => await transferstar(match_details[0].player1.publicaddress, match_details[0].stars_of_player1))
-
 
 
 					await this.user.updateOne({ publickey: match_details[0].player1.publicaddress }, {
@@ -1459,7 +1463,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 						// 	host:data.username,
 						// guest:
 						// action:  0 - for request and 1 for acceptance , 2 - for decline
-
 
 						// }
 						this.wss.to(this.Clients[index].clientID).emit("private_game_notification", `Match request from ${data.username}`)
