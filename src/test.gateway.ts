@@ -177,17 +177,17 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 		var roundetails = await this.passkey.findOne({ "gameid": data }, {});
 		console.log(roundetails);
 		let response = {
-			"player1played": (roundetails.card1!=null)?true:false,
-			"P1_position":roundetails.cardposition.card1pos,
-			"player2played": (roundetails.card2!=null)?true:false,
-			"P2_position":roundetails.cardposition.card2pos,
+			"player1played": (roundetails.card1 != null) ? true : false,
+			"P1_position": roundetails.cardposition.card1pos,
+			"player2played": (roundetails.card2 != null) ? true : false,
+			"P2_position": roundetails.cardposition.card2pos,
 		}
 		console.log(response)
 		client.emit("roundetails_response", response)
 
 	}
 
-	
+
 
 
 
@@ -212,7 +212,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				// client.to(obj.gameid).emit("move_response", gameExistinPasskey);
 				//  Storing data in passkey collection
 				let passkeyObj = new this.passkey({
-					cardposition:{card1pos:obj.card_position,card2pos:-1},
+					cardposition: { card1pos: obj.card_position, card2pos: -1 },
 					player1address: gameExistinMatch.player1.publicaddress,
 					player2address: gameExistinMatch.player2.publicaddress,
 					client1id: gameExistinMatch.player1.username,
@@ -234,11 +234,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				// Saving passkey in this collection - Ends here
 				if (gameExistinMatch && obj.username == gameExistinMatch.player1.username) {
 					let new_arr = (gameExistinMatch.player1cardposition);
-					new_arr = new_arr[0].slice(1,new_arr[0].length-1).split(',');
+					new_arr = new_arr[0].slice(1, new_arr[0].length - 1).split(',');
 					//console.log(new_arr);
 					if (new_arr[cardindex] === "false")
 						new_arr[cardindex] = "true";
-					new_arr = "["+new_arr.toString()+"]";
+					new_arr = "[" + new_arr.toString() + "]";
 					//console.log(new_arr);	
 					await this.match.updateOne({ gameid: obj.gameid }, { $set: { player1cardposition: new_arr } })
 					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token1: obj.card_number, card1played: true, user1: obj.username, card1: givenCardType } });
@@ -252,11 +252,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				}
 				else if (gameExistinMatch && obj.username == gameExistinMatch.player2.username) {
 					let new_arr = gameExistinMatch.player2cardposition;
-					new_arr = new_arr[0].slice(1,new_arr[0].length-1).split(',');
+					new_arr = new_arr[0].slice(1, new_arr[0].length - 1).split(',');
 					//console.log(new_arr);
 					if (new_arr[cardindex] === "false")
 						new_arr[cardindex] = "true";
-						new_arr = "["+new_arr.toString()+"]";
+					new_arr = "[" + new_arr.toString() + "]";
 					//console.log(new_arr);	
 					await this.match.updateOne({ gameid: obj.gameid }, { $set: { player2cardposition: new_arr } })
 					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token2: obj.card_number, card2played: true, user2: obj.username, card2: givenCardType } });
@@ -271,24 +271,24 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 			// Add to passkey if passkey object exists
 
-if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasskey.token1 > 0 && gameExistinPasskey.token2 > 0){
+			if (gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasskey.token1 > 0 && gameExistinPasskey.token2 > 0) {
 
 
 				if (gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player1.username && gameExistinPasskey.token1 == 0) {
 					let new_arr = gameExistinMatch.player1cardposition;
 					console.log(new_arr);
-					new_arr = new_arr[0].slice(1,new_arr[0].length-1).split(',');
+					new_arr = new_arr[0].slice(1, new_arr[0].length - 1).split(',');
 					//console.log(new_arr);
 					if (new_arr[cardindex] === "false")
 						new_arr[cardindex] = "true";
-					console.log(new_arr);	
-					new_arr = "["+new_arr.toString()+"]";
+					console.log(new_arr);
+					new_arr = "[" + new_arr.toString() + "]";
 					await this.match.updateOne({ gameid: obj.gameid }, { $set: { player1cardposition: new_arr } })
 					let object = {
-						card1pos:obj.card_position,
-						card2pos:gameExistinPasskey.cardposition.card2pos
+						card1pos: obj.card_position,
+						card2pos: gameExistinPasskey.cardposition.card2pos
 					}
-					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token1: obj.card_number, card1played: true, user1: obj.username,cardposition:object } });
+					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token1: obj.card_number, card1played: true, user1: obj.username, cardposition: object } });
 					// console.log( await this.passkey.find({gameid:obj.gameid}))
 					await this.user.update({ "username": obj.username }, {
 						$pull: {
@@ -300,18 +300,18 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 
 				else if (gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player2.username && gameExistinPasskey.token2 == 0) {
 					let new_arr = gameExistinMatch.player2cardposition;
-					new_arr = new_arr[0].slice(1,new_arr[0].length-1).split(',');
+					new_arr = new_arr[0].slice(1, new_arr[0].length - 1).split(',');
 					//console.log(new_arr);
 					if (new_arr[cardindex] === "false")
 						new_arr[cardindex] = "true";
-					console.log(new_arr);	
-					new_arr = "["+new_arr.toString()+"]";
+					console.log(new_arr);
+					new_arr = "[" + new_arr.toString() + "]";
 					await this.match.updateOne({ gameid: obj.gameid }, { $set: { player2cardposition: new_arr } })
 					let object = {
-						card1pos:gameExistinPasskey.cardposition.card1pos,
-						card2pos:obj.card_position
+						card1pos: gameExistinPasskey.cardposition.card1pos,
+						card2pos: obj.card_position
 					}
-					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token2: obj.card_number, card2played: true, user2: obj.username ,cardposition:object} });
+					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token2: obj.card_number, card2played: true, user2: obj.username, cardposition: object } });
 					await this.user.update({ "username": obj.username }, {
 						$pull: {
 							notUsedCards: obj.card_number
@@ -515,9 +515,9 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 
 		await this.passkey.updateOne({ gameid: game }, {
 			$set: {
-				cardposition:{
-					card1pos:-1,
-					card2pos:-1
+				cardposition: {
+					card1pos: -1,
+					card2pos: -1
 				},
 				token1: 0,
 				token2: 0,
@@ -579,7 +579,7 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 									player2win++;
 								}
 							});
-							console.log(player1win+ "   "+player2win);
+							console.log(player1win + "   " + player2win);
 							(player1win > player2win) ?
 								(match_details[0].winner = "1") :
 								((player2win > player1win) ? (match_details[0].winner = "2") : match_details[0].winner = "3")
@@ -607,9 +607,9 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 					console.log(match_details[0]);
 					await this.passkey.updateOne({ gameid: obj.gameid }, {
 						$set: {
-							cardposition:{
-								card1pos:-1,
-								card2pos:-1
+							cardposition: {
+								card1pos: -1,
+								card2pos: -1
 							},
 							token1: 0,
 							token2: 0,
@@ -687,9 +687,9 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 						match_details[0].stars_of_player2--
 					await this.passkey.updateOne({ gameid: obj.gameid }, {
 						$set: {
-							cardposition:{
-								card1pos:-1,
-								card2pos:-1
+							cardposition: {
+								card1pos: -1,
+								card2pos: -1
 							},
 							token1: 0,
 							token2: 0,
@@ -773,9 +773,9 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 						match_details[0].stars_of_player2--
 					await this.passkey.updateOne({ gameid: obj.gameid }, {
 						$set: {
-							cardposition:{
-								card1pos:-1,
-								card2pos:-1
+							cardposition: {
+								card1pos: -1,
+								card2pos: -1
 							},
 							token1: 0,
 							token2: 0,
@@ -856,9 +856,9 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 						match_details[0].stars_of_player2++
 					await this.passkey.updateOne({ gameid: obj.gameid }, {
 						$set: {
-							cardposition:{
-								card1pos:-1,
-								card2pos:-1
+							cardposition: {
+								card1pos: -1,
+								card2pos: -1
 							},
 							token1: 0,
 							token2: 0,
@@ -1066,13 +1066,13 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 
 
 				if (stars >= 3 && card_details > 0) {
-					await this.match.updateOne({ gameid: existing_game[0].gameid }, { $set: { player2cardposition:[false,false,false,false,false,false,false,false,false],'player2.username': userdetails.username, 'player2.publicaddress': userdetails.publickey, 'stars_of_player2': 3, 'player_joined': 2, "status": "active", start_date: null, } }, function (err, data) {
+					await this.match.updateOne({ gameid: existing_game[0].gameid }, { $set: { player2cardposition: "[false, false, false, false, false, false, false, false, false]", 'player2.username': userdetails.username, 'player2.publicaddress': userdetails.publickey, 'stars_of_player2': 3, 'player_joined': 2, "status": "active", start_date: null, } }, function (err, data) {
 						if (err) console.log(err)
 					})
 				}
 				else if (stars < 3 && stars > 0 && card_details > 0) {
 
-					await this.match.updateOne({ gameid: existing_game[0].gameid }, { $set: { player2cardposition:[false,false,false,false,false,false,false,false,false],'player2.username': userdetails.username, 'player2.publicaddress': userdetails.publickey, 'stars_of_player2': stars, 'player_joined': 2, "status": "active", start_date: null, } }, function (err, data) {
+					await this.match.updateOne({ gameid: existing_game[0].gameid }, { $set: { player2cardposition: "[false, false, false, false, false, false, false, false, false]", 'player2.username': userdetails.username, 'player2.publicaddress': userdetails.publickey, 'stars_of_player2': stars, 'player_joined': 2, "status": "active", start_date: null, } }, function (err, data) {
 						if (err) console.log(err)
 					})
 				}
@@ -1094,7 +1094,7 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 					console.log("running1");
 
 					const match = new this.match({
-						player1cardposition:[false,false,false,false,false,false,false,false,false],
+						player1cardposition: "[false, false, false, false, false, false, false, false, false]",
 						gameid: uuid(),
 						match_type: data.match_type,
 						GameLength: data.match_type == 'short' ? 60 : 129600,
@@ -1123,7 +1123,7 @@ if(gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasske
 				}
 				else {
 					const match = new this.match({
-						player1cardposition:[false,false,false,false,false,false,false,false,false],
+						player1cardposition: "[false, false, false, false, false, false, false, false, false]",
 						gameid: uuid(),
 						match_type: data.match_type,
 						class: 'public',
