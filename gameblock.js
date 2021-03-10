@@ -449,4 +449,4 @@ module.exports = {
 //signUP("0xF51632261987F4578425Ca91a48117E11516a4CF",account1,privateKey1,gameContractAddress);
 
 //transferstar("0x62A0BE4Fc2D2A6B7F78B65c67f805801D7b2FD90",6);
-assetReplinshment("0x13fa1d58706F4E2482C67F22B98CB3F832efDF09");
+//assetReplinshment("0x13fa1d58706F4E2482C67F22B98CB3F832efDF09");
