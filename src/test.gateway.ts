@@ -1066,13 +1066,13 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 
 				if (stars >= 3 && card_details > 0) {
-					await this.match.updateOne({ gameid: existing_game[0].gameid }, { $set: { player2cardposition: "[false, false, false, false, false, false, false, false, false]", 'player2.username': userdetails.username, 'player2.publicaddress': userdetails.publickey, 'stars_of_player2': 3, 'player_joined': 2, "status": "active", start_date: null, } }, function (err, data) {
+					await this.match.updateOne({ gameid: existing_game[0].gameid }, { $set: { player2cardposition: "", 'player2.username': userdetails.username, 'player2.publicaddress': userdetails.publickey, 'stars_of_player2': 3, 'player_joined': 2, "status": "active", start_date: null, } }, function (err, data) {
 						if (err) console.log(err)
 					})
 				}
 				else if (stars < 3 && stars > 0 && card_details > 0) {
 
-					await this.match.updateOne({ gameid: existing_game[0].gameid }, { $set: { player2cardposition: "[false, false, false, false, false, false, false, false, false]", 'player2.username': userdetails.username, 'player2.publicaddress': userdetails.publickey, 'stars_of_player2': stars, 'player_joined': 2, "status": "active", start_date: null, } }, function (err, data) {
+					await this.match.updateOne({ gameid: existing_game[0].gameid }, { $set: { player2cardposition: "", 'player2.username': userdetails.username, 'player2.publicaddress': userdetails.publickey, 'stars_of_player2': stars, 'player_joined': 2, "status": "active", start_date: null, } }, function (err, data) {
 						if (err) console.log(err)
 					})
 				}
@@ -1094,7 +1094,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 					console.log("running1");
 
 					const match = new this.match({
-						player1cardposition: "[false, false, false, false, false, false, false, false, false]",
+						player1cardposition: "",
 						gameid: uuid(),
 						match_type: data.match_type,
 						GameLength: data.match_type == 'short' ? 60 : 129600,
@@ -1123,7 +1123,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				}
 				else {
 					const match = new this.match({
-						player1cardposition: "[false, false, false, false, false, false, false, false, false]",
+						player1cardposition: "",
 						gameid: uuid(),
 						match_type: data.match_type,
 						class: 'public',
