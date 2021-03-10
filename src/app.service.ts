@@ -27,16 +27,11 @@ export class AppService
               }
 
               async assetReplenishEvery24Hour({publickey}:publickey):Promise<any>{
-                // console.log(publickey);
                 let user = await this.asset.findOne({publickey:publickey});
+                if(user){
                 const oneDay = 24 * 60 * 60 * 1000;
                 const LastDate =user.lastupdated.getTime();
                 const CurrentDate = new Date().getTime();
-                console.log(oneDay);
-                console.log(LastDate);
-                console.log(CurrentDate);
-                console.log(Math.abs((CurrentDate - LastDate)/oneDay))
-                if(user){
                   if(Math.abs((CurrentDate - LastDate)/oneDay) >= 1){
                       (user).lastupdated = new Date();
                       await (user).save();
@@ -44,7 +39,7 @@ export class AppService
                       await this.updateUserdata(publickey);
                   }
                   else
-                  return `Asset Replenish Every 24 hr time remaining ${(LastDate+oneDay-CurrentDate)/1000}s`
+                  return `Cards are repleninshed only after every 24 hrs. Time remaining ${(LastDate+oneDay-CurrentDate)/1000}s`
                 }
                 else{
                   let new_user = new this.asset();
