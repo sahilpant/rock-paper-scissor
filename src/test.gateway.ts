@@ -294,7 +294,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 						card1pos: obj.card_position,
 						card2pos: gameExistinPasskey.cardposition.card2pos
 					}
-					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token1: obj.card_number, card1played: true, user1: obj.username, cardposition: object } });
+					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token1: obj.card_number, card1played: true, user1: obj.username, cardposition: object, card1:givenCardType } });
 					// console.log( await this.passkey.find({gameid:obj.gameid}))
 					await this.user.update({ "username": obj.username }, {
 						$pull: {
@@ -317,7 +317,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 						card1pos: gameExistinPasskey.cardposition.card1pos,
 						card2pos: obj.card_position
 					}
-					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token2: obj.card_number, card2played: true, user2: obj.username, cardposition: object } });
+					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token2: obj.card_number, card2played: true, user2: obj.username, cardposition: object, card2:givenCardType } });
 					await this.user.update({ "username": obj.username }, {
 						$pull: {
 							notUsedCards: obj.card_number
@@ -533,8 +533,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				console.log(`Stars of Player two + ${gameblock[0].stars_of_player2}`);
 
 				this.delay(20000).then(async () => await transferstar(gameblock[0].player2.publicaddress, gameblock[0].stars_of_player2));
-
-
 				await this.user.updateOne({ publickey: gameblock[0].player2.publicaddress }, {
 					$inc: {
 						stars: gameblock[0].stars_of_player2
@@ -965,6 +963,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 						cardDebt: 1
 					}
 				})
+                await this.user.updateOne({ publickey: match_details[0].player2.publicaddress }, {
+					$inc: {
+						stars: match_details[0].stars_of_player2
+					}
+				})
 				await match_details[0].save();
 				this.wss.to(obj.gameid).emit("End_Game_response", "Aborted");
 			}
@@ -979,6 +982,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 					$inc: {
 						stars: match_details[0].stars_of_player2,
 						cardDebt: 1
+					}
+				})
+                await this.user.updateOne({ publickey: match_details[0].player1.publicaddress }, {
+					$inc: {
+						stars: match_details[0].stars_of_player1
 					}
 				})
 				await match_details[0].save();
