@@ -926,6 +926,91 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			}
 			else {
 				// Settle the game at the current status
+
+                if (obj.publickey == match_details[0].player1.publicaddress && match_details[0].status == 'active') {
+                    match_details[0].status = "Aborted";
+                    match_details[0].stars_of_player1--;
+                    match_details[0].stars_of_player2++;
+                    let player1win = 0;
+						let player2win = 0;
+						if (match_details[0].Rounds.length > 0) {
+							(match_details[0].Rounds).forEach(element => {
+
+								let card1 = element.player1.card_type;
+								let card2 = element.player2.card_type;
+								if ((card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER")) {
+									player1win++;
+								}
+								else {
+									player2win++;
+								}
+							});
+							(player1win > player2win) ?
+								(match_details[0].winner = "1") :
+								((player2win > player1win) ? (match_details[0].winner = "2") : match_details[0].winner = "3")
+						} else {
+							match_details[0].winner = "4";
+						}
+                    // match_details[0].winner = "4"
+                    await transferstar(match_details[0].player1.publicaddress, match_details[0].stars_of_player1);
+                    this.delay(20000).then(async () => await transferstar(match_details[0].player2.publicaddress, match_details[0].stars_of_player2))
+                    await this.user.updateOne({ publickey: match_details[0].player1.publicaddress }, {
+                        $inc: {
+                            stars: match_details[0].stars_of_player1,
+                            cardDebt: 1
+                        }
+                    })
+                    await this.user.updateOne({ publickey: match_details[0].player2.publicaddress }, {
+                        $inc: {
+                            stars: match_details[0].stars_of_player2
+                        }
+                    })
+                    await match_details[0].save();
+                    this.wss.to(obj.gameid).emit("End_Game_response", "Aborted");
+                }
+                else if (obj.publickey == match_details[0].player2.publicaddress && match_details[0].status == 'active') {
+                    match_details[0].status = "Aborted";
+                    match_details[0].stars_of_player2--;
+                    match_details[0].stars_of_player1++;
+                    // match_details[0].winner = "4"
+                    let player1win = 0;
+						let player2win = 0;
+						if (match_details[0].Rounds.length > 0) {
+							(match_details[0].Rounds).forEach(element => {
+
+								let card1 = element.player1.card_type;
+								let card2 = element.player2.card_type;
+								if ((card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER")) {
+									player1win++;
+								}
+								else {
+									player2win++;
+								}
+							});
+							(player1win > player2win) ?
+								(match_details[0].winner = "1") :
+								((player2win > player1win) ? (match_details[0].winner = "2") : match_details[0].winner = "3")
+						} else {
+							match_details[0].winner = "4";
+						}
+                    await transferstar(match_details[0].player2.publicaddress, match_details[0].stars_of_player2);
+                    this.delay(20000).then(async () => await transferstar(match_details[0].player1.publicaddress, match_details[0].stars_of_player1))
+                    await this.user.updateOne({ publickey: match_details[0].player2.publicaddress }, {
+                        $inc: {
+                            stars: match_details[0].stars_of_player2,
+                            cardDebt: 1
+                        }
+                    })
+                    await this.user.updateOne({ publickey: match_details[0].player1.publicaddress }, {
+                        $inc: {
+                            stars: match_details[0].stars_of_player1
+                        }
+                    })
+                    await match_details[0].save();
+                    this.wss.to(obj.gameid).emit("End_Game_response", "Aborted");
+                }
+
+                // End here
 			}
 
 
