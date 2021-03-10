@@ -483,17 +483,41 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 		if (gameblock[0].round == 3 || gameblock[0].stars_of_player1 == 0 || gameblock[0].stars_of_player2 == 0) {
 			gameblock[0].status = "COMPLETED";
-			if (gameblock[0].stars_of_player1 > gameblock[0].stars_of_player2) {
-				gameblock[0].winner = "1";
-			}
-			else if (gameblock[0].stars_of_player2 > gameblock[0].stars_of_player1) {
-				gameblock[0].winner = "2";
-			}
-			else {
-				gameblock[0].winner = "0";
-			}
+			// if (gameblock[0].stars_of_player1 > gameblock[0].stars_of_player2) {
+			// 	gameblock[0].winner = "1";
+			// }
+			// else if (gameblock[0].stars_of_player2 > gameblock[0].stars_of_player1) {
+			// 	gameblock[0].winner = "2";
+			// }
+			// else {
+			// 	gameblock[0].winner = "0";
+			// }
+
+            // 
+            
+            let player1win = 0;
+            let player2win = 0;
+            if (gameblock[0].Rounds.length > 0) {
+                (gameblock[0].Rounds).forEach(element => {
+                    let card1 = element.player1.card_type;
+                    let card2 = element.player2.card_type;
+                    if ((card1 === "ROCK" && card2 === "SCISSOR") || (card1 === "PAPER" && card2 === "ROCK") || (card1 === "SCISSOR" && card2 === "PAPER")) {
+                        player1win++;
+                    }
+                    else {
+                        player2win++;
+                    }
+                });
+                console.log(player1win + "   " + player2win);
+                (player1win > player2win) ?
+                    (gameblock[0].winner = "1") :
+                    ((player2win > player1win) ? (gameblock[0].winner = "2") : gameblock[0].winner = "3")
+            } else {
+                gameblock[0].winner = "4";
+            }
+             
+            // 
 			// Final settlement of stars on blockchain
-			console.log("Stars of player 2 ***********************************************")
 			console.log(gameblock[0].stars_of_player2);
 
 			if (gameblock[0].stars_of_player1 > 0 && gameblock[0].player1.publicaddress !== null) {
@@ -558,8 +582,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 		//DB access
 		const game = await this.passkey.findOne().where('gameid').equals(_room).exec();
 		const match_details = await this.match.find({ gameid: _room });
-		console.log(game);
-		console.log(match_details);
 
 		if (game && (game.player1address || game.player2address) && match_details[0].status == "active") {
 
@@ -569,7 +591,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				if (game.card1played == true && obj.publickey == game.player1address) {
 
 					// Deduct one star from player1 address
-					console.log(match_details[0]);
 					if (match_details) {
 						let player1win = 0;
 						let player2win = 0;
@@ -916,9 +937,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 		else if (!game && match_details[0].status == 'waiting') {
 
 			match_details[0].status = "Aborted";
-			match_details[0].winner = "4"
-			match_details[0].stars_of_player1--;
-			await transferstar(match_details[0].player1.publicaddress, match_details[0].stars_of_player1);
+			match_details[0].winner = "4";
+            match_details[0].stars_of_player1--;
+            await transferstar(match_details[0].player1.publicaddress, match_details[0].stars_of_player1);
+			
 			await this.user.updateOne({ publickey: match_details[0].player1.publicaddress }, {
 				$inc: {
 					stars: match_details[0].stars_of_player1,
@@ -933,8 +955,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			if (obj.publickey == match_details[0].player1.publicaddress && match_details[0].status == 'active') {
 				match_details[0].status = "Aborted";
 				match_details[0].stars_of_player1--;
+                match_details[0].stars_of_player2++;
 				match_details[0].winner = "4"
 				await transferstar(match_details[0].player1.publicaddress, match_details[0].stars_of_player1);
+                this.delay(20000).then(async () => await transferstar(match_details[0].player2.publicaddress, match_details[0].stars_of_player2))
 				await this.user.updateOne({ publickey: match_details[0].player1.publicaddress }, {
 					$inc: {
 						stars: match_details[0].stars_of_player1,
@@ -947,8 +971,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			else if (obj.publickey == match_details[0].player2.publicaddress && match_details[0].status == 'active') {
 				match_details[0].status = "Aborted";
 				match_details[0].stars_of_player2--;
+                match_details[0].stars_of_player1++;
 				match_details[0].winner = "4"
 				await transferstar(match_details[0].player2.publicaddress, match_details[0].stars_of_player2);
+                this.delay(20000).then(async () => await transferstar(match_details[0].player1.publicaddress, match_details[0].stars_of_player1))
 				await this.user.updateOne({ publickey: match_details[0].player2.publicaddress }, {
 					$inc: {
 						stars: match_details[0].stars_of_player2,

@@ -16,6 +16,7 @@ export class AppComponent {
     this.socket.on('new_match_response', data => console.log(data))
     this.socket.on('roundetails_response', data => console.log(data))
     this.socket.on('match_details', data => console.log(data))
+    this.socket.on("round_results", data => console.log(data));
     this.socket.on('start_match_response', data => console.log(data))
     this.socket.on('activerooms_response', (data) => {
       console.log(data)});
