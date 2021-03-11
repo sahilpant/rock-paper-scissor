@@ -37,13 +37,14 @@ export class AppController {
               }
 
               @Get('/:publickey')
-              @ApiOkResponse({description:"returns user details of this public key"})
+              @ApiOkResponse({description:"returns Updated user details of this public key"})
               @ApiUnauthorizedResponse({description:`<ul>
               <li>User with this public key not exists</li>
               `})
               async getdetails(@Param('publickey') publickey:string):Promise<any>{
                  console.log(publickey);
-                 return this.appService.getUserdetails(publickey)
+                 return await this.appService.getUserdetails(publickey);
+                 
               }
 
               @Post('/replenish')
