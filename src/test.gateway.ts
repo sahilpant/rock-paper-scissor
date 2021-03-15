@@ -174,8 +174,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 	}
 
-
-
 	@SubscribeMessage('roundDetails')
 	async deletepasskey(client: Socket, obj: Object) {
 		var data = obj.gameid;
@@ -1341,19 +1339,19 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 		var token = data.jwt_token;
 		const decryptedvalue = <JwtPayLoad>jwt.verify(token, this.configservice.get<string>('JWT_SECRET'));
 		let userdetails = await this.jwtstrategy.validate(decryptedvalue);
+		console.log("Values =>"  userdetails);
 		try {
 			if (userdetails) {
 				let matchinDB = await this.match.findOne({ gameid: data.gameid });
 				let userinDB = await this.user.findOne({ username: data.username });
+				console.log("matchinDB =>" matchinDB);
 				var room = data.gameid;
-
-
 				client.join(room, async function (err) {
 					if (err) throw err;
 					else {
 						if (matchinDB && userinDB && matchinDB.player2.username == data.username && matchinDB.start_date == null) {
 							matchinDB.start_date = new Date();
-							matchinDB.player1cardposition = data.card_pos_array;
+							matchinDB.player2cardposition = data.card_pos_array;
 							await matchinDB.save();
 						}
 						else{
