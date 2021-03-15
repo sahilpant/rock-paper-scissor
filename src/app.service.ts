@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Injectable, UnauthorizedException, CanActivate, ExecutionContext, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -23,7 +23,16 @@ export class AppService
               @InjectModel('assetReplenish') private readonly asset:Model<asset>){}
 
               async getUserdetails(publickey):Promise<any>{
-                return this.user.findOne({publickey:publickey});
+                try{
+                  await this.updateUserdata(publickey);
+                  return this.user.findOne({publickey:publickey});
+                }
+                catch(err){
+
+                  return new BadRequestException(err.message);
+
+                }
+
               }
 
               async assetReplenishEvery24Hour({publickey}:publickey):Promise<any>{
@@ -145,7 +154,7 @@ export class AppService
                   {
                     const payload:JwtPayLoad = {email: userinDB.email ,username: userinDB.username, role: userinDB.role = 'PLAYER'}
                     this.accessToken= this.jwtService.sign(payload);
-                    let arrofCards = await returnownedTokens(userinDB.publickey)
+                    let arrofCards = await returnownedTokens(userinDB.publickey);
                     var rock = [];
                     var paper = [];
                     var scissor = [];

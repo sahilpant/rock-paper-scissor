@@ -176,18 +176,16 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 
 
-	@SubscribeMessage('roundetails')
+	@SubscribeMessage('roundDetails')
 	async deletepasskey(client: Socket, obj: Object) {
 		var data = obj.gameid;
-		var roundetails = await this.passkey.findOne({ "gameid": data }, {});
-		console.log(roundetails);
+		var roundDetails = await this.passkey.findOne({ "gameid": data }, {});
 		let response = {
-			"player1played": (roundetails.card1 != null) ? true : false,
-			"P1_position": roundetails.cardposition.card1pos,
-			"player2played": (roundetails.card2 != null) ? true : false,
-			"P2_position": roundetails.cardposition.card2pos,
+			"player1played": (roundDetails.card1 != null) ? true : false,
+			"P1_position": roundDetails.cardposition.card1pos,
+			"player2played": (roundDetails.card2 != null) ? true : false,
+			"P2_position": roundDetails.cardposition.card2pos,
 		}
-		console.log(response)
 		client.emit("roundetails_response", response)
 
 	}
@@ -238,15 +236,16 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				await passkeyObj.save(); // Save function is called here
 				// Saving passkey in this collection - Ends here
 				if (gameExistinMatch && obj.username == gameExistinMatch.player1.username) {
-					let new_arr = (gameExistinMatch.player1cardposition);
-					new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
-					if (new_arr[cardindex] === "false"){
-                        new_arr[cardindex] = "true";
-                        new_arr = "[" + new_arr.toString() + "]";
-                    }
-					
-					//console.log(new_arr);	
-					await this.match.updateOne({ gameid: obj.gameid }, { $set: { player1cardposition: new_arr } })
+		c
+
+					// let new_arr = (gameExistinMatch.player1cardposition);
+					// new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
+					// if (new_arr[cardindex] === "false"){
+                    //     new_arr[cardindex] = "true";
+                    //     new_arr = "[" + new_arr.toString() + "]";
+                    // }
+					// await this.match.updateOne({ gameid: obj.gameid }, { $set: { player1cardposition: new_arr } })
+
 					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token1: obj.card_number, card1played: true, user1: obj.username, card1: givenCardType } });
 					await this.user.update({ "username": obj.username }, {
 						$pull: {
@@ -257,15 +256,14 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 				}
 				else if (gameExistinMatch && obj.username == gameExistinMatch.player2.username) {
-					let new_arr = gameExistinMatch.player2cardposition;
-					new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
-					//console.log(new_arr);
-                    if (new_arr[cardindex] === "false"){
-                        new_arr[cardindex] = "true";
-                        new_arr = "[" + new_arr.toString() + "]";
-                    }
+					// let new_arr = gameExistinMatch.player2cardposition;
+					// new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
+                    // if (new_arr[cardindex] === "false"){
+                    //     new_arr[cardindex] = "true";
+                    //     new_arr = "[" + new_arr.toString() + "]";
+                    // }
 					//console.log(new_arr);	
-					await this.match.updateOne({ gameid: obj.gameid }, { $set: { player2cardposition: new_arr } })
+					// await this.match.updateOne({ gameid: obj.gameid }, { $set: { player2cardposition: new_arr } })
 					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token2: obj.card_number, card2played: true, user2: obj.username, card2: givenCardType } });
 					await this.user.update({ "username": obj.username }, {
 						$pull: {
@@ -281,21 +279,20 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			if (gameExistinPasskey !== null && gameExistinMatch !== null) {
 
 				if (gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player1.username && gameExistinPasskey.token1 == 0) {
-					let new_arr = gameExistinMatch.player1cardposition;
-					console.log(new_arr);
-					new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
-					//console.log(new_arr);
-					if (new_arr[cardindex] === "false")
-						new_arr[cardindex] = "true";
-					console.log(new_arr);
-					new_arr = "[" + new_arr.toString() + "]";
-					await this.match.updateOne({ gameid: obj.gameid }, { $set: { player1cardposition: new_arr } })
+					// let new_arr = gameExistinMatch.player1cardposition;
+					// console.log(new_arr);
+					// new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
+					// //console.log(new_arr);
+					// if (new_arr[cardindex] === "false")
+					// 	new_arr[cardindex] = "true";
+					// console.log(new_arr);
+					// new_arr = "[" + new_arr.toString() + "]";
+					// await this.match.updateOne({ gameid: obj.gameid }, { $set: { player1cardposition: new_arr } })
 					let object = {
 						card1pos: obj.card_position,
 						card2pos: gameExistinPasskey.cardposition.card2pos
 					}
 					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token1: obj.card_number, card1played: true, user1: obj.username, cardposition: object, card1:givenCardType } });
-					// console.log( await this.passkey.find({gameid:obj.gameid}))
 					await this.user.update({ "username": obj.username }, {
 						$pull: {
 							notUsedCards: obj.card_number
@@ -305,14 +302,13 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				}
 
 				else if (gameExistinPasskey && gameExistinMatch && obj.username == gameExistinMatch.player2.username && gameExistinPasskey.token2 == 0) {
-					let new_arr = gameExistinMatch.player2cardposition;
-					new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
-					//console.log(new_arr);
-					if (new_arr[cardindex] === "false")
-						new_arr[cardindex] = "true";
-					console.log(new_arr);
-					new_arr = "[" + new_arr.toString() + "]";
-					await this.match.updateOne({ gameid: obj.gameid }, { $set: { player2cardposition: new_arr } })
+					// let new_arr = gameExistinMatch.player2cardposition;
+					// new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
+					// if (new_arr[cardindex] === "false")
+					// 	new_arr[cardindex] = "true";
+					// new_arr = "[" + new_arr.toString() + "]";
+					// await this.match.updateOne({ gameid: obj.gameid }, { $set: { player2cardposition: new_arr } })
+
 					let object = {
 						card1pos: gameExistinPasskey.cardposition.card1pos,
 						card2pos: obj.card_position
@@ -339,13 +335,9 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			//console.log(gameExistinMatch,gameExistinPasskey,gameExistinPasskey.token1,gameExistinPasskey.token2);
 
 			if (gameExistinPasskey !== null && gameExistinMatch !== null) {
-				// console.log("Entered in first loop")
-
 				gameExistinPasskey = await this.passkey.findOne({ gameid: obj.gameid });  // Fetch details from db
 
 				if (gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasskey.token1 > 0 && gameExistinPasskey.token2 > 0) {
-					// console.log("I was here");
-					// console.log("Entered in second loop")
 
 					for (var i = 0; i <= 1; i++) {
 						let carddetail: string | string[];
@@ -524,7 +516,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			console.log(gameblock[0].stars_of_player2);
 
 			if (gameblock[0].stars_of_player1 > 0 && gameblock[0].player1.publicaddress !== null) {
-				console.log(`Stars of Player one + ${gameblock[0].stars_of_player1}`);
+				// console.log(`Stars of Player one + ${gameblock[0].stars_of_player1}`);
 				await transferstar(gameblock[0].player1.publicaddress, gameblock[0].stars_of_player1);
 				await this.user.updateOne({ publickey: gameblock[0].player1.publicaddress }, {
 					$inc: {
@@ -533,7 +525,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				})
 			}
 			if (gameblock[0].stars_of_player2 > 0 && gameblock[0].player2.publicaddress !== null) {
-				console.log(`Stars of Player two + ${gameblock[0].stars_of_player2}`);
+				// console.log(`Stars of Player two + ${gameblock[0].stars_of_player2}`);
 
 				this.delay(20000).then(async () => await transferstar(gameblock[0].player2.publicaddress, gameblock[0].stars_of_player2));
 				await this.user.updateOne({ publickey: gameblock[0].player2.publicaddress }, {
@@ -610,7 +602,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 									player2win++;
 								}
 							});
-							console.log(player1win + "   " + player2win);
+							// console.log(player1win + "   " + player2win);
 							(player1win > player2win) ?
 								(match_details[0].winner = "1") :
 								((player2win > player1win) ? (match_details[0].winner = "2") : match_details[0].winner = "3")
@@ -1156,23 +1148,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 						if (err) console.log(err)
 					})
 				}
-
-
-
-
 				var response = await this.match.findOne().where('gameid').equals(existing_game[0].gameid).exec()
-
 				client.emit("new_match_response", response);
-
 			}
-
-
-
-
 		}
-
 		catch {
-
 			console.log("Invalid user") // Later pass this as event back to client
 			client.emit("new_match_response", "Invalid user");
 		}
@@ -1233,10 +1213,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			}
 
 			else if (stars > 0 && card_details > 0) {
-				console.log("running");
 
 				if (stars >= 3) {
-					console.log("running1");
 
 					const match = new this.match({
 						player1cardposition: "",
@@ -1361,10 +1339,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('start_match')
 	async start_match(client: Socket, data: Object) {
 		var token = data.jwt_token;
-		console.log(data);
 		const decryptedvalue = <JwtPayLoad>jwt.verify(token, this.configservice.get<string>('JWT_SECRET'));
 		let userdetails = await this.jwtstrategy.validate(decryptedvalue);
-
 		try {
 			if (userdetails) {
 				let matchinDB = await this.match.findOne({ gameid: data.gameid });
@@ -1375,14 +1351,17 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				client.join(room, async function (err) {
 					if (err) throw err;
 					else {
-						console.log(matchinDB);
 						if (matchinDB && userinDB && matchinDB.player2.username == data.username && matchinDB.start_date == null) {
 							matchinDB.start_date = new Date();
 							matchinDB.player1cardposition = data.card_pos_array;
-							matchinDB.player2cardposition = data.card_pos_array;
 							await matchinDB.save();
 						}
+						else{
+							matchinDB.start_date = new Date();
+							matchinDB.player1cardposition = data.card_pos_array;
+							await matchinDB.save();
 
+						}
 					}
 				});
 				var matchresponse = {
@@ -1398,14 +1377,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			}
 		}
 		catch {
-
 			var res = {
-
 				response: 401,
 				message: "Invalid User"
 			}
 			client.emit('start_match_response', res)
-
 		}
 
 	}
@@ -1497,18 +1473,10 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 	@SubscribeMessage('room_check')
 	roomcheck(client: Socket, data: string): WsResponse<unknown> {
-		console.log("asdfghjkl");
-
-
 		client.join(data);
-
-		console.log(Object.keys(client.rooms));
-
 		this.wss.to(data).emit('room_check_response', { room: 'aRoomwww' });
 		this.wss.to(Object.keys(client.rooms)[0]).emit('room_check_response', { room: 'aRoom' });
-
 		return;
-		// socket.to('aRoom').emit('roomCreated', {room: 'aRoom'});
 	}
 
 
@@ -1523,8 +1491,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			var res = {
 				response: 201,
 				date: new Date(),
-
-
 			}
 			client.emit('server_time_response', res);
 		}
@@ -1536,7 +1502,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			}
 			client.emit('server_time_response', err);
 		}
-
 	}
 
 	//  Create Private Match -  Starts
@@ -1544,7 +1509,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 	@SubscribeMessage('private')
 	async Joinprivate(client: Socket, data: Object) {
 		var token = data.jwt_token;
-		console.log("private was called");
 		const decryptedvalue = <JwtPayLoad>jwt.verify(token, this.configservice.get<string>('JWT_SECRET'));
 		let userdetails = await this.jwtstrategy.validate(decryptedvalue);
 		if (userdetails) {
