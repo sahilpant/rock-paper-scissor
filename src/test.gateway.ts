@@ -1349,13 +1349,18 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				client.join(room, async function (err) {
 					if (err) throw err;
 					else {
-						if (matchinDB && userinDB && matchinDB.player2.username == data.username && matchinDB.start_date == null) {
-							matchinDB.start_date = new Date();
+						if (matchinDB && userinDB && matchinDB.player2.username == data.username) {
+							
 							matchinDB.player2cardposition = data.card_pos_array;
+							if(matchinDB.player1cardposition != "" || matchinDB.player2cardposition != "" ){
+								matchinDB.start_date = new Date();
+							}
 							await matchinDB.save();
 						}
 						else{
-							matchinDB.start_date = new Date();
+							if(matchinDB.player1cardposition != "" || matchinDB.player2cardposition != "" ){
+								matchinDB.start_date = new Date();
+							}
 							matchinDB.player1cardposition = data.card_pos_array;
 							await matchinDB.save();
 
