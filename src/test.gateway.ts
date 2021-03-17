@@ -197,14 +197,13 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 		var data = obj.card_number;
 		var cardindex = obj.card_position;
 		let gameExistinPasskey = await this.passkey.findOne({ gameid: obj.gameid });  // Fetch details from db
+		console.log("GameExistInPasskey =>"gameExistinPasskey);
 		let gameExistinMatch = await this.match.findOne({ gameid: obj.gameid }); // fetch match detials from db
 		let givenCardType;
 		let carddetail = await detailOfCard(obj.card_number);
 		(carddetail[0] === "1") ? (givenCardType = "ROCK") : (
 			(carddetail[0] === "2") ? (givenCardType = "PAPER") : (
 				(carddetail[0] === "3") ? (givenCardType = "SCISSOR") : givenCardType = "none"))
-
-
 		// console.log(gameExistinPasskey);
 		// If passkey collection is empty against this gameid then insert this match instance in the collection
 		if (gameExistinMatch.status == "active") {
@@ -234,7 +233,6 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 				await passkeyObj.save(); // Save function is called here
 				// Saving passkey in this collection - Ends here
 				if (gameExistinMatch && obj.username == gameExistinMatch.player1.username) {
-		c
 
 					// let new_arr = (gameExistinMatch.player1cardposition);
 					// new_arr = new_arr.slice(1, new_arr.length - 1).split(',');
@@ -245,7 +243,8 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 					// await this.match.updateOne({ gameid: obj.gameid }, { $set: { player1cardposition: new_arr } })
 
 					await this.passkey.updateOne({ gameid: obj.gameid }, { $set: { token1: obj.card_number, card1played: true, user1: obj.username, card1: givenCardType } });
-					await this.user.update({ "username": obj.username }, {
+					console.log("Value should get updated in the paskey for user 1");
+					await this.user.update({ "username": obj.username },{
 						$pull: {
 							notUsedCards: obj.card_number
 						},

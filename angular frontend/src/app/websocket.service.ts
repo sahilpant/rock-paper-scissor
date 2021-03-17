@@ -121,7 +121,7 @@ export class WebsocketService {
       username:localStorage.getItem('username'),
       gameid: localStorage.getItem('roomID'),
     }
-    localStorage.setItem('card_position_array',JSON.stringify([1,1,1,0,0,1,0,1,1]));
+    localStorage.setItem('card_position_array',JSON.stringify("[true,true,true,false,false,false,false,false,false]"));
     data["card_pos_array"] = localStorage.getItem('card_position_array');
     console.log(data);
     this.socket.emit('start_match',data);
