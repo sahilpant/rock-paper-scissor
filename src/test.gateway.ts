@@ -184,7 +184,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			"player2played": (roundDetails.card2 != null) ? true : false,
 			"P2_position": roundDetails.cardposition.card2pos,
 		}
-		client.emit("roundetails_response", response)
+		client.emit("roundDetails_response", response)
 
 	}
 
