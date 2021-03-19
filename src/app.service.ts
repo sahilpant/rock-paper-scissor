@@ -191,7 +191,8 @@ export class AppService
 
                       for(var i=0;i<arrofCards.length;i++)
                     {
-                      let carddetail = await detailOfCard(arrofCards[i]);
+                      if(arrofCards[i] !== '0'){
+                        let carddetail = await detailOfCard(arrofCards[i]);
 
                       if(carddetail[0] === "1")
                       rock.push(arrofCards[i]);
@@ -200,6 +201,8 @@ export class AppService
                       else if(carddetail[0] === "3")
                       scissor.push(arrofCards[i]);
                       notUSed.push(arrofCards[i]);
+                      }
+                      
                     }
                     var c =  rock.filter(function(id){
                       return userinDB.usedCards.indexOf(id) < 0
