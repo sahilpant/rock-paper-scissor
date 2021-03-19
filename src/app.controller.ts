@@ -4,9 +4,12 @@ import {ConfigService} from '@nestjs/config';
 import { configss} from './Config/configuration';
 import { ApiBearerAuth, ApiBody, ApiCreatedResponse, ApiOkResponse, ApiResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { signin } from './required/dto/sign.dto';
-import { publickey } from './required/dto/publickey.dto';
+import { Count, publickey } from './required/dto/publickey.dto';
 import { GetUser } from './get-user.decorator';
 import { AuthGuard } from '@nestjs/passport';
+import { UserModule } from './Models/user/user.module';
+import { count } from 'console';
+import { user } from './schemas/user.model';
 
 @Controller()
 export class AppController {
@@ -42,7 +45,6 @@ export class AppController {
               <li>User with this public key not exists</li>
               `})
               async getdetails(@Param('publickey') publickey:string):Promise<any>{
-                 console.log(publickey);
                  return await this.appService.getUserdetails(publickey);
                  
               }
@@ -57,6 +59,21 @@ export class AppController {
               async replensih(@Body()publickey:publickey,@GetUser() user){
                 console.log(user);
                 return this.appService.assetReplenishEvery24Hour(publickey);
+              }
+
+              @Post('/update-card-debt')
+              @ApiOkResponse({description:"update card response"})
+              @ApiBearerAuth()
+              @UseGuards(AuthGuard())
+              @ApiUnauthorizedResponse({description:`<ul>
+              <li>Unauthorized User</li>
+              `})
+              async updateCardDebt(@Body() count:Count, @GetUser() user):Promise<any>{
+                console.log(user);
+                console.log(count);
+                return this.appService.updateCardDebt(count.count,user.publickey);
+
+
               }
 
             }

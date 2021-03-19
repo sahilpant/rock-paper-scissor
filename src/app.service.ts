@@ -10,6 +10,7 @@ import {returnownedTokens,detailOfCard,show_stars, assetReplinshment} from '../g
 import { date } from '@hapi/joi';
 import { publickey } from './required/dto/publickey.dto';
 import { asset } from './required/interfaces/assetReplenish.interface';
+import { user } from './schemas/user.model';
 @Injectable()
 export class AppService 
 {
@@ -89,6 +90,8 @@ export class AppService
 
                     for(var i=0;i<arrofCards.length;i++)
                   {
+                    if(arrofCards[i] !== '0'){
+
                     let carddetail = await detailOfCard(arrofCards[i]);
 
                     if(carddetail[0] === "1")
@@ -98,6 +101,7 @@ export class AppService
                     else if(carddetail[0] === "3")
                     scissor.push(arrofCards[i]);
                     notUSed.push(arrofCards[i]);
+                  }
                   }
                   var c =  rock.filter(function(id){
                     return userinDB.usedCards.indexOf(id) < 0
@@ -228,7 +232,7 @@ export class AppService
                     }
 
                     else{
-                     console.log("I was here")
+
                       return  this.accessToken;
                     }  
                   }
@@ -239,6 +243,21 @@ export class AppService
                 }
 
               }
+
+              async updateCardDebt(count:number,publickey:string):Promise<any>{
+              
+                try{var userDetail = await this.user.findOne({publickey:publickey})
+                if(userDetail)
+                 userDetail.cardDebt = count;
+                return userDetail.save();
+                
+                }
+                 catch(err){
+                   return new BadRequestException(err.message);
+                 }
+              }
+
+              
 
 
             }
