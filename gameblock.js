@@ -259,6 +259,9 @@ async function remainingScissor(_of){ //////arguments: address  return: total sc
         try{
                 let tokenList = await interface_nft.methods.returnOwnedToken(_address).call();
 				console.log(tokenList);
+                                tokenList = tokenList.filter((e) =>{
+                                        return e!=='0';
+                                })
 				return tokenList;
                 
         }
@@ -447,7 +450,7 @@ module.exports = {
 //  {
 //var d = createNewToken("0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4",3,40,account1,privateKey1,nftContractAddress);
 //   }
-//returnOwnedToken("0xFcb269E2798C48CF4B93aAeCDF8CEc143AcC29b4");
+returnOwnedToken("0x63bfcc4d68cA745278704e62b5a136BB3280E84d");
 
 //signUP("0xA499569422a00d7f612ab91a47B3cb8C6Be71884",account1,privateKey1,gameContractAddress);
 
