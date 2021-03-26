@@ -72,8 +72,6 @@ export class AppController {
                 console.log(user);
                 console.log(count);
                 return this.appService.updateCardDebt(count.count,user.publickey);
-
-
               }
 
             }
