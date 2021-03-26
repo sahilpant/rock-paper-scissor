@@ -369,6 +369,9 @@ async function replenish_token(_address){/////transfer token from other account 
 function assetReplinshment(_address){
         try{
                 if(returnOwnedToken(_address).then((data) => {
+                        data = data.filter((e) =>{
+                                return e !== '0'
+                        });
                         if(data && data.length<30)
                         setTimeout(async() => {replenish_token(_address);} ,30000);
                         else
