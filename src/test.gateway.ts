@@ -333,15 +333,14 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 			if (gameExistinPasskey !== null && gameExistinMatch !== null) {
 				gameExistinPasskey = await this.passkey.findOne({ gameid: obj.gameid });  // Fetch details from db
-
+                console.log("Line 336");
 				if (gameExistinPasskey !== null && gameExistinMatch !== null && gameExistinPasskey.token1 > 0 && gameExistinPasskey.token2 > 0) {
-
+                console.log("Lin2 339");
 					for (var i = 0; i <= 1; i++) {
 						let carddetail: string | string[];
 						let givenCardType;
 						console.log(i);
 						if (i == 0) {
-
 							carddetail = await detailOfCard(gameExistinPasskey.token1);
 							(carddetail[0] === "1") ? (givenCardType = "ROCK") : (
 								(carddetail[0] === "2") ? (givenCardType = "PAPER") : (
@@ -364,10 +363,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 					//  Winner of round : Starts
 					var dat = obj.gameid;
 					let gamedetails = await this.passkey.find({ "gameid": obj.gameid });
-					//  console.log(gamedetails);
+				      console.log("Line 366");
 					switch (gamedetails[0].card1) {
 						case 'ROCK':
 							console.log(gamedetails[0].card2);
+							console.log("Line 370");
 							switch (gamedetails[0].card2) {
 								case 'ROCK':
 									await this.handletransfers(0, gamedetails[0].card1, gamedetails[0].card2, gamedetails[0].token1, gamedetails[0].token2, dat);
@@ -440,9 +440,11 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 	// Function to update match details and sending response.
 	async handletransfers(winner, card1, card2, token1, token2, game): Promise<any> {
 
-		console.log(winner, card1, card2, token1, token2, game)
+		console.log(winner, card1, card2, token1, token2, game);
 		let gameblock = await this.match.find({ gameid: game }, {});
 		console.log(gameblock)
+		console.log("Line 446");
+
 
 		if (winner == 1) {
 			gameblock[0].stars_of_player2--;
@@ -469,7 +471,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 
 			})
 		}
-
+		console.log("Line 474");
 		if (gameblock[0].round == 3 || gameblock[0].stars_of_player1 == 0 || gameblock[0].stars_of_player2 == 0) {
 			gameblock[0].status = "COMPLETED";
 			// if (gameblock[0].stars_of_player1 > gameblock[0].stars_of_player2) {
@@ -483,7 +485,7 @@ export class TestGateway implements OnGatewayInit, OnGatewayConnection {
 			// }
 
             // 
-            
+            		console.log("Line 488");
             let player1win = 0;
             let player2win = 0;
             if (gameblock[0].Rounds.length > 0) {
